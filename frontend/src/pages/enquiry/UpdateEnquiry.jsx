@@ -1,27 +1,498 @@
-import React from 'react';
+import React, { useState } from 'react';
+import {
+  locationOptions,
+  categoryOptions,
+  branchOptions,
+  admissionForOptions
+} from '../../data/mockEnquiries';
 
-const UpdateEnquiry = () => {
+const UpdateEnquiry = ({ enquiry, onUpdate }) => {
+  const [formData, setFormData] = useState(enquiry || {
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    personalMobileNumber: '',
+    guardianMobileNumber: '',
+    email: '',
+    merit: { class10: '', class12: '', other: '' },
+    admissionFor: 'FY',
+    location: '',
+    otherLocation: '',
+    category: '',
+    branchesInterested: [],
+    referenceFaculty: '',
+    status: 'Pending'
+  });
+
+  const [selectedBranches, setSelectedBranches] = useState(
+    (enquiry?.branchesInterested || []).map(b => b.branch)
+  );
+  const [branchPriorities, setBranchPriorities] = useState(
+    (enquiry?.branchesInterested || []).reduce((acc, b) => {
+      acc[b.branch] = b.priority;
+      return acc;
+    }, {})
+  );
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleMeritChange = (classType, value) => {
+    setFormData(prev => ({
+      ...prev,
+      merit: { ...prev.merit, [classType]: value }
+    }));
+  };
+
+  const handleBranchToggle = (branch) => {
+    setSelectedBranches(prev => {
+      if (prev.includes(branch)) {
+        // Remove branch
+        return prev.filter(b => b !== branch);
+      } else {
+        // Add branch - priority will be automatically assigned based on order
+        return [...prev, branch];
+      }
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Priority is automatically assigned based on selection order
+    const branchesData = selectedBranches.map((branch, index) => ({
+      branch,
+      priority: index + 1
+    }));
+
+    const updatedData = {
+      ...formData,
+      branchesInterested: branchesData
+    };
+
+    if (onUpdate) {
+      onUpdate(updatedData);
+    } else {
+      console.log('Updated Enquiry Data:', updatedData);
+      alert('Enquiry updated successfully!');
+    }
+  };
+
+  const styles = {
+    container: {
+      background: 'white',
+      padding: '35px',
+      borderRadius: '15px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      maxWidth: '900px',
+      margin: '0 auto'
+    },
+    title: {
+      color: '#2c3e50',
+      marginBottom: '30px',
+      fontSize: '2em',
+      fontWeight: '600'
+    },
+    sectionTitle: {
+      color: '#34495e',
+      fontSize: '1.2em',
+      fontWeight: '600',
+      marginTop: '25px',
+      marginBottom: '15px',
+      paddingBottom: '10px',
+      borderBottom: '2px solid #3498db'
+    },
+    formGroup: {
+      marginBottom: '20px'
+    },
+    formGroupRow: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+      gap: '20px',
+      marginBottom: '20px'
+    },
+    label: {
+      display: 'block',
+      marginBottom: '8px',
+      color: '#2c3e50',
+      fontWeight: '500',
+      fontSize: '0.95em'
+    },
+    input: {
+      width: '100%',
+      padding: '12px',
+      border: '1px solid #bdc3c7',
+      borderRadius: '8px',
+      fontSize: '0.95em',
+      fontFamily: 'inherit',
+      boxSizing: 'border-box',
+      transition: 'border-color 0.3s'
+    },
+    select: {
+      width: '100%',
+      padding: '12px',
+      border: '1px solid #bdc3c7',
+      borderRadius: '8px',
+      fontSize: '0.95em',
+      fontFamily: 'inherit',
+      boxSizing: 'border-box',
+      backgroundColor: 'white'
+    },
+    branchContainer: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+      gap: '15px',
+      marginTop: '15px'
+    },
+    branchItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      padding: '12px',
+      border: '1px solid #ecf0f1',
+      borderRadius: '8px',
+      backgroundColor: '#f9f9f9'
+    },
+    checkbox: {
+      width: '18px',
+      height: '18px',
+      cursor: 'pointer',
+      accentColor: '#3498db'
+    },
+    priorityInput: {
+      width: '60px',
+      padding: '8px',
+      border: '1px solid #bdc3c7',
+      borderRadius: '6px',
+      fontSize: '0.85em',
+      marginLeft: 'auto'
+    },
+    buttonGroup: {
+      display: 'flex',
+      gap: '15px',
+      marginTop: '35px',
+      justifyContent: 'flex-end'
+    },
+    submitBtn: {
+      padding: '12px 30px',
+      background: '#3498db',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '1em',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'background 0.3s'
+    },
+    cancelBtn: {
+      padding: '12px 30px',
+      background: '#95a5a6',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '1em',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'background 0.3s'
+    }
+  };
+
   return (
     <div>
-      <h2 style={{
-        color: '#2c3e50',
-        marginBottom: '30px',
-        fontSize: '2em',
-        fontWeight: '600'
-      }}>
-        ✏️ Update Enquiry
-      </h2>
+      <h2 style={styles.title}>✏️ Update Enquiry</h2>
 
-      <div style={{
-        background: 'white',
-        padding: '30px',
-        borderRadius: '15px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        maxWidth: '600px'
-      }}>
-        <p style={{ color: '#666', fontSize: '1.1em' }}>
-          🚀 Coming soon! Update enquiry form will be implemented here.
-        </p>
+      <div style={styles.container}>
+        <form onSubmit={handleSubmit}>
+          {/* Personal Information Section */}
+          <h3 style={styles.sectionTitle}>👤 Personal Information</h3>
+          <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>First Name *</label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter first name"
+                required
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Middle Name</label>
+              <input
+                type="text"
+                name="middleName"
+                value={formData.middleName}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter middle name"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Last Name *</label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter last name"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Contact Information Section */}
+          <h3 style={styles.sectionTitle}>📱 Contact Information</h3>
+          <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Personal Mobile Number *</label>
+              <input
+                type="tel"
+                name="personalMobileNumber"
+                value={formData.personalMobileNumber}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="10-digit mobile number"
+                pattern="[0-9]{10}"
+                required
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Guardian Mobile Number *</label>
+              <input
+                type="tel"
+                name="guardianMobileNumber"
+                value={formData.guardianMobileNumber}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="10-digit mobile number"
+                pattern="[0-9]{10}"
+                required
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Email *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter email address"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Academic Information Section */}
+          <h3 style={styles.sectionTitle}>📚 Academic Information</h3>
+          <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Class 10 Merit/Percentage</label>
+              <input
+                type="number"
+                value={formData.merit.class10}
+                onChange={(e) => handleMeritChange('class10', e.target.value)}
+                style={styles.input}
+                placeholder="0-100"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Class 12 Merit/Percentage</label>
+              <input
+                type="number"
+                value={formData.merit.class12}
+                onChange={(e) => handleMeritChange('class12', e.target.value)}
+                style={styles.input}
+                placeholder="0-100"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Other Merit/Percentage</label>
+              <input
+                type="number"
+                value={formData.merit.other}
+                onChange={(e) => handleMeritChange('other', e.target.value)}
+                style={styles.input}
+                placeholder="0-100"
+                min="0"
+                max="100"
+              />
+            </div>
+          </div>
+
+          {/* Admission Section */}
+          <h3 style={styles.sectionTitle}>🎓 Admission Details</h3>
+          <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Admission For *</label>
+              <select
+                name="admissionFor"
+                value={formData.admissionFor}
+                onChange={handleInputChange}
+                style={styles.select}
+                required
+              >
+                <option value="">Select admission type</option>
+                {admissionForOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Category *</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                style={styles.select}
+                required
+              >
+                <option value="">Select category</option>
+                {categoryOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                style={styles.select}
+              >
+                <option value="Pending">Pending</option>
+                <option value="Follow-up">Follow-up</option>
+                <option value="Converted">Converted</option>
+                <option value="Lost">Lost</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Location Section */}
+          <h3 style={styles.sectionTitle}>📍 Location</h3>
+          <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Location *</label>
+              <select
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                style={styles.select}
+                required
+              >
+                <option value="">Select location</option>
+                {locationOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+                <option value="Other">Other (Specify Below)</option>
+              </select>
+            </div>
+
+            {formData.location === 'Other' && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Other Location *</label>
+                <input
+                  type="text"
+                  name="otherLocation"
+                  value={formData.otherLocation}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  placeholder="Enter your location"
+                  required={formData.location === 'Other'}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Branch Interested Section */}
+          <h3 style={styles.sectionTitle}>🔧 Branches Interested (Select in Priority Order)</h3>
+          <p style={{ color: '#666', fontSize: '0.95em', marginBottom: '15px' }}>
+            First selected = Priority 1, Second = Priority 2, and so on...
+          </p>
+          <div style={styles.branchContainer}>
+            {branchOptions.map(branch => {
+              const priority = selectedBranches.indexOf(branch) + 1;
+              const isSelected = selectedBranches.includes(branch);
+              return (
+                <div key={branch} style={styles.branchItem}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                    <input
+                      type="checkbox"
+                      id={`branch-${branch}`}
+                      checked={isSelected}
+                      onChange={() => handleBranchToggle(branch)}
+                      style={styles.checkbox}
+                    />
+                    <label htmlFor={`branch-${branch}`} style={{ margin: 0, fontWeight: '500', cursor: 'pointer' }}>
+                      {branch}
+                    </label>
+                  </div>
+                  {isSelected && (
+                    <span style={{
+                      padding: '6px 12px',
+                      background: '#3498db',
+                      color: 'white',
+                      borderRadius: '6px',
+                      fontSize: '0.85em',
+                      fontWeight: '600',
+                      marginLeft: 'auto'
+                    }}>
+                      Priority {priority}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Reference Faculty Section */}
+          <h3 style={styles.sectionTitle}>👨‍🏫 Reference Faculty</h3>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Reference Faculty Name</label>
+            <input
+              type="text"
+              name="referenceFaculty"
+              value={formData.referenceFaculty}
+              onChange={handleInputChange}
+              style={styles.input}
+              placeholder="Enter faculty name"
+            />
+          </div>
+
+          {/* Button Group */}
+          <div style={styles.buttonGroup}>
+            <button
+              type="button"
+              style={styles.cancelBtn}
+              onMouseOver={(e) => e.target.style.background = '#7f8c8d'}
+              onMouseOut={(e) => e.target.style.background = '#95a5a6'}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              style={styles.submitBtn}
+              onMouseOver={(e) => e.target.style.background = '#2980b9'}
+              onMouseOut={(e) => e.target.style.background = '#3498db'}
+            >
+              Update Enquiry
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

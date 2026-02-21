@@ -12,6 +12,18 @@ const EnquiryList = ({ enquiries, onDelete }) => {
     return colors[status] || '#999';
   };
 
+  const getFullName = (enquiry) => {
+    return `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
+  };
+
+  const getBranches = (enquiry) => {
+    if (!enquiry.branchesInterested || enquiry.branchesInterested.length === 0) return '—';
+    return enquiry.branchesInterested
+      .sort((a, b) => a.priority - b.priority)
+      .map(b => b.branch)
+      .join(', ');
+  };
+
   return (
     <div style={{
       background: 'white',
@@ -31,7 +43,10 @@ const EnquiryList = ({ enquiries, onDelete }) => {
             <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Name</th>
             <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Email</th>
             <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Phone</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Course</th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Admission For</th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Branches Interested</th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Location</th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Category</th>
             <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Status</th>
             <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Date</th>
             <th style={{ padding: '15px', textAlign: 'center', fontWeight: '600', color: '#333' }}>Actions</th>
@@ -54,16 +69,25 @@ const EnquiryList = ({ enquiries, onDelete }) => {
               }}
             >
               <td style={{ padding: '15px' }}>
-                <strong>{enquiry.studentName}</strong>
+                <strong>{getFullName(enquiry)}</strong>
               </td>
-              <td style={{ padding: '15px', color: '#666' }}>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {enquiry.email}
               </td>
-              <td style={{ padding: '15px', color: '#666' }}>
-                {enquiry.phone}
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
+                {enquiry.personalMobileNumber}
               </td>
-              <td style={{ padding: '15px', color: '#666' }}>
-                {enquiry.course || '—'}
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
+                {enquiry.admissionFor || '—'}
+              </td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.85em' }}>
+                {getBranches(enquiry)}
+              </td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
+                {enquiry.location === 'Other' ? enquiry.otherLocation : enquiry.location}
+              </td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
+                {enquiry.category || '—'}
               </td>
               <td style={{ padding: '15px' }}>
                 <span style={{
@@ -78,7 +102,7 @@ const EnquiryList = ({ enquiries, onDelete }) => {
                   {enquiry.status}
                 </span>
               </td>
-              <td style={{ padding: '15px', color: '#666' }}>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {formatDate(enquiry.enquiryDate)}
               </td>
               <td style={{ padding: '15px', textAlign: 'center' }}>
