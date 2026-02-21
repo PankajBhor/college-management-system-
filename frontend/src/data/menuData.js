@@ -10,7 +10,8 @@ export const menuConfig = {
   OFFICE_STAFF: [
     { icon: '📊', label: 'Dashboard', page: 'dashboard' },
     { icon: '👥', label: 'Students', page: 'students' },
-    { icon: '💰', label: 'Fees', page: 'fees' }
+    { icon: '💰', label: 'Fees', page: 'fees' },
+    { icon: '📋', label: 'Admissions', page: 'admissions' }
   ],
   ENQUIRY_STAFF: [
     { icon: '📊', label: 'Dashboard', page: 'dashboard' },

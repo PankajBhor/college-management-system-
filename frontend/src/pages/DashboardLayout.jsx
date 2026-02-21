@@ -6,6 +6,7 @@ import Dashboard from './Dashboard';
 import EnquiryIndex from './enquiry/index';
 import NewEnquiry from './enquiry/NewEnquiry';
 import UpdateEnquiry from './enquiry/UpdateEnquiry';
+import { AdmissionForm } from './admissions';
 
 const DashboardLayout = ({ user, onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -20,7 +21,8 @@ const DashboardLayout = ({ user, onLogout }) => {
       'dashboard': ['PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'FACULTY', 'HOD'],
       'students': ['PRINCIPAL', 'OFFICE_STAFF', 'FACULTY', 'HOD'],
       'fees': ['PRINCIPAL', 'OFFICE_STAFF'],
-      'courses': ['PRINCIPAL', 'FACULTY', 'HOD']
+      'courses': ['PRINCIPAL', 'FACULTY', 'HOD'],
+      'admissions': ['PRINCIPAL', 'OFFICE_STAFF']
     };
 
     const allowed = allowedPages[page] || [];
@@ -43,6 +45,8 @@ const DashboardLayout = ({ user, onLogout }) => {
         return <NewEnquiry />;
       case 'update-enquiry':
         return <UpdateEnquiry />;
+      case 'admissions':
+        return <AdmissionForm />;
       case 'students':
         return (
           <div>

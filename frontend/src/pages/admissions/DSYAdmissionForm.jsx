@@ -1,0 +1,829 @@
+import React, { useState, useEffect } from 'react';
+import './DSYAdmissionForm.css';
+import { admissionService } from '../../services/admissionService';
+
+const DSYAdmissionForm = () => {
+  const [formData, setFormData] = useState({
+    applicantFirstName: '',
+    applicantMiddleName: '',
+    applicantLastName: '',
+    fatherFirstName: '',
+    fatherMiddleName: '',
+    fatherLastName: '',
+    motherFirstName: '',
+    motherMiddleName: '',
+    motherLastName: '',
+    localAddressVillageCity: '',
+    localAddressTal: '',
+    localAddressDist: '',
+    localAddressPinCode: '',
+    permanentAddressVillageCity: '',
+    permanentAddressTal: '',
+    permanentAddressDist: '',
+    permanentAddressPinCode: '',
+    occupation: '',
+    annualIncome: '',
+    mobileNo: '',
+    studentEmail: '',
+    gender: '',
+    dateOfBirth: '',
+    bloodGroup: '',
+    aadhaarNo: '',
+    educationalQualification: '',
+    instituteName: '',
+    previousProgramCode: '',
+    previousCGPA: '',
+    scienceMarks: '',
+    program: '',
+    category: '',
+    caste: '',
+    physicallyHandicapped: 'No',
+    admissionType: 'CAP-1',
+    preference1: '',
+    preference2: '',
+    preference3: '',
+    preference4: ''
+  });
+
+  const [documents, setDocuments] = useState({
+    domicileCertificate: null,
+    sscMarkSheet: null,
+    hscMarkSheet: null,
+    casteCertificate: null,
+    nonCreamyLayerCertificate: null,
+    aadhaarCard: null
+  });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+
+  const dsyDocuments = [
+    { key: 'domicileCertificate', label: 'Domicile / Nationality Certificate' },
+    { key: 'sscMarkSheet', label: 'SSC Mark sheet' },
+    { key: 'hscMarkSheet', label: 'HSC/ITI/COE Mark sheet' },
+    { key: 'casteCertificate', label: 'Caste Certificate' },
+    { key: 'nonCreamyLayerCertificate', label: 'Non Creamy Layer Certificate' },
+    { key: 'aadhaarCard', label: 'Xerox copy of Aadhaar Card' }
+  ];
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.applicantFirstName.trim()) newErrors.applicantFirstName = 'First name is required';
+    if (!formData.applicantLastName.trim()) newErrors.applicantLastName = 'Last name is required';
+    if (!formData.localAddressVillageCity.trim()) newErrors.localAddressVillageCity = 'Local address is required';
+    if (!formData.permanentAddressVillageCity.trim()) newErrors.permanentAddressVillageCity = 'Permanent address is required';
+    if (!formData.mobileNo.match(/^[0-9]{10}$/)) newErrors.mobileNo = 'Mobile number must be 10 digits';
+    if (!formData.studentEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newErrors.studentEmail = 'Invalid email';
+    if (!formData.gender) newErrors.gender = 'Gender is required';
+    if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+    if (!formData.program) newErrors.program = 'Program selection is required';
+    if (!formData.admissionType) newErrors.admissionType = 'Admission type is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleDocumentUpload = (e, documentKey) => {
+    const file = e.target.files[0];
+    if (file) {
+      const validTypes = ['application/pdf', 'image/png', 'image/jpeg'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload PDF, PNG, JPEG, or JPG files only');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('File size should not exceed 5MB');
+        return;
+      }
+      setDocuments(prev => ({
+        ...prev,
+        [documentKey]: file
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      alert('Please fill all required fields correctly');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await admissionService.createDSYAdmission(formData, documents);
+      setSubmitted(true);
+      alert('DSY Admission form submitted successfully!');
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      alert('Error submitting form: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="submission-success">
+        <div className="success-card">
+          <h2>✓ Form Submitted Successfully</h2>
+          <p>Your DSY Admission application has been received.</p>
+          <p>Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dsy-admission-form">
+      <h1>Direct Second Year (DSY) Diploma Admission Form</h1>
+      <p className="form-subtitle">Jaihind Comprehensive Educational Institute - Jaihind Polytechnic Kuran</p>
+
+      <form onSubmit={handleSubmit}>
+        {/* Personal Information Section */}
+        <fieldset className="form-section">
+          <legend>Personal Information</legend>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Applicant First Name <span className="required">*</span></label>
+              <input
+                type="text"
+                name="applicantFirstName"
+                value={formData.applicantFirstName}
+                onChange={handleInputChange}
+                placeholder="Enter first name"
+                className={errors.applicantFirstName ? 'input-error' : ''}
+              />
+              {errors.applicantFirstName && <span className="error-text">{errors.applicantFirstName}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Applicant Middle Name</label>
+              <input
+                type="text"
+                name="applicantMiddleName"
+                value={formData.applicantMiddleName}
+                onChange={handleInputChange}
+                placeholder="Enter middle name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Applicant Last Name <span className="required">*</span></label>
+              <input
+                type="text"
+                name="applicantLastName"
+                value={formData.applicantLastName}
+                onChange={handleInputChange}
+                placeholder="Enter last name"
+                className={errors.applicantLastName ? 'input-error' : ''}
+              />
+              {errors.applicantLastName && <span className="error-text">{errors.applicantLastName}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Father's First Name</label>
+              <input
+                type="text"
+                name="fatherFirstName"
+                value={formData.fatherFirstName}
+                onChange={handleInputChange}
+                placeholder="Enter first name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Father's Middle Name</label>
+              <input
+                type="text"
+                name="fatherMiddleName"
+                value={formData.fatherMiddleName}
+                onChange={handleInputChange}
+                placeholder="Enter middle name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Father's Last Name</label>
+              <input
+                type="text"
+                name="fatherLastName"
+                value={formData.fatherLastName}
+                onChange={handleInputChange}
+                placeholder="Enter last name"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Mother's First Name</label>
+              <input
+                type="text"
+                name="motherFirstName"
+                value={formData.motherFirstName}
+                onChange={handleInputChange}
+                placeholder="Enter first name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Mother's Middle Name</label>
+              <input
+                type="text"
+                name="motherMiddleName"
+                value={formData.motherMiddleName}
+                onChange={handleInputChange}
+                placeholder="Enter middle name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Mother's Last Name</label>
+              <input
+                type="text"
+                name="motherLastName"
+                value={formData.motherLastName}
+                onChange={handleInputChange}
+                placeholder="Enter last name"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Gender <span className="required">*</span></label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleInputChange}
+                className={errors.gender ? 'input-error' : ''}
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.gender && <span className="error-text">{errors.gender}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Date of Birth <span className="required">*</span></label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                className={errors.dateOfBirth ? 'input-error' : ''}
+              />
+              {errors.dateOfBirth && <span className="error-text">{errors.dateOfBirth}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Blood Group</label>
+              <select
+                name="bloodGroup"
+                value={formData.bloodGroup}
+                onChange={handleInputChange}
+              >
+                <option value="">Select Blood Group</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Address Information Section */}
+        <fieldset className="form-section">
+          <legend>Local Address</legend>
+          
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label>Local Address <span className="required">*</span></label>
+              <input
+                type="text"
+                name="localAddress"
+                value={formData.localAddress}
+                onChange={handleInputChange}
+                placeholder="Enter local address"
+                className={errors.localAddress ? 'input-error' : ''}
+              />
+              {errors.localAddress && <span className="error-text">{errors.localAddress}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Tal (Taluka)</label>
+              <input
+                type="text"
+                name="localTal"
+                value={formData.localTal}
+                onChange={handleInputChange}
+                placeholder="Enter taluka"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Dist (District)</label>
+              <input
+                type="text"
+                name="localDist"
+                value={formData.localDist}
+                onChange={handleInputChange}
+                placeholder="Enter district"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Pin Code</label>
+              <input
+                type="text"
+                name="localPinCode"
+                value={formData.localPinCode}
+                onChange={handleInputChange}
+                placeholder="Enter pin code"
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Permanent Address Section */}
+        <fieldset className="form-section">
+          <legend>Permanent Address</legend>
+          
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label>Permanent Address <span className="required">*</span></label>
+              <input
+                type="text"
+                name="permanentAddress"
+                value={formData.permanentAddress}
+                onChange={handleInputChange}
+                placeholder="Enter permanent address"
+                className={errors.permanentAddress ? 'input-error' : ''}
+              />
+              {errors.permanentAddress && <span className="error-text">{errors.permanentAddress}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Tal (Taluka)</label>
+              <input
+                type="text"
+                name="permanentTal"
+                value={formData.permanentTal}
+                onChange={handleInputChange}
+                placeholder="Enter taluka"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Dist (District)</label>
+              <input
+                type="text"
+                name="permanentDist"
+                value={formData.permanentDist}
+                onChange={handleInputChange}
+                placeholder="Enter district"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Pin Code</label>
+              <input
+                type="text"
+                name="permanentPinCode"
+                value={formData.permanentPinCode}
+                onChange={handleInputChange}
+                placeholder="Enter pin code"
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Contact Information Section */}
+        <fieldset className="form-section">
+          <legend>Contact Information</legend>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Mobile Number <span className="required">*</span></label>
+              <input
+                type="tel"
+                name="mobileNo"
+                value={formData.mobileNo}
+                onChange={handleInputChange}
+                placeholder="Enter 10-digit mobile number"
+                className={errors.mobileNo ? 'input-error' : ''}
+              />
+              {errors.mobileNo && <span className="error-text">{errors.mobileNo}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Email <span className="required">*</span></label>
+              <input
+                type="email"
+                name="studentEmail"
+                value={formData.studentEmail}
+                onChange={handleInputChange}
+                placeholder="Enter email address"
+                className={errors.studentEmail ? 'input-error' : ''}
+              />
+              {errors.studentEmail && <span className="error-text">{errors.studentEmail}</span>}
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Identification Section */}
+        <fieldset className="form-section">
+          <legend>Identification</legend>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Aadhaar Number (UID) <span className="required">*</span></label>
+              <input
+                type="text"
+                name="aadhaarNo"
+                value={formData.aadhaarNo}
+                onChange={handleInputChange}
+                placeholder="Enter Aadhaar number"
+                required
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Educational Qualification Section */}
+        <fieldset className="form-section">
+          <legend>Educational Qualification</legend>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Educational Qualification</label>
+              <select
+                name="educationalQualification"
+                value={formData.educationalQualification}
+                onChange={handleInputChange}
+              >
+                <option value="">Select Qualification</option>
+                <option value="HSC">HSC</option>
+                <option value="HSC Sci">HSC Sci</option>
+                <option value="VOC">VOC</option>
+                <option value="MVCJ">MVCJ</option>
+                <option value="JCOE">JCOE</option>
+                <option value="D/P/O">D/P/O</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Institute Name</label>
+              <input
+                type="text"
+                name="instituteName"
+                value={formData.instituteName}
+                onChange={handleInputChange}
+                placeholder="Enter institute name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Previous Program Code</label>
+              <input
+                type="text"
+                name="previousProgramCode"
+                value={formData.previousProgramCode}
+                onChange={handleInputChange}
+                placeholder="Enter program code"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Previous CGPA</label>
+              <input
+                type="number"
+                step="0.01"
+                name="previousCGPA"
+                value={formData.previousCGPA}
+                onChange={handleInputChange}
+                placeholder="Enter CGPA"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Science Marks</label>
+              <input
+                type="number"
+                step="0.01"
+                name="scienceMarks"
+                value={formData.scienceMarks}
+                onChange={handleInputChange}
+                placeholder="Enter Science marks"
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Program and Category Section */}
+        <fieldset className="form-section">
+          <legend>Program and Category</legend>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Select Program <span className="required">*</span></label>
+              <select
+                name="program"
+                value={formData.program}
+                onChange={handleInputChange}
+                className={errors.program ? 'input-error' : ''}
+              >
+                <option value="">Select Program</option>
+                <option value="1. Civil Engineering">1. Civil Engineering</option>
+                <option value="2. Computer Engineering">2. Computer Engineering</option>
+                <option value="3. Electronics & Telecommunication">3. Electronics & Telecommunication</option>
+                <option value="4. Information Technology">4. Information Technology</option>
+                <option value="5. Mechanical Engineering">5. Mechanical Engineering</option>
+                <option value="6. Mechatronics">6. Mechatronics</option>
+              </select>
+              {errors.program && <span className="error-text">{errors.program}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+              >
+                <option value="">Select Category</option>
+                <option value="General">General</option>
+                <option value="OBC">OBC</option>
+                <option value="SC">SC</option>
+                <option value="ST">ST</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Caste</label>
+              <input
+                type="text"
+                name="caste"
+                value={formData.caste}
+                onChange={handleInputChange}
+                placeholder="Enter caste"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Annual Income (Rs.)</label>
+              <input
+                type="text"
+                name="annualIncome"
+                value={formData.annualIncome}
+                onChange={handleInputChange}
+                placeholder="Enter annual income"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Physically Handicapped</label>
+              <select
+                name="physicallyHandicapped"
+                value={formData.physicallyHandicapped}
+                onChange={handleInputChange}
+              >
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Admission Type <span className="required">*</span></label>
+              <select
+                name="admissionType"
+                value={formData.admissionType}
+                onChange={handleInputChange}
+                className={errors.admissionType ? 'input-error' : ''}
+              >
+                <option value="">Select Admission Type</option>
+                <option value="CAP-1">CAP-1</option>
+                <option value="CAP-2">CAP-2</option>
+                <option value="CAP-3">CAP-3</option>
+                <option value="EWS">EWS</option>
+              </select>
+              {errors.admissionType && <span className="error-text">{errors.admissionType}</span>}
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Program Preferences Section */}
+        <fieldset className="form-section">
+          <legend>Program Preferences (In Order of Preference)</legend>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Preference 1</label>
+              <select
+                name="preference1"
+                value={formData.preference1}
+                onChange={handleInputChange}
+              >
+                <option value="">Select Preference</option>
+                <option value="1">1. Civil Engineering</option>
+                <option value="2">2. Computer Engineering</option>
+                <option value="3">3. Electronics & Telecommunication</option>
+                <option value="4">4. Information Technology</option>
+                <option value="5">5. Mechanical Engineering</option>
+                <option value="6">6. Mechatronics</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Preference 2</label>
+              <select
+                name="preference2"
+                value={formData.preference2}
+                onChange={handleInputChange}
+              >
+                <option value="">Select Preference</option>
+                <option value="1">1. Civil Engineering</option>
+                <option value="2">2. Computer Engineering</option>
+                <option value="3">3. Electronics & Telecommunication</option>
+                <option value="4">4. Information Technology</option>
+                <option value="5">5. Mechanical Engineering</option>
+                <option value="6">6. Mechatronics</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Preference 3</label>
+              <select
+                name="preference3"
+                value={formData.preference3}
+                onChange={handleInputChange}
+              >
+                <option value="">Select Preference</option>
+                <option value="1">1. Civil Engineering</option>
+                <option value="2">2. Computer Engineering</option>
+                <option value="3">3. Electronics & Telecommunication</option>
+                <option value="4">4. Information Technology</option>
+                <option value="5">5. Mechanical Engineering</option>
+                <option value="6">6. Mechatronics</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Preference 4</label>
+              <select
+                name="preference4"
+                value={formData.preference4}
+                onChange={handleInputChange}
+              >
+                <option value="">Select Preference</option>
+                <option value="1">1. Civil Engineering</option>
+                <option value="2">2. Computer Engineering</option>
+                <option value="3">3. Electronics & Telecommunication</option>
+                <option value="4">4. Information Technology</option>
+                <option value="5">5. Mechanical Engineering</option>
+                <option value="6">6. Mechatronics</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Document Upload Section */}
+        <fieldset className="form-section documents-section dsy-documents">
+          <legend>Required Documents for Direct Second Year Admission (6 Documents)</legend>
+          
+          <div className="documents-upload-grid">
+            {dsyDocuments.map((doc, index) => (
+              <div key={doc.key} className="document-upload-item">
+                <label className="document-label">
+                  <span className="doc-number">{index + 1}.</span>
+                  <span className="doc-name">{doc.label}</span>
+                </label>
+                <div className="file-input-wrapper">
+                  <input
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    id={`dsy-${doc.key}`}
+                    onChange={(e) => handleDocumentUpload(e, doc.key)}
+                    className="file-input"
+                  />
+                  <label htmlFor={`dsy-${doc.key}`} className="file-label">
+                    {documents[doc.key] ? (
+                      <span className="file-selected">✓ {documents[doc.key].name}</span>
+                    ) : (
+                      <span className="file-placeholder">Choose PDF File</span>
+                    )}
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="documents-notes">
+            <p><strong>Note:</strong> All documents must be in PDF, PNG, JPEG, or JPG format. Maximum file size: 5MB each.</p>
+          </div>
+        </fieldset>
+
+        {/* Undertaking Section */}
+        <fieldset className="form-section undertaking">
+          <legend>Undertakings</legend>
+          
+          <div className="undertaking-text">
+            <h3>Legal Guardian Undertaking:</h3>
+            <p>
+              In lieu of JCEI's Jaihind Polytechnic Kuran considering the application of {formData.applicantFirstName} {formData.applicantLastName} 
+              for admission to Direct Second Year Diploma Program, I hereby agree & undertaking that at the 
+              test (Tuition Fee + Development Fee) & other charges & / or Fees decide by the Maharashtra 
+              State board of Technical Education, Fees Fixation Committee are more than the Interim Fees 
+              for the current academic year, then I will pay the difference on the Institute on demand. 
+              I shall also pay the fees & other charges decided by State Government/DTE/ Fees Fixation 
+              Committee for the subsequent academic years from time to time.
+            </p>
+          </div>
+
+          <div className="undertaking-text">
+            <h3>Academic Year Undertaking (2025-2026):</h3>
+            <ul>
+              <li>I Mr/Mrs {formData.applicantFirstName} {formData.applicantLastName} students of 2nd year admission will attend all theory lectures & practicals.</li>
+              <li>I will appear for all the program tests & will pass with minimum 50% marks.</li>
+              <li>I will not involve in any sort of common off.</li>
+              <li>I will follow all the rules & regulations laid down by the DTE, MSBTE & Institute from time to time.</li>
+              <li>I am aware that if in case my attendance falls below 75%, I will be detained as per MSBTE norms.</li>
+              <li>If I fail to abide by my one of the above, I know that I will not be allowed to appear for the MSBTE examination of the semester & I know that it will cause loss of my academic program.</li>
+            </ul>
+          </div>
+
+          <div className="undertaking-text">
+            <h3>Anti-Ragging Undertaking:</h3>
+            <p>
+              Mr./Mrs {formData.applicantFirstName} {formData.applicantLastName} Program ________, hereby undertake that if any incident 
+              of ragging by me comes to the notice of the Institute authority, I shall be given liberty 
+              to explain & if my explanation is not found satisfactory, the Principal or the Anti-Ragging 
+              Committee my expel me from the Institute.
+            </p>
+          </div>
+        </fieldset>
+
+        {/* Form Actions */}
+        <div className="form-actions">
+          <button
+            type="submit"
+            className="btn btn-success"
+            disabled={loading}
+          >
+            {loading ? 'Submitting...' : 'Submit Application'}
+          </button>
+          <button
+            type="reset"
+            className="btn btn-secondary"
+            onClick={() => setFormData({...formData})}
+          >
+            Reset Form
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default DSYAdmissionForm;
