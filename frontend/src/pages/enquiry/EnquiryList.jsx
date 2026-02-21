@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { formatDate } from '../../utils/formatters';
 import enquiryService from '../../services/enquiryService';
+import {
+  locationOptions,
+  categoryOptions,
+  branchOptions,
+  admissionForOptions
+} from '../../data/mockEnquiries';
 
-const EnquiryList = ({ enquiries, onDelete, onStatusUpdate }) => {
+const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters, allEnquiries }) => {
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState('');
 
@@ -31,7 +37,7 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate }) => {
       
       return branches
         .sort((a, b) => a.priority - b.priority)
-        .map(b => b.branch)
+        .map(b => `${b.branch} (${getOrdinal(b.priority)})`)
         .join(', ');
     } catch (e) {
       console.error('Error parsing branches:', e);
@@ -53,6 +59,30 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate }) => {
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  // compute branch priority options dynamically
+  const maxPriority = (allEnquiries || enquiries).reduce((max, e) => {
+    let branches = e.branchesInterested;
+    if (typeof branches === 'string') {
+      try { branches = JSON.parse(branches); } catch { branches = []; }
+    }
+    const localMax = branches.reduce((m, b) => Math.max(m, b.priority || 0), 0);
+    return Math.max(max, localMax);
+  }, 0);
+  const priorityOptions = Array.from({ length: maxPriority }, (_, i) => String(i + 1));
+
+  const handleFilterChange = (field) => (e) => {
+    const value = e.target.value;
+    setFilters && setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  // helper for ordinal text
+  const getOrdinal = (num) => {
+    if (num === 1) return '1st';
+    if (num === 2) return '2nd';
+    if (num === 3) return '3rd';
+    return num + 'th';
   };
 
   return (
@@ -86,12 +116,65 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate }) => {
             <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Name</th>
             <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Email</th>
             <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Phone</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Admission For</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Branches Interested</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Location</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Category</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Status</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Date</th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+              Admission For
+              {filters && <div style={{ marginTop: '8px' }}>
+                <select value={filters.admissionFor} onChange={handleFilterChange('admissionFor')} style={{ fontSize: '0.85em', padding: '4px' }}>
+                  <option value="">All</option>
+                  {admissionForOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                </select>
+              </div>}
+            </th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+              Branches Interested
+              {filters && <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                <select value={filters.branch} onChange={handleFilterChange('branch')} style={{ fontSize: '0.8em', padding: '4px' }}>
+                  <option value="">Branch</option>
+                  {branchOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                </select>
+                <select value={filters.branchPriority} onChange={handleFilterChange('branchPriority')} style={{ fontSize: '0.8em', padding: '4px' }}>
+                  <option value="">Pref</option>
+                  {priorityOptions.map(p => (<option key={p} value={p}>{getOrdinal(parseInt(p))}</option>))}
+                </select>
+              </div>}
+            </th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+              Location
+              {filters && <div style={{ marginTop: '8px' }}>
+                <select value={filters.location} onChange={handleFilterChange('location')} style={{ fontSize: '0.85em', padding: '4px' }}>
+                  <option value="">All</option>
+                  {locationOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                </select>
+              </div>}
+            </th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+              Category
+              {filters && <div style={{ marginTop: '8px' }}>
+                <select value={filters.category} onChange={handleFilterChange('category')} style={{ fontSize: '0.85em', padding: '4px' }}>
+                  <option value="">All</option>
+                  {categoryOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                </select>
+              </div>}
+            </th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+              Status
+              {filters && <div style={{ marginTop: '8px' }}>
+                <select value={filters.status} onChange={handleFilterChange('status')} style={{ fontSize: '0.85em', padding: '4px' }}>
+                  <option value="">All</option>
+                  <option>Pending</option>
+                  <option>Success</option>
+                  <option>Follow-up</option>
+                  <option>Converted</option>
+                  <option>Lost</option>
+                </select>
+              </div>}
+            </th>
+            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+              Date
+              {filters && <div style={{ marginTop: '8px' }}>
+                <input type="date" value={filters.date} onChange={handleFilterChange('date')} style={{ fontSize: '0.85em', padding: '4px' }} />
+              </div>}
+            </th>
             <th style={{ padding: '15px', textAlign: 'center', fontWeight: '600', color: '#333' }}>Actions</th>
           </tr>
         </thead>

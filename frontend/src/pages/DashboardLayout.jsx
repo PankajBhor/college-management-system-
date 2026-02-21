@@ -11,8 +11,29 @@ const DashboardLayout = ({ user, onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
 
+  // Check if user has access to a page
+  const canAccessPage = (page) => {
+    const allowedPages = {
+      'enquiries': ['PRINCIPAL', 'ENQUIRY_STAFF'],
+      'new-enquiry': ['PRINCIPAL', 'ENQUIRY_STAFF'],
+      'update-enquiry': ['PRINCIPAL', 'ENQUIRY_STAFF'],
+      'dashboard': ['PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'FACULTY', 'HOD'],
+      'students': ['PRINCIPAL', 'OFFICE_STAFF', 'FACULTY', 'HOD'],
+      'fees': ['PRINCIPAL', 'OFFICE_STAFF'],
+      'courses': ['PRINCIPAL', 'FACULTY', 'HOD']
+    };
+
+    const allowed = allowedPages[page] || [];
+    return allowed.includes(user?.role);
+  };
+
   // Render the appropriate page based on activePage
   const renderPage = () => {
+    // Security: Check if user has access
+    if (!canAccessPage(activePage)) {
+      return <Dashboard user={user} />;
+    }
+
     switch (activePage) {
       case 'dashboard':
         return <Dashboard user={user} />;

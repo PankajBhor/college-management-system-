@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useEnquiry } from '../../hooks/useEnquiry';
+import { useAuth } from '../../hooks/useAuth';
 import EnquiryList from './EnquiryList';
-import Modal from '../../components/Modal';
-
+import Modal from '../../components/Modal';// helper dropdown data
+import {
+  locationOptions,
+  categoryOptions,
+  branchOptions,
+  admissionForOptions
+} from '../../data/mockEnquiries';
 const EnquiryIndex = () => {
   const { enquiries, loading, fetchEnquiries, addEnquiry, removeEnquiry } = useEnquiry();
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(''); // 'new' or 'empty'
+
+  // filter state for the table
+  const [filters, setFilters] = useState({
+    admissionFor: '',
+    branch: '',
+    branchPriority: '',
+    location: '',
+    category: '',
+    status: '',
+    date: ''
+  });
 
   useEffect(() => {
     fetchEnquiries();
@@ -44,6 +62,46 @@ const EnquiryIndex = () => {
     }
   };
 
+  // build filtered list based on current filters
+  const getFilteredEnquiries = () => {
+    return enquiries.filter((e) => {
+      if (filters.admissionFor && e.admissionFor !== filters.admissionFor) return false;
+      if (filters.location && e.location !== filters.location) return false;
+      if (filters.category && e.category !== filters.category) return false;
+      if (filters.status && e.status !== filters.status) return false;
+      if (filters.date && e.enquiryDate !== filters.date) return false;
+      if (filters.branch) {
+        let branches = e.branchesInterested;
+        if (typeof branches === 'string') {
+          try {
+            branches = JSON.parse(branches);
+          } catch (_){ branches = []; }
+        }
+        const match = branches.find(b => {
+          const basic = b.branch === filters.branch;
+          if (!basic) return false;
+          if (filters.branchPriority) {
+            return String(b.priority) === filters.branchPriority;
+          }
+          return true;
+        });
+        if (!match) return false;
+      }
+      return true;
+    });
+  };
+
+  // helper to render dropdown options
+  const renderOptions = (options) =>
+    options.map((opt) => (
+      <option key={opt} value={opt}>
+        {opt}
+      </option>
+    ));
+
+  // Check if user is enquiry staff or principal
+  const canAddEnquiry = user && (user.role === 'ENQUIRY_STAFF' || user.role === 'PRINCIPAL');
+
   return (
     <div>
       <div style={{
@@ -60,6 +118,65 @@ const EnquiryIndex = () => {
         }}>
           📞 Enquiries
         </h2>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button
+            onClick={() => {
+              setFilters({
+                admissionFor: '',
+                branch: '',
+                branchPriority: '',
+                location: '',
+                category: '',
+                status: '',
+                date: ''
+              });
+            }}
+            style={{
+              padding: '8px 16px',
+              background: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '0.9em',
+              fontWeight: '500'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = '#5a6268';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = '#6c757d';
+            }}
+          >
+            🔄 Clear Filters
+          </button>
+          {canAddEnquiry && (
+            <button
+              onClick={() => {
+                setModalType('new');
+                setShowModal(true);
+              }}
+              style={{
+                padding: '10px 20px',
+                background: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.95em',
+                fontWeight: '600'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = '#218838';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = '#28a745';
+              }}
+            >
+              ➕ New Enquiry
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -99,16 +216,25 @@ const EnquiryIndex = () => {
           </button>
         </div>
       ) : (
-        <EnquiryList enquiries={enquiries} onDelete={handleDelete} onStatusUpdate={handleStatusUpdate} />
+        <EnquiryList
+          enquiries={getFilteredEnquiries()}
+          onDelete={handleDelete}
+          onStatusUpdate={handleStatusUpdate}
+          filters={filters}
+          setFilters={setFilters}
+          allEnquiries={enquiries}
+        />
       )}
 
-      <Modal
-        isOpen={showModal}
-        title={modalType === 'new' ? 'New Enquiry' : 'Edit Enquiry'}
-        onClose={() => setShowModal(false)}
-      >
-        <NewEnquiryForm onSubmit={handleNewEnquiry} onCancel={() => setShowModal(false)} />
-      </Modal>
+      {canAddEnquiry && (
+        <Modal
+          isOpen={showModal}
+          title={modalType === 'new' ? 'New Enquiry' : 'Edit Enquiry'}
+          onClose={() => setShowModal(false)}
+        >
+          <NewEnquiryForm onSubmit={handleNewEnquiry} onCancel={() => setShowModal(false)} />
+        </Modal>
+      )}
     </div>
   );
 };
@@ -307,3 +433,4 @@ const NewEnquiryForm = ({ onSubmit, onCancel }) => {
 };
 
 export default EnquiryIndex;
+
