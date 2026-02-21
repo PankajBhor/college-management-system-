@@ -5,6 +5,7 @@ import {
   branchOptions,
   admissionForOptions
 } from '../../data/mockEnquiries';
+import enquiryService from '../../services/enquiryService';
 
 const NewEnquiry = () => {
   const [formData, setFormData] = useState({
@@ -24,7 +25,8 @@ const NewEnquiry = () => {
   });
 
   const [selectedBranches, setSelectedBranches] = useState([]);
-  const [branchPriorities, setBranchPriorities] = useState({});
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,50 +46,61 @@ const NewEnquiry = () => {
   const handleBranchToggle = (branch) => {
     setSelectedBranches(prev => {
       if (prev.includes(branch)) {
-        // Remove branch
         return prev.filter(b => b !== branch);
       } else {
-        // Add branch - priority will be automatically assigned based on order
         return [...prev, branch];
       }
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Priority is automatically assigned based on selection order
-    const branchesData = selectedBranches.map((branch, index) => ({
-      branch,
-      priority: index + 1
-    }));
+    setError('');
+    setLoading(true);
 
-    const enquiryData = {
-      ...formData,
-      branchesInterested: branchesData,
-      enquiryDate: new Date().toISOString().split('T')[0],
-      status: 'Pending'
-    };
+    try {
+      const branchesData = selectedBranches.map((branch, index) => ({
+        branch,
+        priority: index + 1
+      }));
 
-    console.log('Enquiry Data:', enquiryData);
-    alert('Enquiry submitted successfully!');
-    // Reset form
-    setFormData({
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      personalMobileNumber: '',
-      guardianMobileNumber: '',
-      email: '',
-      merit: { class10: '', class12: '', other: '' },
-      admissionFor: 'FY',
-      location: '',
-      otherLocation: '',
-      category: '',
-      branchesInterested: [],
-      referenceFaculty: ''
-    });
-    setSelectedBranches([]);
-    setBranchPriorities({});
+      const enquiryData = {
+        ...formData,
+        branchesInterested: branchesData,
+        enquiryDate: new Date().toISOString().split('T')[0],
+        status: 'Pending'
+      };
+
+      console.log('Enquiry Data:', enquiryData);
+      
+      const response = await enquiryService.createEnquiry(enquiryData);
+      console.log('Response:', response);
+      
+      alert('Enquiry submitted successfully!');
+      
+      setFormData({
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        personalMobileNumber: '',
+        guardianMobileNumber: '',
+        email: '',
+        merit: { class10: '', class12: '', other: '' },
+        admissionFor: 'FY',
+        location: '',
+        otherLocation: '',
+        category: '',
+        branchesInterested: [],
+        referenceFaculty: ''
+      });
+      setSelectedBranches([]);
+    } catch (err) {
+      console.error('Error submitting enquiry:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to submit enquiry');
+      alert('Error: ' + (err.response?.data?.error || err.message || 'Failed to submit enquiry'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const styles = {
@@ -171,13 +184,13 @@ const NewEnquiry = () => {
       cursor: 'pointer',
       accentColor: '#3498db'
     },
-    priorityInput: {
-      width: '60px',
-      padding: '8px',
-      border: '1px solid #bdc3c7',
-      borderRadius: '6px',
-      fontSize: '0.85em',
-      marginLeft: 'auto'
+    errorBox: {
+      padding: '15px',
+      marginBottom: '20px',
+      background: '#f8d7da',
+      border: '1px solid #f5c6cb',
+      borderRadius: '8px',
+      color: '#721c24'
     },
     buttonGroup: {
       display: 'flex',
@@ -206,16 +219,6 @@ const NewEnquiry = () => {
       fontWeight: '600',
       cursor: 'pointer',
       transition: 'background 0.3s'
-    },
-    mergedInputGroup: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '15px'
-    },
-    locationGroup: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '15px'
     }
   };
 
@@ -224,6 +227,12 @@ const NewEnquiry = () => {
       <h2 style={styles.title}>📋 New Enquiry Form</h2>
 
       <div style={styles.container}>
+        {error && (
+          <div style={styles.errorBox}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           {/* Personal Information Section */}
           <h3 style={styles.sectionTitle}>👤 Personal Information</h3>
@@ -497,21 +506,23 @@ const NewEnquiry = () => {
                   referenceFaculty: ''
                 });
                 setSelectedBranches([]);
-                setBranchPriorities({});
+                setError('');
               }}
               style={styles.resetBtn}
-              onMouseOver={(e) => e.target.style.background = '#7f8c8d'}
-              onMouseOut={(e) => e.target.style.background = '#95a5a6'}
+              disabled={loading}
+              onMouseOver={(e) => !loading && (e.target.style.background = '#7f8c8d')}
+              onMouseOut={(e) => !loading && (e.target.style.background = '#95a5a6')}
             >
               Reset
             </button>
             <button
               type="submit"
               style={styles.submitBtn}
-              onMouseOver={(e) => e.target.style.background = '#2980b9'}
-              onMouseOut={(e) => e.target.style.background = '#3498db'}
+              disabled={loading}
+              onMouseOver={(e) => !loading && (e.target.style.background = '#2980b9')}
+              onMouseOut={(e) => !loading && (e.target.style.background = '#3498db')}
             >
-              Submit Enquiry
+              {loading ? 'Submitting...' : 'Submit Enquiry'}
             </button>
           </div>
         </form>

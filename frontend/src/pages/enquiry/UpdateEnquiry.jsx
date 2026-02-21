@@ -5,6 +5,7 @@ import {
   branchOptions,
   admissionForOptions
 } from '../../data/mockEnquiries';
+import enquiryService from '../../services/enquiryService';
 
 const UpdateEnquiry = ({ enquiry, onUpdate }) => {
   const [formData, setFormData] = useState(enquiry || {
@@ -24,15 +25,21 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
     status: 'Pending'
   });
 
-  const [selectedBranches, setSelectedBranches] = useState(
-    (enquiry?.branchesInterested || []).map(b => b.branch)
-  );
-  const [branchPriorities, setBranchPriorities] = useState(
-    (enquiry?.branchesInterested || []).reduce((acc, b) => {
-      acc[b.branch] = b.priority;
-      return acc;
-    }, {})
-  );
+  const [selectedBranches, setSelectedBranches] = useState(() => {
+    try {
+      let branches = enquiry?.branchesInterested || [];
+      // Parse if it's a JSON string
+      if (typeof branches === 'string') {
+        branches = JSON.parse(branches);
+      }
+      return Array.isArray(branches) ? branches.map(b => b.branch) : [];
+    } catch (e) {
+      console.error('Error parsing branches:', e);
+      return [];
+    }
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -61,24 +68,38 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Priority is automatically assigned based on selection order
-    const branchesData = selectedBranches.map((branch, index) => ({
-      branch,
-      priority: index + 1
-    }));
+    setError('');
+    setLoading(true);
 
-    const updatedData = {
-      ...formData,
-      branchesInterested: branchesData
-    };
+    try {
+      const branchesData = selectedBranches.map((branch, index) => ({
+        branch,
+        priority: index + 1
+      }));
 
-    if (onUpdate) {
-      onUpdate(updatedData);
-    } else {
-      console.log('Updated Enquiry Data:', updatedData);
-      alert('Enquiry updated successfully!');
+      const updatedData = {
+        ...formData,
+        branchesInterested: branchesData
+      };
+
+      if (enquiry?.id) {
+        const response = await enquiryService.updateEnquiry(enquiry.id, updatedData);
+        alert('Enquiry updated successfully!');
+        if (onUpdate) {
+          onUpdate(response);
+        }
+      } else {
+        console.error('No enquiry ID found');
+        setError('Cannot update: No enquiry ID found');
+      }
+    } catch (err) {
+      console.error('Error updating enquiry:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to update enquiry');
+      alert('Error: ' + (err.response?.data?.error || err.message || 'Failed to update enquiry'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -206,6 +227,18 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
       <h2 style={styles.title}>✏️ Update Enquiry</h2>
 
       <div style={styles.container}>
+        {error && (
+          <div style={{
+            padding: '15px',
+            marginBottom: '20px',
+            background: '#f8d7da',
+            border: '1px solid #f5c6cb',
+            borderRadius: '8px',
+            color: '#721c24'
+          }}>
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           {/* Personal Information Section */}
           <h3 style={styles.sectionTitle}>👤 Personal Information</h3>
@@ -478,6 +511,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
             <button
               type="button"
               style={styles.cancelBtn}
+              disabled={loading}
               onMouseOver={(e) => e.target.style.background = '#7f8c8d'}
               onMouseOut={(e) => e.target.style.background = '#95a5a6'}
             >
@@ -486,10 +520,11 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
             <button
               type="submit"
               style={styles.submitBtn}
-              onMouseOver={(e) => e.target.style.background = '#2980b9'}
-              onMouseOut={(e) => e.target.style.background = '#3498db'}
+              disabled={loading}
+              onMouseOver={(e) => !loading && (e.target.style.background = '#2980b9')}
+              onMouseOut={(e) => !loading && (e.target.style.background = '#3498db')}
             >
-              Update Enquiry
+              {loading ? 'Updating...' : 'Update Enquiry'}
             </button>
           </div>
         </form>

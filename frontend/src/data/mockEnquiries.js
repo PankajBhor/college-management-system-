@@ -19,7 +19,7 @@ export const mockEnquiries = [
     ],
     referenceFaculty: 'Prof. Sharma',
     enquiryDate: '2024-02-15',
-    status: 'Follow-up'
+    status: 'Pending'
   },
   {
     id: 2,
@@ -40,7 +40,7 @@ export const mockEnquiries = [
     ],
     referenceFaculty: 'Prof. Desai',
     enquiryDate: '2024-02-14',
-    status: 'Converted'
+    status: 'Success'
   },
   {
     id: 3,
@@ -81,7 +81,7 @@ export const mockEnquiries = [
     ],
     referenceFaculty: 'Prof. Smith',
     enquiryDate: '2024-02-12',
-    status: 'Lost'
+    status: 'Pending'
   },
   {
     id: 5,
@@ -102,7 +102,7 @@ export const mockEnquiries = [
     ],
     referenceFaculty: 'Prof. Patel',
     enquiryDate: '2024-02-11',
-    status: 'Follow-up'
+    status: 'Success'
   }
 ];
 

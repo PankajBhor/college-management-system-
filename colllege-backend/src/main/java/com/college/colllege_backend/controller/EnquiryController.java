@@ -1,16 +1,28 @@
 package com.college.colllege_backend.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.college.colllege_backend.dto.EnquiryRequestDTO;
 import com.college.colllege_backend.dto.EnquiryResponseDTO;
-import com.college.colllege_backend.service.EnquiryService;
+import com.college.colllege_backend.entity.Enquiry;
+import com.college.colllege_backend.repository.EnquiryRepository;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/enquiries")
@@ -18,58 +30,200 @@ import com.college.colllege_backend.service.EnquiryService;
 public class EnquiryController {
 
     @Autowired
-    private EnquiryService enquiryService;
+    private EnquiryRepository enquiryRepository;
 
+    /**
+     * Get all enquiries
+     */
     @GetMapping
     public ResponseEntity<List<EnquiryResponseDTO>> getAllEnquiries() {
-        return ResponseEntity.ok(enquiryService.getAllEnquiries());
+        List<EnquiryResponseDTO> enquiries = enquiryRepository.findAll()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(enquiries);
     }
 
+    /**
+     * Get enquiry by ID
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<EnquiryResponseDTO> getEnquiry(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(enquiryService.getEnquiryById(id));
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> getEnquiryById(@PathVariable Long id) {
+        return enquiryRepository.findById(id)
+                .map(enquiry -> ResponseEntity.ok(convertToDTO(enquiry)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<EnquiryResponseDTO>> getByStatus(@PathVariable String status) {
-        try {
-            return ResponseEntity.ok(enquiryService.getEnquiriesByStatus(status.toUpperCase()));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
+    /**
+     * Create new enquiry
+     */
     @PostMapping
     public ResponseEntity<?> createEnquiry(@Valid @RequestBody EnquiryRequestDTO request) {
         try {
-            EnquiryResponseDTO response = enquiryService.createEnquiry(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            Enquiry enquiry = convertToEntity(request);
+            Enquiry savedEnquiry = enquiryRepository.save(enquiry);
+            return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedEnquiry));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 
+    /**
+     * Update enquiry
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateEnquiry(@PathVariable Long id, @Valid @RequestBody EnquiryRequestDTO request) {
-        try {
-            EnquiryResponseDTO response = enquiryService.updateEnquiry(id, request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
+        return enquiryRepository.findById(id)
+                .map(enquiry -> {
+                    // Update fields
+                    enquiry.setFirstName(request.getFirstName());
+                    enquiry.setMiddleName(request.getMiddleName());
+                    enquiry.setLastName(request.getLastName());
+                    enquiry.setPersonalMobileNumber(request.getPersonalMobileNumber());
+                    enquiry.setGuardianMobileNumber(request.getGuardianMobileNumber());
+                    enquiry.setEmail(request.getEmail());
+                    enquiry.setMeritDetails(request.getMeritDetails());
+                    enquiry.setAdmissionFor(request.getAdmissionFor());
+                    enquiry.setLocation(request.getLocation());
+                    enquiry.setOtherLocation(request.getOtherLocation());
+                    enquiry.setCategory(request.getCategory());
+                    enquiry.setBranchesInterested(request.getBranchesInterested());
+                    enquiry.setReferenceFaculty(request.getReferenceFaculty());
+                    if (request.getStatus() != null) {
+                        enquiry.setStatus(request.getStatus());
+                    }
+                    if (request.getEnquiryDate() != null) {
+                        enquiry.setEnquiryDate(request.getEnquiryDate());
+                    }
+
+                    Enquiry updatedEnquiry = enquiryRepository.save(enquiry);
+                    return ResponseEntity.ok(convertToDTO(updatedEnquiry));
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    /**
+     * Delete enquiry
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteEnquiry(@PathVariable Long id) {
+        if (enquiryRepository.existsById(id)) {
+            enquiryRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteEnquiry(@PathVariable Long id) {
-        try {
-            enquiryService.deleteEnquiry(id);
-            return ResponseEntity.ok("{\"message\": \"Enquiry deleted successfully\"}");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
+    /**
+     * Update enquiry status only
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestBody java.util.Map<String, String> statusUpdate) {
+        String newStatus = statusUpdate.get("status");
+        if (newStatus == null || newStatus.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("{\"error\": \"Status cannot be empty\"}");
         }
+
+        return enquiryRepository.findById(id)
+                .map(enquiry -> {
+                    enquiry.setStatus(newStatus);
+                    Enquiry updatedEnquiry = enquiryRepository.save(enquiry);
+                    return ResponseEntity.ok(convertToDTO(updatedEnquiry));
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    /**
+     * Get enquiries by status
+     */
+    @GetMapping("/by-status/{status}")
+    public ResponseEntity<List<EnquiryResponseDTO>> getEnquiriesByStatus(@PathVariable String status) {
+        List<EnquiryResponseDTO> enquiries = enquiryRepository.findByStatus(status)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(enquiries);
+    }
+
+    /**
+     * Get enquiries by category
+     */
+    @GetMapping("/by-category/{category}")
+    public ResponseEntity<List<EnquiryResponseDTO>> getEnquiriesByCategory(@PathVariable String category) {
+        List<EnquiryResponseDTO> enquiries = enquiryRepository.findByCategory(category)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(enquiries);
+    }
+
+    /**
+     * Get enquiries by admission type
+     */
+    @GetMapping("/by-admission/{admissionFor}")
+    public ResponseEntity<List<EnquiryResponseDTO>> getEnquiriesByAdmission(@PathVariable String admissionFor) {
+        List<EnquiryResponseDTO> enquiries = enquiryRepository.findByAdmissionFor(admissionFor)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(enquiries);
+    }
+
+    /**
+     * Get enquiries by location
+     */
+    @GetMapping("/by-location/{location}")
+    public ResponseEntity<List<EnquiryResponseDTO>> getEnquiriesByLocation(@PathVariable String location) {
+        List<EnquiryResponseDTO> enquiries = enquiryRepository.findByLocation(location)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(enquiries);
+    }
+
+    // Helper methods for DTO conversion
+    private EnquiryResponseDTO convertToDTO(Enquiry enquiry) {
+        return new EnquiryResponseDTO(
+                enquiry.getId(),
+                enquiry.getFirstName(),
+                enquiry.getMiddleName(),
+                enquiry.getLastName(),
+                enquiry.getPersonalMobileNumber(),
+                enquiry.getGuardianMobileNumber(),
+                enquiry.getEmail(),
+                enquiry.getMeritDetails(),
+                enquiry.getAdmissionFor(),
+                enquiry.getLocation(),
+                enquiry.getOtherLocation(),
+                enquiry.getCategory(),
+                enquiry.getBranchesInterested(),
+                enquiry.getReferenceFaculty(),
+                enquiry.getStatus(),
+                enquiry.getEnquiryDate(),
+                enquiry.getCreatedAt(),
+                enquiry.getUpdatedAt()
+        );
+    }
+
+    private Enquiry convertToEntity(EnquiryRequestDTO dto) {
+        Enquiry enquiry = new Enquiry();
+        enquiry.setFirstName(dto.getFirstName());
+        enquiry.setMiddleName(dto.getMiddleName());
+        enquiry.setLastName(dto.getLastName());
+        enquiry.setPersonalMobileNumber(dto.getPersonalMobileNumber());
+        enquiry.setGuardianMobileNumber(dto.getGuardianMobileNumber());
+        enquiry.setEmail(dto.getEmail());
+        enquiry.setMeritDetails(dto.getMeritDetails());
+        enquiry.setAdmissionFor(dto.getAdmissionFor());
+        enquiry.setLocation(dto.getLocation());
+        enquiry.setOtherLocation(dto.getOtherLocation());
+        enquiry.setCategory(dto.getCategory());
+        enquiry.setBranchesInterested(dto.getBranchesInterested());
+        enquiry.setReferenceFaculty(dto.getReferenceFaculty());
+        enquiry.setStatus(dto.getStatus() != null ? dto.getStatus() : "Pending");
+        enquiry.setEnquiryDate(dto.getEnquiryDate());
+        return enquiry;
     }
 }

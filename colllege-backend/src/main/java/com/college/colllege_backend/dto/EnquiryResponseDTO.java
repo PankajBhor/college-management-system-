@@ -1,32 +1,55 @@
 package com.college.colllege_backend.dto;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class EnquiryResponseDTO {
+
     private Long id;
-    private String studentName;
+    private String firstName;
+    private String middleName;
+    private String lastName;
+    private String personalMobileNumber;
+    private String guardianMobileNumber;
     private String email;
-    private String phone;
-    private String course;
-    private LocalDate enquiryDate;
+    private String meritDetails;
+    private String admissionFor;
+    private String location;
+    private String otherLocation;
+    private String category;
+    private String branchesInterested;
+    private String referenceFaculty;
     private String status;
-    private String notes;
-    private String createdBy;
+    private String enquiryDate;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    // Constructor
-    public EnquiryResponseDTO() {}
+    // Constructors
+    public EnquiryResponseDTO() {
+    }
 
-    public EnquiryResponseDTO(Long id, String studentName, String email, String phone,
-                            String course, LocalDate enquiryDate, String status, String notes, String createdBy) {
+    public EnquiryResponseDTO(Long id, String firstName, String middleName, String lastName,
+            String personalMobileNumber, String guardianMobileNumber, String email,
+            String meritDetails, String admissionFor, String location, String otherLocation,
+            String category, String branchesInterested, String referenceFaculty,
+            String status, String enquiryDate, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
-        this.studentName = studentName;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.personalMobileNumber = personalMobileNumber;
+        this.guardianMobileNumber = guardianMobileNumber;
         this.email = email;
-        this.phone = phone;
-        this.course = course;
-        this.enquiryDate = enquiryDate;
+        this.meritDetails = meritDetails;
+        this.admissionFor = admissionFor;
+        this.location = location;
+        this.otherLocation = otherLocation;
+        this.category = category;
+        this.branchesInterested = branchesInterested;
+        this.referenceFaculty = referenceFaculty;
         this.status = status;
-        this.notes = notes;
-        this.createdBy = createdBy;
+        this.enquiryDate = enquiryDate;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     // Getters and Setters
@@ -38,12 +61,44 @@ public class EnquiryResponseDTO {
         this.id = id;
     }
 
-    public String getStudentName() {
-        return studentName;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setStudentName(String studentName) {
-        this.studentName = studentName;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getMiddleName() {
+        return middleName;
+    }
+
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPersonalMobileNumber() {
+        return personalMobileNumber;
+    }
+
+    public void setPersonalMobileNumber(String personalMobileNumber) {
+        this.personalMobileNumber = personalMobileNumber;
+    }
+
+    public String getGuardianMobileNumber() {
+        return guardianMobileNumber;
+    }
+
+    public void setGuardianMobileNumber(String guardianMobileNumber) {
+        this.guardianMobileNumber = guardianMobileNumber;
     }
 
     public String getEmail() {
@@ -54,28 +109,60 @@ public class EnquiryResponseDTO {
         this.email = email;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getMeritDetails() {
+        return meritDetails;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setMeritDetails(String meritDetails) {
+        this.meritDetails = meritDetails;
     }
 
-    public String getCourse() {
-        return course;
+    public String getAdmissionFor() {
+        return admissionFor;
     }
 
-    public void setCourse(String course) {
-        this.course = course;
+    public void setAdmissionFor(String admissionFor) {
+        this.admissionFor = admissionFor;
     }
 
-    public LocalDate getEnquiryDate() {
-        return enquiryDate;
+    public String getLocation() {
+        return location;
     }
 
-    public void setEnquiryDate(LocalDate enquiryDate) {
-        this.enquiryDate = enquiryDate;
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getOtherLocation() {
+        return otherLocation;
+    }
+
+    public void setOtherLocation(String otherLocation) {
+        this.otherLocation = otherLocation;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getBranchesInterested() {
+        return branchesInterested;
+    }
+
+    public void setBranchesInterested(String branchesInterested) {
+        this.branchesInterested = branchesInterested;
+    }
+
+    public String getReferenceFaculty() {
+        return referenceFaculty;
+    }
+
+    public void setReferenceFaculty(String referenceFaculty) {
+        this.referenceFaculty = referenceFaculty;
     }
 
     public String getStatus() {
@@ -86,19 +173,27 @@ public class EnquiryResponseDTO {
         this.status = status;
     }
 
-    public String getNotes() {
-        return notes;
+    public String getEnquiryDate() {
+        return enquiryDate;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setEnquiryDate(String enquiryDate) {
+        this.enquiryDate = enquiryDate;
     }
 
-    public String getCreatedBy() {
-        return createdBy;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -21,6 +21,7 @@ export async function getAllEnquiries() {
     const response = await API_INSTANCE.get('/enquiries');
     return response.data;
   } catch (error) {
+    console.warn('API call failed, using mock data:', error.message);
     // Fallback to mock data
     return enquiriesStore;
   }
@@ -34,6 +35,7 @@ export async function getEnquiryById(id) {
     const response = await API_INSTANCE.get(`/enquiries/${id}`);
     return response.data;
   } catch (error) {
+    console.warn('API call failed, using mock data:', error.message);
     return enquiriesStore.find(e => e.id === id);
   }
 }
@@ -43,14 +45,35 @@ export async function getEnquiryById(id) {
  */
 export async function createEnquiry(enquiryData) {
   try {
-    const response = await API_INSTANCE.post('/enquiries', enquiryData);
+    // Convert form data to API format
+    const apiData = {
+      firstName: enquiryData.firstName,
+      middleName: enquiryData.middleName,
+      lastName: enquiryData.lastName,
+      personalMobileNumber: enquiryData.personalMobileNumber,
+      guardianMobileNumber: enquiryData.guardianMobileNumber,
+      email: enquiryData.email,
+      meritDetails: JSON.stringify(enquiryData.merit),
+      admissionFor: enquiryData.admissionFor,
+      location: enquiryData.location,
+      otherLocation: enquiryData.otherLocation,
+      category: enquiryData.category,
+      branchesInterested: JSON.stringify(enquiryData.branchesInterested),
+      referenceFaculty: enquiryData.referenceFaculty,
+      status: enquiryData.status || 'Pending',
+      enquiryDate: enquiryData.enquiryDate
+    };
+
+    const response = await API_INSTANCE.post('/enquiries', apiData);
     return response.data;
   } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
     // Fallback - create in mock store
     const newEnquiry = {
       id: Math.max(...enquiriesStore.map(e => e.id), 0) + 1,
       ...enquiryData,
-      enquiryDate: new Date().toISOString().split('T')[0]
+      enquiryDate: new Date().toISOString().split('T')[0],
+      status: enquiryData.status || 'Pending'
     };
     enquiriesStore.push(newEnquiry);
     return newEnquiry;
@@ -62,9 +85,29 @@ export async function createEnquiry(enquiryData) {
  */
 export async function updateEnquiry(id, enquiryData) {
   try {
-    const response = await API_INSTANCE.put(`/enquiries/${id}`, enquiryData);
+    // Convert form data to API format
+    const apiData = {
+      firstName: enquiryData.firstName,
+      middleName: enquiryData.middleName,
+      lastName: enquiryData.lastName,
+      personalMobileNumber: enquiryData.personalMobileNumber,
+      guardianMobileNumber: enquiryData.guardianMobileNumber,
+      email: enquiryData.email,
+      meritDetails: JSON.stringify(enquiryData.merit),
+      admissionFor: enquiryData.admissionFor,
+      location: enquiryData.location,
+      otherLocation: enquiryData.otherLocation,
+      category: enquiryData.category,
+      branchesInterested: JSON.stringify(enquiryData.branchesInterested),
+      referenceFaculty: enquiryData.referenceFaculty,
+      status: enquiryData.status,
+      enquiryDate: enquiryData.enquiryDate
+    };
+
+    const response = await API_INSTANCE.put(`/enquiries/${id}`, apiData);
     return response.data;
   } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
     // Fallback - update in mock store
     const index = enquiriesStore.findIndex(e => e.id === id);
     if (index !== -1) {
@@ -83,11 +126,32 @@ export async function deleteEnquiry(id) {
     await API_INSTANCE.delete(`/enquiries/${id}`);
     return { success: true };
   } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
     // Fallback - delete from mock store
     const index = enquiriesStore.findIndex(e => e.id === id);
     if (index !== -1) {
       enquiriesStore.splice(index, 1);
       return { success: true };
+    }
+    throw new Error('Enquiry not found');
+  }
+}
+
+/**
+ * Update enquiry status
+ */
+export async function updateStatus(id, status) {
+  try {
+    const response = await API_INSTANCE.patch(`/enquiries/${id}/status`, { status });
+    return response.data;
+  } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
+    // Fallback - update in mock store
+    const index = enquiriesStore.findIndex(e => e.id === id);
+    if (index !== -1) {
+      enquiriesStore[index].status = status;
+      enquiriesStore[index].updatedAt = new Date().toISOString();
+      return enquiriesStore[index];
     }
     throw new Error('Enquiry not found');
   }
@@ -101,13 +165,56 @@ export async function searchEnquiries(status) {
   return allEnquiries.filter(e => e.status === status);
 }
 
+/**
+ * Get enquiries by category
+ */
+export async function getEnquiriesByCategory(category) {
+  try {
+    const response = await API_INSTANCE.get(`/enquiries/by-category/${category}`);
+    return response.data;
+  } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
+    return enquiriesStore.filter(e => e.category === category);
+  }
+}
+
+/**
+ * Get enquiries by admission type
+ */
+export async function getEnquiriesByAdmission(admissionFor) {
+  try {
+    const response = await API_INSTANCE.get(`/enquiries/by-admission/${admissionFor}`);
+    return response.data;
+  } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
+    return enquiriesStore.filter(e => e.admissionFor === admissionFor);
+  }
+}
+
+/**
+ * Get enquiries by location
+ */
+export async function getEnquiriesByLocation(location) {
+  try {
+    const response = await API_INSTANCE.get(`/enquiries/by-location/${location}`);
+    return response.data;
+  } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
+    return enquiriesStore.filter(e => e.location === location);
+  }
+}
+
 const enquiryServiceExports = {
   getAllEnquiries,
   getEnquiryById,
   createEnquiry,
   updateEnquiry,
   deleteEnquiry,
-  searchEnquiries
+  updateStatus,
+  searchEnquiries,
+  getEnquiriesByCategory,
+  getEnquiriesByAdmission,
+  getEnquiriesByLocation
 };
 
 export default enquiryServiceExports;

@@ -34,6 +34,16 @@ const EnquiryIndex = () => {
     }
   };
 
+  const handleStatusUpdate = async (id, newStatus) => {
+    // The status has already been updated in the backend by the EnquiryList component
+    // Just refresh the enquiries to reflect the change
+    try {
+      await fetchEnquiries();
+    } catch (error) {
+      console.error('Error refreshing enquiries after status update:', error);
+    }
+  };
+
   return (
     <div>
       <div style={{
@@ -50,31 +60,6 @@ const EnquiryIndex = () => {
         }}>
           📞 Enquiries
         </h2>
-        <button
-          onClick={() => {
-            setModalType('new');
-            setShowModal(true);
-          }}
-          style={{
-            padding: '12px 25px',
-            background: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '1em',
-            fontWeight: '500',
-            transition: 'background 0.3s ease'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.background = '#218838';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.background = '#28a745';
-          }}
-        >
-          ➕ New Enquiry
-        </button>
       </div>
 
       {loading ? (
@@ -114,7 +99,7 @@ const EnquiryIndex = () => {
           </button>
         </div>
       ) : (
-        <EnquiryList enquiries={enquiries} onDelete={handleDelete} />
+        <EnquiryList enquiries={enquiries} onDelete={handleDelete} onStatusUpdate={handleStatusUpdate} />
       )}
 
       <Modal

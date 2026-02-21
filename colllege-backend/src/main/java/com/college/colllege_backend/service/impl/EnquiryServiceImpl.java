@@ -1,34 +1,41 @@
 package com.college.colllege_backend.service.impl;
 
-import com.college.colllege_backend.dto.EnquiryRequestDTO;
-import com.college.colllege_backend.dto.EnquiryResponseDTO;
-import com.college.colllege_backend.entity.Enquiry;
-import com.college.colllege_backend.enums.EnquiryStatus;
-import com.college.colllege_backend.repository.EnquiryRepository;
-import com.college.colllege_backend.service.EnquiryService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.college.colllege_backend.dto.EnquiryRequestDTO;
+import com.college.colllege_backend.dto.EnquiryResponseDTO;
+import com.college.colllege_backend.entity.Enquiry;
+import com.college.colllege_backend.repository.EnquiryRepository;
+import com.college.colllege_backend.service.EnquiryService;
+
 @Service
 public class EnquiryServiceImpl implements EnquiryService {
+
     @Autowired
     private EnquiryRepository enquiryRepository;
 
     @Override
     public EnquiryResponseDTO createEnquiry(EnquiryRequestDTO request) {
         Enquiry enquiry = new Enquiry();
-        enquiry.setStudentName(request.getStudentName());
+        enquiry.setFirstName(request.getFirstName());
+        enquiry.setMiddleName(request.getMiddleName());
+        enquiry.setLastName(request.getLastName());
+        enquiry.setPersonalMobileNumber(request.getPersonalMobileNumber());
+        enquiry.setGuardianMobileNumber(request.getGuardianMobileNumber());
         enquiry.setEmail(request.getEmail());
-        enquiry.setPhone(request.getPhone());
-        enquiry.setCourse(request.getCourse());
-        enquiry.setStatus(EnquiryStatus.valueOf(request.getStatus() != null ? request.getStatus() : "PENDING"));
-        enquiry.setNotes(request.getNotes());
-        enquiry.setCreatedBy(request.getCreatedBy());
-        enquiry.setEnquiryDate(LocalDate.now());
+        enquiry.setMeritDetails(request.getMeritDetails());
+        enquiry.setAdmissionFor(request.getAdmissionFor());
+        enquiry.setLocation(request.getLocation());
+        enquiry.setOtherLocation(request.getOtherLocation());
+        enquiry.setCategory(request.getCategory());
+        enquiry.setBranchesInterested(request.getBranchesInterested());
+        enquiry.setReferenceFaculty(request.getReferenceFaculty());
+        enquiry.setStatus("Pending");
+        enquiry.setEnquiryDate(request.getEnquiryDate());
 
         Enquiry saved = enquiryRepository.save(enquiry);
         return mapToDTO(saved);
@@ -37,36 +44,75 @@ public class EnquiryServiceImpl implements EnquiryService {
     @Override
     public EnquiryResponseDTO getEnquiryById(Long id) {
         return enquiryRepository.findById(id)
-            .map(this::mapToDTO)
-            .orElseThrow(() -> new RuntimeException("Enquiry not found"));
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new RuntimeException("Enquiry not found"));
     }
 
     @Override
     public List<EnquiryResponseDTO> getAllEnquiries() {
         return enquiryRepository.findAll().stream()
-            .map(this::mapToDTO)
-            .collect(Collectors.toList());
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<EnquiryResponseDTO> getEnquiriesByStatus(String status) {
-        return enquiryRepository.findByStatus(EnquiryStatus.valueOf(status))
-            .stream()
-            .map(this::mapToDTO)
-            .collect(Collectors.toList());
+        return enquiryRepository.findByStatus(status)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public EnquiryResponseDTO updateEnquiry(Long id, EnquiryRequestDTO request) {
         Enquiry enquiry = enquiryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Enquiry not found"));
+                .orElseThrow(() -> new RuntimeException("Enquiry not found"));
 
-        enquiry.setStudentName(request.getStudentName());
-        enquiry.setEmail(request.getEmail());
-        enquiry.setPhone(request.getPhone());
-        enquiry.setCourse(request.getCourse());
-        enquiry.setStatus(EnquiryStatus.valueOf(request.getStatus()));
-        enquiry.setNotes(request.getNotes());
+        if (request.getFirstName() != null) {
+            enquiry.setFirstName(request.getFirstName());
+        }
+        if (request.getMiddleName() != null) {
+            enquiry.setMiddleName(request.getMiddleName());
+        }
+        if (request.getLastName() != null) {
+            enquiry.setLastName(request.getLastName());
+        }
+        if (request.getPersonalMobileNumber() != null) {
+            enquiry.setPersonalMobileNumber(request.getPersonalMobileNumber());
+        }
+        if (request.getGuardianMobileNumber() != null) {
+            enquiry.setGuardianMobileNumber(request.getGuardianMobileNumber());
+        }
+        if (request.getEmail() != null) {
+            enquiry.setEmail(request.getEmail());
+        }
+        if (request.getMeritDetails() != null) {
+            enquiry.setMeritDetails(request.getMeritDetails());
+        }
+        if (request.getAdmissionFor() != null) {
+            enquiry.setAdmissionFor(request.getAdmissionFor());
+        }
+        if (request.getLocation() != null) {
+            enquiry.setLocation(request.getLocation());
+        }
+        if (request.getOtherLocation() != null) {
+            enquiry.setOtherLocation(request.getOtherLocation());
+        }
+        if (request.getCategory() != null) {
+            enquiry.setCategory(request.getCategory());
+        }
+        if (request.getBranchesInterested() != null) {
+            enquiry.setBranchesInterested(request.getBranchesInterested());
+        }
+        if (request.getReferenceFaculty() != null) {
+            enquiry.setReferenceFaculty(request.getReferenceFaculty());
+        }
+        if (request.getStatus() != null) {
+            enquiry.setStatus(request.getStatus());
+        }
+        if (request.getEnquiryDate() != null) {
+            enquiry.setEnquiryDate(request.getEnquiryDate());
+        }
 
         Enquiry updated = enquiryRepository.save(enquiry);
         return mapToDTO(updated);
@@ -79,15 +125,24 @@ public class EnquiryServiceImpl implements EnquiryService {
 
     private EnquiryResponseDTO mapToDTO(Enquiry enquiry) {
         return new EnquiryResponseDTO(
-            enquiry.getId(),
-            enquiry.getStudentName(),
-            enquiry.getEmail(),
-            enquiry.getPhone(),
-            enquiry.getCourse(),
-            enquiry.getEnquiryDate(),
-            enquiry.getStatus().toString(),
-            enquiry.getNotes(),
-            enquiry.getCreatedBy()
+                enquiry.getId(),
+                enquiry.getFirstName(),
+                enquiry.getMiddleName(),
+                enquiry.getLastName(),
+                enquiry.getPersonalMobileNumber(),
+                enquiry.getGuardianMobileNumber(),
+                enquiry.getEmail(),
+                enquiry.getMeritDetails(),
+                enquiry.getAdmissionFor(),
+                enquiry.getLocation(),
+                enquiry.getOtherLocation(),
+                enquiry.getCategory(),
+                enquiry.getBranchesInterested(),
+                enquiry.getReferenceFaculty(),
+                enquiry.getStatus(),
+                enquiry.getEnquiryDate(),
+                enquiry.getCreatedAt(),
+                enquiry.getUpdatedAt()
         );
     }
 }
