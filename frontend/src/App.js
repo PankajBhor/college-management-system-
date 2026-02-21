@@ -95,10 +95,11 @@ function App() {
         { icon: '📞', label: 'Enquiries', page: 'enquiries' }
       ],
       ENQUIRY_STAFF: [
-        { icon: '📊', label: 'Dashboard', page: 'dashboard' },
-        { icon: '📞', label: 'Enquiries', page: 'enquiries' },
-        { icon: '📋', label: 'New Enquiry', page: 'new-enquiry' }
-      ],
+  { icon: '📊', label: 'Dashboard', page: 'dashboard' },
+  { icon: '📋', label: 'New Enquiry Registration', page: 'new-enquiry' },
+  { icon: '📝', label: 'Update Enquiry Details', page: 'update-enquiry' }
+]
+,
       FACULTY: [
         { icon: '📊', label: 'Dashboard', page: 'dashboard' },
         { icon: '👥', label: 'Students', page: 'students' },
