@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
-import ToggleButton from '../components/ToggleButton';
 import Dashboard from './Dashboard';
 import EnquiryIndex from './enquiry/index';
 import NewEnquiry from './enquiry/NewEnquiry';
 import UpdateEnquiry from './enquiry/UpdateEnquiry';
 
 const DashboardLayout = ({ user, onLogout }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
 
   // Check if user has access to a page
@@ -20,7 +18,8 @@ const DashboardLayout = ({ user, onLogout }) => {
       'dashboard': ['PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'FACULTY', 'HOD'],
       'students': ['PRINCIPAL', 'OFFICE_STAFF', 'FACULTY', 'HOD'],
       'fees': ['PRINCIPAL', 'OFFICE_STAFF'],
-      'courses': ['PRINCIPAL', 'FACULTY', 'HOD']
+      'courses': ['PRINCIPAL', 'FACULTY', 'HOD'],
+      'department': ['HOD']
     };
 
     const allowed = allowedPages[page] || [];
@@ -46,12 +45,19 @@ const DashboardLayout = ({ user, onLogout }) => {
       case 'students':
         return (
           <div>
-            <h2 style={{ color: '#2c3e50', marginBottom: '30px', fontSize: '2em', fontWeight: '600' }}>
-              👥 Students
+            <h2 style={{ color: '#1a1a1a', marginBottom: '20px', fontSize: '28px', fontWeight: '700', margin: 0 }}>
+              Students
             </h2>
-            <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '15px' }}>
-              <p style={{ color: '#666', fontSize: '1.1em' }}>
-                🚀 Student management coming soon!
+            <p style={{ color: '#666', marginBottom: '30px', fontSize: '14px', fontWeight: '500' }}>
+              Manage student information and records
+            </p>
+            <div style={{ padding: '40px 30px', background: '#f8f9fa', borderRadius: '12px', color: '#1a1a1a', textAlign: 'center', border: '1px solid #e0e0e0' }}>
+              <div style={{ fontSize: '48px', marginBottom: '15px' }}>👥</div>
+              <h3 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 10px 0', color: '#1a1a1a' }}>
+                Student Management
+              </h3>
+              <p style={{ margin: 0, opacity: 0.7, fontSize: '14px', color: '#666' }}>
+                Coming soon! This feature will allow you to manage student information, records, and enrollment.
               </p>
             </div>
           </div>
@@ -59,12 +65,19 @@ const DashboardLayout = ({ user, onLogout }) => {
       case 'fees':
         return (
           <div>
-            <h2 style={{ color: '#2c3e50', marginBottom: '30px', fontSize: '2em', fontWeight: '600' }}>
-              💰 Fees
+            <h2 style={{ color: '#1a1a1a', marginBottom: '20px', fontSize: '28px', fontWeight: '700', margin: 0 }}>
+              Fees Management
             </h2>
-            <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '15px' }}>
-              <p style={{ color: '#666', fontSize: '1.1em' }}>
-                🚀 Fee management coming soon!
+            <p style={{ color: '#666', marginBottom: '30px', fontSize: '14px', fontWeight: '500' }}>
+              Track and manage student fees payment
+            </p>
+            <div style={{ padding: '40px 30px', background: '#f8f9fa', borderRadius: '12px', color: '#1a1a1a', textAlign: 'center', border: '1px solid #e0e0e0' }}>
+              <div style={{ fontSize: '48px', marginBottom: '15px' }}>💰</div>
+              <h3 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 10px 0', color: '#1a1a1a' }}>
+                Fee Management
+              </h3>
+              <p style={{ margin: 0, opacity: 0.7, fontSize: '14px', color: '#666' }}>
+                Coming soon! Track student fee payments, generate invoices, and manage fee collections.
               </p>
             </div>
           </div>
@@ -72,12 +85,39 @@ const DashboardLayout = ({ user, onLogout }) => {
       case 'courses':
         return (
           <div>
-            <h2 style={{ color: '#2c3e50', marginBottom: '30px', fontSize: '2em', fontWeight: '600' }}>
-              📚 Courses
+            <h2 style={{ color: '#1a1a1a', marginBottom: '20px', fontSize: '28px', fontWeight: '700', margin: 0 }}>
+              Courses
             </h2>
-            <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '15px' }}>
-              <p style={{ color: '#666', fontSize: '1.1em' }}>
-                🚀 Course management coming soon!
+            <p style={{ color: '#666', marginBottom: '30px', fontSize: '14px', fontWeight: '500' }}>
+              Manage courses and curriculum
+            </p>
+            <div style={{ padding: '40px 30px', background: '#f8f9fa', borderRadius: '12px', color: '#1a1a1a', textAlign: 'center', border: '1px solid #e0e0e0' }}>
+              <div style={{ fontSize: '48px', marginBottom: '15px' }}>📚</div>
+              <h3 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 10px 0', color: '#1a1a1a' }}>
+                Course Management
+              </h3>
+              <p style={{ margin: 0, opacity: 0.7, fontSize: '14px', color: '#666' }}>
+                Coming soon! Create and manage courses, assign faculty, and define curriculum.
+              </p>
+            </div>
+          </div>
+        );
+      case 'department':
+        return (
+          <div>
+            <h2 style={{ color: '#1a1a1a', marginBottom: '20px', fontSize: '28px', fontWeight: '700', margin: 0 }}>
+              Department Management
+            </h2>
+            <p style={{ color: '#666', marginBottom: '30px', fontSize: '14px', fontWeight: '500' }}>
+              Manage your department details and faculty
+            </p>
+            <div style={{ padding: '40px 30px', background: '#f8f9fa', borderRadius: '12px', color: '#1a1a1a', textAlign: 'center', border: '1px solid #e0e0e0' }}>
+              <div style={{ fontSize: '48px', marginBottom: '15px' }}>👨‍💼</div>
+              <h3 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 10px 0', color: '#1a1a1a' }}>
+                Department Information
+              </h3>
+              <p style={{ margin: 0, opacity: 0.7, fontSize: '14px', color: '#666' }}>
+                Coming soon! Manage department details, faculty assignments, and departmental operations.
               </p>
             </div>
           </div>
@@ -90,8 +130,8 @@ const DashboardLayout = ({ user, onLogout }) => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-      paddingLeft: isSidebarOpen ? '320px' : '80px',
+      background: '#f5f7fa',
+      paddingLeft: '80px',
       paddingTop: '80px',
       paddingRight: '20px',
       paddingBottom: '20px',
@@ -101,15 +141,8 @@ const DashboardLayout = ({ user, onLogout }) => {
       {/* Header */}
       <Header user={user} onLogout={onLogout} />
 
-      {/* Toggle Button */}
-      <ToggleButton
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        isOpen={isSidebarOpen}
-      />
-
       {/* Sidebar */}
       <Sidebar
-        isOpen={isSidebarOpen}
         onNavigate={setActivePage}
         currentPage={activePage}
         userRole={user?.role}
@@ -117,13 +150,12 @@ const DashboardLayout = ({ user, onLogout }) => {
 
       {/* Main Content */}
       <div style={{
-        maxWidth: '1200px',
+        maxWidth: '1400px',
         margin: '0 auto',
         background: 'white',
-        borderRadius: '20px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-        overflow: 'hidden',
-        minHeight: '80vh'
+        borderRadius: '14px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        overflow: 'hidden'
       }}>
         <div style={{
           padding: '40px'

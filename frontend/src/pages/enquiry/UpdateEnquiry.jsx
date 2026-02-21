@@ -125,7 +125,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
       marginTop: '25px',
       marginBottom: '15px',
       paddingBottom: '10px',
-      borderBottom: '2px solid #3498db'
+      borderBottom: '2px solid #e0e0e0'
     },
     formGroup: {
       marginBottom: '20px'
@@ -182,7 +182,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
       width: '18px',
       height: '18px',
       cursor: 'pointer',
-      accentColor: '#3498db'
+      accentColor: '#f0f0f0'
     },
     priorityInput: {
       width: '60px',
@@ -200,7 +200,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
     },
     submitBtn: {
       padding: '12px 30px',
-      background: '#3498db',
+      background: '#2563eb',
       color: 'white',
       border: 'none',
       borderRadius: '8px',
@@ -477,7 +477,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
                   {isSelected && (
                     <span style={{
                       padding: '6px 12px',
-                      background: '#3498db',
+                      background: '#e8e8e8',
                       color: 'white',
                       borderRadius: '6px',
                       fontSize: '0.85em',
@@ -521,8 +521,8 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
               type="submit"
               style={styles.submitBtn}
               disabled={loading}
-              onMouseOver={(e) => !loading && (e.target.style.background = '#2980b9')}
-              onMouseOut={(e) => !loading && (e.target.style.background = '#3498db')}
+              onMouseOver={(e) => !loading && (e.target.style.background = '#1d4ed8')}
+              onMouseOut={(e) => !loading && (e.target.style.background = '#2563eb')}
             >
               {loading ? 'Updating...' : 'Update Enquiry'}
             </button>

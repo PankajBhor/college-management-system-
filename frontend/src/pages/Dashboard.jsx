@@ -1,154 +1,245 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
+import { useEnquiry } from '../hooks/useEnquiry';
 
 const Dashboard = ({ user }) => {
-  // Sample dashboard data - in real app, would come from API
-  const dashboardStats = {
-    PRINCIPAL: [
-      { title: 'Total Students', value: '1,247', icon: '👥', color: '#3498db' },
-      { title: 'Pending Fees', value: '₹4,25,000', icon: '💰', color: '#e74c3c' },
-      { title: 'Total Courses', value: '18', icon: '📚', color: '#2ecc71' },
-      { title: 'Faculty Members', value: '87', icon: '👨‍🏫', color: '#9b59b6' }
-    ],
-    OFFICE_STAFF: [
-      { title: 'Students', value: '1,247', icon: '👥', color: '#3498db' },
-      { title: 'Pending Fees', value: '₹4,25,000', icon: '💰', color: '#e74c3c' },
-      { title: 'New Admissions', value: '156', icon: '📝', color: '#f39c12' },
-      { title: 'Queries Pending', value: '23', icon: '❓', color: '#1abc9c' }
-    ],
-    ENQUIRY_STAFF: [
-      { title: 'Total Enquiries', value: '892', icon: '📞', color: '#3498db' },
-      { title: 'This Month', value: '142', icon: '📈', color: '#2ecc71' },
-      { title: 'Converted', value: '67', icon: '✅', color: '#27ae60' },
-      { title: 'Follow-up', value: '45', icon: '⏰', color: '#f39c12' }
-    ],
-    FACULTY: [
-      { title: 'My Classes', value: '5', icon: '🎓', color: '#3498db' },
-      { title: 'Students', value: '187', icon: '👥', color: '#2ecc71' },
-      { title: 'Assignments', value: '12', icon: '📝', color: '#f39c12' },
-      { title: 'Grades Added', value: '89%', icon: '⭐', color: '#9b59b6' }
-    ],
-    HOD: [
-      { title: 'Department Students', value: '456', icon: '👥', color: '#3498db' },
-      { title: 'Faculty', value: '28', icon: '👨‍🏫', color: '#2ecc71' },
-      { title: 'Courses', value: '6', icon: '📚', color: '#9b59b6' },
-      { title: 'Pending Issues', value: '5', icon: '⚠️', color: '#e74c3c' }
-    ]
-  };
+  const { enquiries, fetchEnquiries } = useEnquiry();
+  const [stats, setStats] = useState([]);
 
-  const stats = dashboardStats[user?.role] || dashboardStats.PRINCIPAL;
+  // Fetch enquiries on component mount for ENQUIRY_STAFF and PRINCIPAL
+  useEffect(() => {
+    if ((user?.role === 'ENQUIRY_STAFF' || user?.role === 'PRINCIPAL') && enquiries.length === 0) {
+      fetchEnquiries();
+    }
+  }, [user?.role, enquiries.length, fetchEnquiries]);
+
+  // Calculate real enquiry stats
+  useEffect(() => {
+    if (user?.role === 'ENQUIRY_STAFF' || user?.role === 'PRINCIPAL') {
+      const totalEnquiries = enquiries.length;
+      const successEnquiries = enquiries.filter(e => e.status === 'Success').length;
+      const pendingEnquiries = enquiries.filter(e => e.status === 'Pending').length;
+
+      if (user?.role === 'ENQUIRY_STAFF') {
+        setStats([
+          { title: 'Total Enquiries', value: totalEnquiries.toString(), icon: '📞', color: '#e8e8e8', textColor: '#1a1a1a' },
+          { title: 'Pending', value: pendingEnquiries.toString(), icon: '⏳', color: '#efefef', textColor: '#1a1a1a' },
+          { title: 'Success', value: successEnquiries.toString(), icon: '✅', color: '#f5f5f5', textColor: '#1a1a1a' },
+          { 
+            title: 'Success Rate', 
+            value: totalEnquiries > 0 ? `${Math.round((successEnquiries / totalEnquiries) * 100)}%` : '0%', 
+            icon: '📈', 
+            color: '#f0f0f0', 
+            textColor: '#1a1a1a' 
+          }
+        ]);
+      } else if (user?.role === 'PRINCIPAL') {
+        // Principal also sees enquiry stats in addition to other stats
+        const defaultStats = [
+          { title: 'Total Students', value: '1,247', icon: '👥', color: '#e8e8e8', textColor: '#1a1a1a' },
+          { title: 'Pending Fees', value: '₹4,25,000', icon: '💰', color: '#efefef', textColor: '#1a1a1a' },
+          { title: 'Total Enquiries', value: totalEnquiries.toString(), icon: '📞', color: '#f5f5f5', textColor: '#1a1a1a' },
+          { title: 'Converted', value: successEnquiries.toString(), icon: '✅', color: '#f0f0f0', textColor: '#1a1a1a' }
+        ];
+        setStats(defaultStats);
+      }
+    } else {
+      // Default stats for other roles
+      const defaultStats = {
+        OFFICE_STAFF: [
+          { title: 'Students', value: '1,247', icon: '👥', color: '#e8e8e8', textColor: '#1a1a1a' },
+          { title: 'Pending Fees', value: '₹4,25,000', icon: '💰', color: '#efefef', textColor: '#1a1a1a' },
+          { title: 'New Admissions', value: '156', icon: '📝', color: '#f5f5f5', textColor: '#1a1a1a' },
+          { title: 'Queries Pending', value: '23', icon: '❓', color: '#f0f0f0', textColor: '#1a1a1a' }
+        ],
+        FACULTY: [
+          { title: 'My Classes', value: '5', icon: '🎓', color: '#e8e8e8', textColor: '#1a1a1a' },
+          { title: 'Students', value: '187', icon: '👥', color: '#efefef', textColor: '#1a1a1a' },
+          { title: 'Assignments', value: '12', icon: '📝', color: '#f5f5f5', textColor: '#1a1a1a' },
+          { title: 'Grades Added', value: '89%', icon: '⭐', color: '#f0f0f0', textColor: '#1a1a1a' }
+        ],
+        HOD: [
+          { title: 'Department Students', value: '456', icon: '👥', color: '#e8e8e8', textColor: '#1a1a1a' },
+          { title: 'Faculty', value: '28', icon: '👨‍🏫', color: '#efefef', textColor: '#1a1a1a' },
+          { title: 'Courses', value: '6', icon: '📚', color: '#f5f5f5', textColor: '#1a1a1a' },
+          { title: 'Pending Issues', value: '5', icon: '⚠️', color: '#f0f0f0', textColor: '#1a1a1a' }
+        ]
+      };
+      setStats(defaultStats[user?.role] || defaultStats.OFFICE_STAFF);
+    }
+  }, [user?.role, enquiries]);
+
+  const currentStats = stats;
 
   return (
     <div style={{ padding: '0' }}>
-      <h2 style={{
-        color: '#2c3e50',
-        marginBottom: '30px',
-        fontSize: '2em',
-        fontWeight: '600'
-      }}>
-        📊 Dashboard
-      </h2>
+      <div style={{ marginBottom: '35px' }}>
+        <h2 style={{
+          color: '#1a1a1a',
+          margin: '0 0 10px 0',
+          fontSize: '28px',
+          fontWeight: '700'
+        }}>
+          Dashboard
+        </h2>
+        <p style={{
+          color: '#666',
+          margin: 0,
+          fontSize: '14px',
+          fontWeight: '500'
+        }}>
+          Welcome back, {user?.name || 'Administrator'} • {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+      </div>
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
         gap: '20px',
         marginBottom: '40px'
       }}>
-        {stats.map((stat, index) => (
+        {currentStats.map((stat, index) => (
           <Card
             key={index}
             title={stat.title}
             value={stat.value}
             icon={stat.icon}
             color={stat.color}
+            textColor={stat.textColor}
           />
         ))}
       </div>
 
-      {/* Recent Activity Section */}
+      {/* Quick Stats */}
       <div style={{
-        background: 'white',
-        padding: '30px',
-        borderRadius: '15px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '20px',
+        marginBottom: '40px'
       }}>
-        <h3 style={{
-          color: '#2c3e50',
-          marginTop: 0,
-          marginBottom: '20px',
-          fontSize: '1.3em'
+        <div style={{
+          background: 'white',
+          padding: '25px',
+          borderRadius: '12px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+          border: '1px solid #f0f0f0'
         }}>
-          📋 Quick Actions
-        </h3>
+          <h3 style={{
+            color: '#1a1a1a',
+            margin: '0 0 20px 0',
+            fontSize: '16px',
+            fontWeight: '600'
+          }}>
+            📊 System Overview
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+              <span style={{ color: '#666' }}>Active Users:</span>
+              <span style={{ fontWeight: '600', color: '#1a1a1a' }}>342</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+              <span style={{ color: '#666' }}>System Status:</span>
+              <span style={{ fontWeight: '600', color: '#1a1a1a' }}>🟢 Online</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+              <span style={{ color: '#666' }}>Last Updated:</span>
+              <span style={{ fontWeight: '600', color: '#1a1a1a' }}>Just now</span>
+            </div>
+          </div>
+        </div>
 
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '15px'
+          background: 'white',
+          padding: '25px',
+          borderRadius: '12px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+          border: '1px solid #f0f0f0'
         }}>
-          <button style={{
-            padding: '15px 20px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontSize: '1em',
-            fontWeight: '500',
-            transition: 'transform 0.3s ease'
-          }}
+          <h3 style={{
+            color: '#1a1a1a',
+            margin: '0 0 20px 0',
+            fontSize: '16px',
+            fontWeight: '600'
+          }}>
+            ⚡ Quick Actions
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button style={{
+              padding: '10px 15px',
+              background: '#2563eb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '600',
+              transition: 'all 0.3s ease'
+            }}
             onMouseOver={(e) => {
-              e.target.style.transform = 'scale(1.05)';
+              e.target.style.background = '#1d4ed8';
+              e.target.style.transform = 'translateY(-1px)';
             }}
             onMouseOut={(e) => {
-              e.target.style.transform = 'scale(1)';
+              e.target.style.background = '#2563eb';
+              e.target.style.transform = 'translateY(0)';
             }}
-          >
-            📊 View Reports
-          </button>
+            >
+              View Reports
+            </button>
+            <button style={{
+              padding: '10px 15px',
+              background: '#2563eb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '600',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = '#1d4ed8';
+              e.target.style.transform = 'translateY(-1px)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = '#2563eb';
+              e.target.style.transform = 'translateY(0)';
+            }}
+            >
+              Export Data
+            </button>
+          </div>
+        </div>
 
-          <button style={{
-            padding: '15px 20px',
-            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontSize: '1em',
-            fontWeight: '500',
-            transition: 'transform 0.3s ease'
-          }}
-            onMouseOver={(e) => {
-              e.target.style.transform = 'scale(1.05)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.transform = 'scale(1)';
-            }}
-          >
-            📝 Add Data
-          </button>
-
-          <button style={{
-            padding: '15px 20px',
-            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontSize: '1em',
-            fontWeight: '500',
-            transition: 'transform 0.3s ease'
-          }}
-            onMouseOver={(e) => {
-              e.target.style.transform = 'scale(1.05)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.transform = 'scale(1)';
-            }}
-          >
-            ⚙️ Settings
-          </button>
+        <div style={{
+          background: 'white',
+          padding: '25px',
+          borderRadius: '12px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+          border: '1px solid #f0f0f0'
+        }}>
+          <h3 style={{
+            color: '#1a1a1a',
+            margin: '0 0 20px 0',
+            fontSize: '16px',
+            fontWeight: '600'
+          }}>
+            📅 This Week
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+              <span style={{ color: '#666' }}>Scheduled Events:</span>
+              <span style={{ fontWeight: '600' }}>8</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+              <span style={{ color: '#666' }}>Pending Tasks:</span>
+              <span style={{ fontWeight: '600', color: '#1a1a1a' }}>3</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+              <span style={{ color: '#666' }}>Completed:</span>
+              <span style={{ fontWeight: '600', color: '#1a1a1a' }}>12</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
