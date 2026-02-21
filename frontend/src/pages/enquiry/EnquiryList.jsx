@@ -14,10 +14,10 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
 
   const getStatusColor = (status) => {
     const colors = {
-      'Pending': '#ffc107',
-      'Success': '#28a745'
+      'Pending': '#e8e8e8',
+      'Success': '#e8e8e8'
     };
-    return colors[status] || '#999';
+    return colors[status] || '#f0f0f0';
   };
 
   const getFullName = (enquiry) => {
@@ -88,20 +88,23 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
   return (
     <div style={{
       background: 'white',
-      borderRadius: '15px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      overflow: 'hidden'
+      borderRadius: '12px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+      overflow: 'hidden',
+      border: '1px solid #f0f0f0'
     }}>
       {error && (
         <div style={{
-          padding: '15px',
-          background: '#f8d7da',
-          border: '1px solid #f5c6cb',
-          borderRadius: '8px',
-          color: '#721c24',
-          margin: '15px'
+          padding: '15px 20px',
+          background: '#fee7e7',
+          border: '1px solid #f5a0a0',
+          borderRadius: '0',
+          color: '#a51e1e',
+          margin: 0,
+          fontSize: '14px',
+          fontWeight: '500'
         }}>
-          {error}
+          ⚠️ {error}
         </div>
       )}
       <table style={{
@@ -110,13 +113,14 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
       }}>
         <thead style={{
           background: '#f8f9fa',
-          borderBottom: '2px solid #dee2e6'
+          borderBottom: '1px solid #e0e0e0'
         }}>
           <tr>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Name</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Email</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>Phone</th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+            <th style={{ padding: '16px 15px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px', width: '50px' }}>S.No</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Name</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Email</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Phone</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Admission For
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.admissionFor} onChange={handleFilterChange('admissionFor')} style={{ fontSize: '0.85em', padding: '4px' }}>
@@ -125,7 +129,7 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                 </select>
               </div>}
             </th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Branches Interested
               {filters && <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                 <select value={filters.branch} onChange={handleFilterChange('branch')} style={{ fontSize: '0.8em', padding: '4px' }}>
@@ -138,7 +142,7 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                 </select>
               </div>}
             </th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Location
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.location} onChange={handleFilterChange('location')} style={{ fontSize: '0.85em', padding: '4px' }}>
@@ -147,7 +151,7 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                 </select>
               </div>}
             </th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Category
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.category} onChange={handleFilterChange('category')} style={{ fontSize: '0.85em', padding: '4px' }}>
@@ -156,7 +160,7 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                 </select>
               </div>}
             </th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Status
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.status} onChange={handleFilterChange('status')} style={{ fontSize: '0.85em', padding: '4px' }}>
@@ -169,13 +173,13 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                 </select>
               </div>}
             </th>
-            <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600', color: '#333' }}>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Date
               {filters && <div style={{ marginTop: '8px' }}>
                 <input type="date" value={filters.date} onChange={handleFilterChange('date')} style={{ fontSize: '0.85em', padding: '4px' }} />
               </div>}
             </th>
-            <th style={{ padding: '15px', textAlign: 'center', fontWeight: '600', color: '#333' }}>Actions</th>
+            <th style={{ padding: '16px 15px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -183,17 +187,20 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
             <tr
               key={enquiry.id}
               style={{
-                borderBottom: '1px solid #dee2e6',
-                background: index % 2 === 0 ? '#ffffff' : '#f8f9fa',
+                borderBottom: '1px solid #e8e8e8',
+                background: index % 2 === 0 ? '#ffffff' : '#fafafa',
                 transition: 'background 0.2s ease'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.background = '#e8f4f8';
+                e.currentTarget.style.background = '#f0f7ff';
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.background = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+                e.currentTarget.style.background = index % 2 === 0 ? '#ffffff' : '#fafafa';
               }}
             >
+              <td style={{ padding: '15px', textAlign: 'center', fontWeight: '600', color: '#666' }}>
+                {index + 1}
+              </td>
               <td style={{ padding: '15px' }}>
                 <strong>{getFullName(enquiry)}</strong>
               </td>
@@ -220,7 +227,7 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                   display: 'inline-block',
                   padding: '5px 12px',
                   background: getStatusColor(enquiry.status),
-                  color: 'white',
+                  color: '#333',
                   borderRadius: '20px',
                   fontSize: '0.85em',
                   fontWeight: '500'
@@ -239,8 +246,8 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                       disabled={updatingId === enquiry.id}
                       style={{
                         padding: '6px 12px',
-                        background: '#28a745',
-                        color: 'white',
+                        background: '#e8e8e8',
+                        color: '#333',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: updatingId === enquiry.id ? 'not-allowed' : 'pointer',
@@ -251,12 +258,12 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                       }}
                       onMouseOver={(e) => {
                         if (updatingId !== enquiry.id) {
-                          e.target.style.background = '#218838';
+                          e.target.style.background = '#d8d8d8';
                         }
                       }}
                       onMouseOut={(e) => {
                         if (updatingId !== enquiry.id) {
-                          e.target.style.background = '#28a745';
+                          e.target.style.background = '#e8e8e8';
                         }
                       }}
                       title="Mark as Success"
@@ -270,7 +277,7 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                       disabled={updatingId === enquiry.id}
                       style={{
                         padding: '6px 12px',
-                        background: '#ffc107',
+                        background: '#e8e8e8',
                         color: '#333',
                         border: 'none',
                         borderRadius: '6px',
@@ -282,12 +289,12 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                       }}
                       onMouseOver={(e) => {
                         if (updatingId !== enquiry.id) {
-                          e.target.style.background = '#e0a800';
+                          e.target.style.background = '#d8d8d8';
                         }
                       }}
                       onMouseOut={(e) => {
                         if (updatingId !== enquiry.id) {
-                          e.target.style.background = '#ffc107';
+                          e.target.style.background = '#e8e8e8';
                         }
                       }}
                       title="Mark as Pending"
@@ -299,8 +306,8 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                     onClick={() => onDelete(enquiry.id)}
                     style={{
                       padding: '6px 12px',
-                      background: '#dc3545',
-                      color: 'white',
+                      background: '#e8e8e8',
+                      color: '#333',
                       border: 'none',
                       borderRadius: '6px',
                       cursor: 'pointer',
@@ -309,10 +316,10 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
                       fontFamily: 'inherit'
                     }}
                     onMouseOver={(e) => {
-                      e.target.style.background = '#c82333';
+                      e.target.style.background = '#d8d8d8';
                     }}
                     onMouseOut={(e) => {
-                      e.target.style.background = '#dc3545';
+                      e.target.style.background = '#e8e8e8';
                     }}
                     title="Delete enquiry"
                   >

@@ -4,8 +4,8 @@ const Card = ({
   title,
   value,
   icon,
-  color = '#3498db',
-  textColor = 'white',
+  color = '#f0f0f0',
+  textColor = '#1a1a1a',
   subtitle,
   onClick,
   style = {}
@@ -16,61 +16,66 @@ const Card = ({
       style={{
         background: color,
         color: textColor,
-        padding: '25px',
-        borderRadius: '15px',
+        padding: '28px',
+        borderRadius: '12px',
         textAlign: 'center',
         cursor: onClick ? 'pointer' : 'default',
-        transition: 'all 0.3s ease',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        border: '1px solid #f0f0f0',
         ...style
       }}
       onMouseOver={(e) => {
         if (onClick) {
-          e.currentTarget.style.transform = 'translateY(-5px)';
-          e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.12)';
         }
       }}
       onMouseOut={(e) => {
         if (onClick) {
           e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
         }
       }}
     >
       {icon && (
         <div style={{
-          fontSize: '2.5em',
-          marginBottom: '10px'
+          fontSize: '2.8em',
+          marginBottom: '12px',
+          lineHeight: '1'
         }}>
           {icon}
         </div>
       )}
 
-      {title && (
-        <h3 style={{
-          margin: '0 0 15px 0',
-          fontSize: '1.2em',
-          fontWeight: '600'
-        }}>
-          {title}
-        </h3>
-      )}
-
       {value && (
         <div style={{
-          fontSize: '2.5em',
-          fontWeight: 'bold',
-          marginBottom: subtitle ? '10px' : '0'
+          fontSize: '2.2em',
+          fontWeight: '700',
+          marginBottom: title ? '8px' : '0',
+          letterSpacing: '-0.5px'
         }}>
           {value}
         </div>
       )}
 
+      {title && (
+        <h3 style={{
+          margin: '0',
+          fontSize: '14px',
+          fontWeight: '600',
+          opacity: 0.95,
+          letterSpacing: '0.3px'
+        }}>
+          {title}
+        </h3>
+      )}
+
       {subtitle && (
         <p style={{
-          margin: 0,
-          fontSize: '0.95em',
-          opacity: 0.9
+          margin: '8px 0 0 0',
+          fontSize: '13px',
+          opacity: 0.8
         }}>
           {subtitle}
         </p>

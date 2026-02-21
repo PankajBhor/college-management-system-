@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useEnquiry } from '../../hooks/useEnquiry';
 import { useAuth } from '../../hooks/useAuth';
 import EnquiryList from './EnquiryList';
-import Modal from '../../components/Modal';// helper dropdown data
+import Modal from '../../components/Modal';
+import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+// helper dropdown data
 import {
   locationOptions,
   categoryOptions,
@@ -108,17 +110,27 @@ const EnquiryIndex = () => {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '30px'
+        marginBottom: '35px'
       }}>
-        <h2 style={{
-          color: '#2c3e50',
-          margin: 0,
-          fontSize: '2em',
-          fontWeight: '600'
-        }}>
-          📞 Enquiries
-        </h2>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div>
+          <h2 style={{
+            color: '#1a1a1a',
+            margin: '0 0 10px 0',
+            fontSize: '28px',
+            fontWeight: '700'
+          }}>
+            Enquiries
+          </h2>
+          <p style={{
+            color: '#666',
+            margin: 0,
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            Manage and track student enquiries
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <button
             onClick={() => {
               setFilters({
@@ -132,24 +144,87 @@ const EnquiryIndex = () => {
               });
             }}
             style={{
-              padding: '8px 16px',
-              background: '#6c757d',
-              color: 'white',
+              padding: '10px 18px',
+              background: '#f0f0f0',
+              color: '#333',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '0.9em',
-              fontWeight: '500'
+              fontSize: '13px',
+              fontWeight: '600',
+              transition: 'all 0.2s ease'
             }}
             onMouseOver={(e) => {
-              e.target.style.background = '#5a6268';
+              e.target.style.background = '#e0e0e0';
             }}
             onMouseOut={(e) => {
-              e.target.style.background = '#6c757d';
+              e.target.style.background = '#f0f0f0';
             }}
           >
             🔄 Clear Filters
           </button>
+          {canAddEnquiry && (
+            <>
+              <button
+                onClick={() => {
+                  try {
+                    exportToExcel(enquiries);
+                  } catch (error) {
+                    alert('Error exporting to Excel: ' + error.message);
+                  }
+                }}
+                style={{
+                  padding: '10px 18px',
+                  background: '#f0f0f0',
+                  color: '#333',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.background = '#e0e0e0';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = '#f0f0f0';
+                }}
+                title="Download enquiries as CSV file"
+              >
+                📊 Export Excel
+              </button>
+              <button
+                onClick={() => {
+                  try {
+                    exportToPDF(enquiries);
+                  } catch (error) {
+                    alert('Error exporting to PDF: ' + error.message);
+                  }
+                }}
+                style={{
+                  padding: '10px 18px',
+                  background: '#f0f0f0',
+                  color: '#333',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.background = '#e0e0e0';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = '#f0f0f0';
+                }}
+                title="Download enquiries as PDF file"
+              >
+                📄 Export PDF
+              </button>
+            </>
+          )}
           {canAddEnquiry && (
             <button
               onClick={() => {
@@ -158,19 +233,22 @@ const EnquiryIndex = () => {
               }}
               style={{
                 padding: '10px 20px',
-                background: '#28a745',
+                background: '#2563eb',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                fontSize: '0.95em',
-                fontWeight: '600'
+                fontSize: '13px',
+                fontWeight: '600',
+                transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
-                e.target.style.background = '#218838';
+                e.target.style.background = '#1d4ed8';
+                e.target.style.transform = 'translateY(-2px)';
               }}
               onMouseOut={(e) => {
-                e.target.style.background = '#28a745';
+                e.target.style.background = '#2563eb';
+                e.target.style.transform = 'translateY(0)';
               }}
             >
               ➕ New Enquiry
@@ -204,8 +282,8 @@ const EnquiryIndex = () => {
             }}
             style={{
               padding: '10px 20px',
-              background: '#28a745',
-              color: 'white',
+              background: '#f0f0f0',
+              color: '#333',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
@@ -399,8 +477,8 @@ const NewEnquiryForm = ({ onSubmit, onCancel }) => {
           style={{
             flex: 1,
             padding: '10px',
-            background: '#28a745',
-            color: 'white',
+            background: '#e8e8e8',
+            color: '#333',
             border: 'none',
             borderRadius: '8px',
             cursor: 'pointer',

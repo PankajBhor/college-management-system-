@@ -111,8 +111,8 @@ const Modal = ({ isOpen, title, children, onClose, onConfirm, confirmText = 'Con
                   onClick={onConfirm}
                   style={{
                     padding: '10px 20px',
-                    background: '#28a745',
-                    color: 'white',
+                    background: '#e8e8e8',
+                    color: '#333',
                     border: 'none',
                     borderRadius: '8px',
                     cursor: 'pointer',
@@ -122,10 +122,10 @@ const Modal = ({ isOpen, title, children, onClose, onConfirm, confirmText = 'Con
                     transition: 'background 0.3s ease'
                   }}
                   onMouseOver={(e) => {
-                    e.target.style.background = '#218838';
+                    e.target.style.background = '#d8d8d8';
                   }}
                   onMouseOut={(e) => {
-                    e.target.style.background = '#28a745';
+                    e.target.style.background = '#e8e8e8';
                   }}
                 >
                   {confirmText}

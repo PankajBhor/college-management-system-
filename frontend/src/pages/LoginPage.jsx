@@ -59,66 +59,119 @@ const LoginPage = ({ onLoginSuccess }) => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px',
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      background: '#f5f7fa',
+      padding: '20px'
     }}>
       <div style={{
-        background: 'rgba(255,255,255,0.95)',
-        padding: '40px',
-        borderRadius: '15px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-        maxWidth: '400px',
-        width: '100%'
+        width: '100%',
+        maxWidth: '500px',
+        background: 'white',
+        borderRadius: '16px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        padding: '50px 40px',
+        border: '1px solid #e8e8e8'
       }}>
-        <h1 style={{
-          textAlign: 'center',
-          color: '#333',
-          marginBottom: '30px',
-          fontSize: '1.8em'
-        }}>
-          🔐 College Login
-        </h1>
+        <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '15px' }}>🏫</div>
+          <h1 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            margin: '0 0 10px 0',
+            color: '#1a1a1a'
+          }}>
+            Jaihind College
+          </h1>
+          <p style={{
+            fontSize: '14px',
+            color: '#666',
+            margin: 0,
+            fontWeight: '500'
+          }}>
+            Faculty Management System
+          </p>
+        </div>
+
+        <div style={{ marginBottom: '40px' }}>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: '600',
+            color: '#1a1a1a',
+            margin: '0 0 10px 0'
+          }}>
+            Sign In
+          </h2>
+          <p style={{
+            fontSize: '14px',
+            color: '#666',
+            margin: 0,
+            fontWeight: '500'
+          }}>
+            Enter your credentials to access your dashboard
+          </p>
+        </div>
 
         <LoginForm onSubmit={handleLogin} isLoading={isLoading} error={error} />
 
-        <div style={{
-          marginTop: '25px',
-          textAlign: 'center',
-          fontSize: '14px',
-          color: '#666'
-        }}>
-          <p style={{ marginBottom: '15px', fontWeight: '600' }}>Test Accounts:</p>
-          <div style={{
-            background: '#f5f5f5',
-            padding: '15px',
-            borderRadius: '8px',
-            marginBottom: '15px',
-            fontSize: '0.9em',
-            lineHeight: '1.6'
+        <div style={{ marginTop: '40px', paddingTop: '30px', borderTop: '1px solid #e8e8e8' }}>
+          <p style={{
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#1a1a1a',
+            margin: '0 0 20px 0'
           }}>
-            <p>📧 principal@college.com</p>
-            <p>📧 office@college.com</p>
-            <p>📧 enquiry@college.com</p>
-            <p>📧 faculty@college.com</p>
-            <p>📧 hod@college.com</p>
-            <p style={{ marginTop: '10px', fontWeight: '500' }}>🔑 All passwords: <code>password</code></p>
-          </div>
-
+            📋 Demo Credentials:
+          </p>
+          
           <div style={{
-            background: '#fff3cd',
-            padding: '12px',
-            borderRadius: '8px',
-            fontSize: '0.85em',
-            color: '#856404',
-            border: '1px solid #ffc107'
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: '12px'
           }}>
-            <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>⚡ Quick Login:</p>
-            <p style={{ margin: '0 0 5px 0' }}>URL: <code>?user=principal</code></p>
-            <p style={{ margin: 0 }}>Keyboard: <code>Ctrl+Shift+L</code></p>
+            {Object.entries({
+              'Principal': { email: 'principal@college.com', pass: 'password', desc: 'Full system access' },
+              'Office Staff': { email: 'office@college.com', pass: 'password', desc: 'Student & fees management' },
+              'Enquiry Staff': { email: 'enquiry@college.com', pass: 'password', desc: 'Manage inquiries' },
+              'Faculty': { email: 'faculty@college.com', pass: 'password', desc: 'View courses & students' },
+              'HOD': { email: 'hod@college.com', pass: 'password', desc: 'Department management' }
+            }).map(([role, { email, pass, desc }]) => (
+              <div key={role} style={{
+                padding: '14px',
+                background: '#f8f9fa',
+                borderRadius: '10px',
+                border: '1px solid #e8e8e8'
+              }}>
+                <div style={{
+                  fontWeight: '700',
+                  color: '#1a1a1a',
+                  marginBottom: '4px',
+                  fontSize: '13px'
+                }}>
+                  {role}
+                </div>
+                <div style={{
+                  fontSize: '12px',
+                  color: '#666',
+                  marginBottom: '4px',
+                  fontFamily: 'monospace',
+                  background: 'white',
+                  padding: '6px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #e0e0e0'
+                }}>
+                  {email} / {pass}
+                </div>
+                <div style={{
+                  fontSize: '11px',
+                  color: '#888',
+                  fontStyle: 'italic'
+                }}>
+                  {desc}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

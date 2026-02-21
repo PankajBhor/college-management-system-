@@ -96,12 +96,13 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
 
       {displayError && (
         <div style={{
-          color: '#dc3545',
+          color: '#666',
           marginBottom: '20px',
           padding: '12px',
-          background: '#f8d7da',
+          background: '#f0f0f0',
           borderRadius: '8px',
-          fontSize: '0.95em'
+          fontSize: '0.95em',
+          border: '1px solid #e0e0e0'
         }}>
           {displayError}
         </div>
@@ -113,7 +114,7 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
         style={{
           width: '100%',
           padding: '12px',
-          background: isLoading ? '#ccc' : '#28a745',
+          background: isLoading ? '#9ca3af' : '#2563eb',
           color: 'white',
           border: 'none',
           borderRadius: '8px',
@@ -125,12 +126,12 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
         }}
         onMouseOver={(e) => {
           if (!isLoading) {
-            e.target.style.background = '#218838';
+            e.target.style.background = '#1d4ed8';
           }
         }}
         onMouseOut={(e) => {
           if (!isLoading) {
-            e.target.style.background = '#28a745';
+            e.target.style.background = '#2563eb';
           }
         }}
       >

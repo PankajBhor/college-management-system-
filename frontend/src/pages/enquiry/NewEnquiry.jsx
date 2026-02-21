@@ -125,7 +125,7 @@ const NewEnquiry = () => {
       marginTop: '25px',
       marginBottom: '15px',
       paddingBottom: '10px',
-      borderBottom: '2px solid #3498db'
+      borderBottom: '2px solid #e0e0e0'
     },
     formGroup: {
       marginBottom: '20px'
@@ -182,7 +182,7 @@ const NewEnquiry = () => {
       width: '18px',
       height: '18px',
       cursor: 'pointer',
-      accentColor: '#3498db'
+      accentColor: '#f0f0f0'
     },
     errorBox: {
       padding: '15px',
@@ -200,7 +200,7 @@ const NewEnquiry = () => {
     },
     submitBtn: {
       padding: '12px 30px',
-      background: '#3498db',
+      background: '#2563eb',
       color: 'white',
       border: 'none',
       borderRadius: '8px',
@@ -456,7 +456,7 @@ const NewEnquiry = () => {
                   {isSelected && (
                     <span style={{
                       padding: '6px 12px',
-                      background: '#3498db',
+                      background: '#e8e8e8',
                       color: 'white',
                       borderRadius: '6px',
                       fontSize: '0.85em',
@@ -519,8 +519,8 @@ const NewEnquiry = () => {
               type="submit"
               style={styles.submitBtn}
               disabled={loading}
-              onMouseOver={(e) => !loading && (e.target.style.background = '#2980b9')}
-              onMouseOut={(e) => !loading && (e.target.style.background = '#3498db')}
+              onMouseOver={(e) => !loading && (e.target.style.background = '#1d4ed8')}
+              onMouseOut={(e) => !loading && (e.target.style.background = '#2563eb')}
             >
               {loading ? 'Submitting...' : 'Submit Enquiry'}
             </button>
