@@ -47,24 +47,9 @@ export async function createFYAdmission(admissionData, documents = {}) {
     if (documents.aadhaarCard) formData.append('aadhaarCard', documents.aadhaarCard);
     if (documents.anyOther) formData.append('anyOther', documents.anyOther);
 
-    // Create a multipart instance for file upload
-    const fileUploadInstance = axios.create({
-      baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-
-    // Add authorization token
-    fileUploadInstance.interceptors.request.use((config) => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
-
-    const response = await fileUploadInstance.post('/admissions/fy', formData);
+    // Use the existing API_INSTANCE - it already has auth interceptor
+    // Let axios automatically handle Content-Type with boundary for FormData
+    const response = await API_INSTANCE.post('/admissions/fy', formData);
     return response.data;
   } catch (error) {
     console.error('Error creating FY admission:', error);
@@ -174,24 +159,9 @@ export async function createDSYAdmission(admissionData, documents = {}) {
     if (documents.nonCreamyLayerCertificate) formData.append('nonCreamyLayerCertificate', documents.nonCreamyLayerCertificate);
     if (documents.aadhaarCard) formData.append('aadhaarCard', documents.aadhaarCard);
 
-    // Create a multipart instance for file upload
-    const fileUploadInstance = axios.create({
-      baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-
-    // Add authorization token
-    fileUploadInstance.interceptors.request.use((config) => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
-
-    const response = await fileUploadInstance.post('/admissions/dsy', formData);
+    // Use the existing API_INSTANCE - it already has auth interceptor
+    // Let axios automatically handle Content-Type with boundary for FormData
+    const response = await API_INSTANCE.post('/admissions/dsy', formData);
     return response.data;
   } catch (error) {
     console.error('Error creating DSY admission:', error);
