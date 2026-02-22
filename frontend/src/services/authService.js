@@ -4,9 +4,7 @@ import { menuConfig, testUsers, backdoorUsers } from '../data/menuData';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 const API_INSTANCE = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  headers: {}
 });
 
 // Test password for all test accounts
