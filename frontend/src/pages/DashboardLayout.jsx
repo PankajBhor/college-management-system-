@@ -5,7 +5,8 @@ import Dashboard from './Dashboard';
 import EnquiryIndex from './enquiry/index';
 import NewEnquiry from './enquiry/NewEnquiry';
 import UpdateEnquiry from './enquiry/UpdateEnquiry';
-import { AdmissionForm } from './admissions';
+import AdmissionPage from './admissions/AdmissionPage';
+import { COLORS, SPACING, SHADOWS } from '../utils/designSystem';
 
 const DashboardLayout = ({ user, onLogout }) => {
   const [activePage, setActivePage] = useState('dashboard');
@@ -45,7 +46,7 @@ const DashboardLayout = ({ user, onLogout }) => {
       case 'update-enquiry':
         return <UpdateEnquiry />;
       case 'admissions':
-        return <AdmissionForm />;
+        return <AdmissionPage />;
       case 'students':
         return (
           <div>
@@ -134,11 +135,11 @@ const DashboardLayout = ({ user, onLogout }) => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#f5f7fa',
+      background: COLORS.backgroundSecondary,
       paddingLeft: '80px',
       paddingTop: '80px',
-      paddingRight: '20px',
-      paddingBottom: '20px',
+      paddingRight: SPACING['2xl'],
+      paddingBottom: SPACING['2xl'],
       transition: 'padding-left 0.3s ease',
       position: 'relative'
     }}>
@@ -156,13 +157,13 @@ const DashboardLayout = ({ user, onLogout }) => {
       <div style={{
         maxWidth: '1400px',
         margin: '0 auto',
-        background: 'white',
+        background: COLORS.background,
         borderRadius: '14px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        boxShadow: SHADOWS.md,
         overflow: 'hidden'
       }}>
         <div style={{
-          padding: '40px'
+          padding: SPACING['4xl']
         }}>
           {renderPage()}
         </div>

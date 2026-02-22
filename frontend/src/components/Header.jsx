@@ -1,4 +1,5 @@
 import React from 'react';
+import { COLORS, TYPOGRAPHY, SPACING, SHADOWS, BORDER_RADIUS } from '../utils/designSystem';
 
 const Header = ({ user, onLogout }) => {
   return (
@@ -7,38 +8,51 @@ const Header = ({ user, onLogout }) => {
       top: 0,
       left: 0,
       right: 0,
-      background: 'white',
-      padding: '20px 30px',
-      color: '#1a1a1a',
+      background: COLORS.background,
+      padding: `${SPACING.lg} ${SPACING['2xl']}`,
+      color: COLORS.text,
       zIndex: 999,
-      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      boxShadow: SHADOWS.md,
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      borderBottom: '1px solid #f0f0f0'
+      borderBottom: `1px solid ${COLORS.border}`,
+      fontFamily: TYPOGRAPHY.fontFamily
     }}>
       <div>
-        <h1 style={{ margin: 0, fontSize: '1.8em', fontWeight: 'bold' }}>🏫 College Management System</h1>
+        <h1 style={{
+          margin: 0,
+          fontSize: TYPOGRAPHY.fontSize.xl,
+          fontWeight: TYPOGRAPHY.fontWeight.bold,
+          color: COLORS.text
+        }}>
+          🏫 College Management System
+        </h1>
       </div>
 
       {user && (
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '20px'
+          gap: SPACING['2xl']
         }}>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '1em', fontWeight: 'bold', color: '#1a1a1a' }}>
+            <div style={{
+              fontSize: TYPOGRAPHY.fontSize.sm,
+              fontWeight: TYPOGRAPHY.fontWeight.semibold,
+              color: COLORS.text
+            }}>
               👋 {user.name}
             </div>
             <div style={{
-              fontSize: '0.85em',
+              fontSize: TYPOGRAPHY.fontSize.xs,
               opacity: 0.7,
-              padding: '4px 12px',
-              background: '#f0f0f0',
-              borderRadius: '12px',
-              marginTop: '4px',
-              color: '#666'
+              padding: `${SPACING.xs} ${SPACING.md}`,
+              background: COLORS.backgroundTertiary,
+              borderRadius: BORDER_RADIUS.full,
+              marginTop: SPACING.xs,
+              color: COLORS.textSecondary,
+              fontWeight: TYPOGRAPHY.fontWeight.medium
             }}>
               {user.role}
             </div>
@@ -47,23 +61,26 @@ const Header = ({ user, onLogout }) => {
           <button
             onClick={onLogout}
             style={{
-              padding: '8px 20px',
-              background: '#2563eb',
-              color: 'white',
+              padding: `${SPACING.sm} ${SPACING.lg}`,
+              background: COLORS.primary,
+              color: '#ffffff',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: BORDER_RADIUS.base,
               cursor: 'pointer',
-              fontSize: '0.95em',
-              fontWeight: '500',
-              transition: 'all 0.3s ease'
+              fontSize: TYPOGRAPHY.fontSize.sm,
+              fontWeight: TYPOGRAPHY.fontWeight.medium,
+              transition: `all ${0.2}s ease`,
+              fontFamily: TYPOGRAPHY.fontFamily
             }}
             onMouseOver={(e) => {
-              e.target.style.background = '#1d4ed8';
+              e.target.style.background = COLORS.primaryHover;
               e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = SHADOWS.md;
             }}
             onMouseOut={(e) => {
-              e.target.style.background = '#2563eb';
+              e.target.style.background = COLORS.primary;
               e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = 'none';
             }}
           >
             🚪 Logout

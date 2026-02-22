@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { menuConfig } from '../data/menuData';
+import { COLORS, TYPOGRAPHY, SPACING, SHADOWS, BORDER_RADIUS } from '../utils/designSystem';
 
 const Sidebar = ({ onNavigate, currentPage, userRole }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -26,9 +27,9 @@ const Sidebar = ({ onNavigate, currentPage, userRole }) => {
       <div
         style={{
           width: '280px',
-          background: '#ffffff',
-          color: '#1a1a1a',
-          padding: '100px 0 20px 0',
+          background: COLORS.background,
+          color: COLORS.text,
+          padding: `100px 0 ${SPACING.lg} 0`,
           height: '100vh',
           position: 'fixed',
           left: isHovered ? '0' : '-280px',
@@ -36,22 +37,23 @@ const Sidebar = ({ onNavigate, currentPage, userRole }) => {
           overflow: 'hidden',
           transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
           zIndex: 999,
-          boxShadow: isHovered ? '4px 0 20px rgba(0,0,0,0.12)' : 'none',
-          borderRight: '1px solid #e8e8e8'
+          boxShadow: isHovered ? SHADOWS.lg : 'none',
+          borderRight: `1px solid ${COLORS.border}`,
+          fontFamily: TYPOGRAPHY.fontFamily
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div style={{
-          padding: '0 20px 20px 20px',
-          marginBottom: '20px',
-          borderBottom: '2px solid #e8e8e8'
+          padding: `0 ${SPACING.lg} ${SPACING.lg} ${SPACING.lg}`,
+          marginBottom: SPACING.lg,
+          borderBottom: `2px solid ${COLORS.border}`
         }}>
           <h2 style={{
             margin: 0,
-            fontSize: '18px',
-            fontWeight: '700',
-            color: '#1a1a1a'
+            fontSize: TYPOGRAPHY.fontSize.lg,
+            fontWeight: TYPOGRAPHY.fontWeight.bold,
+            color: COLORS.text
           }}>
             Navigation
           </h2>
@@ -60,11 +62,11 @@ const Sidebar = ({ onNavigate, currentPage, userRole }) => {
         <nav style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
-          paddingRight: '10px',
+          gap: SPACING.sm,
+          paddingRight: SPACING.md,
           overflowY: 'auto',
           maxHeight: 'calc(100vh - 140px)',
-          paddingLeft: '20px'
+          paddingLeft: SPACING.lg
         }}>
           {menus.map((menu) => (
             <button
@@ -73,38 +75,34 @@ const Sidebar = ({ onNavigate, currentPage, userRole }) => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: SPACING.md,
                 width: '100%',
-                padding: '12px 16px',
-                background: currentPage === menu.page
-                  ? '#2563eb'
-                  : 'transparent',
-                color: currentPage === menu.page
-                  ? 'white'
-                  : '#666',
+                padding: `${SPACING.md} ${SPACING.lg}`,
+                background: currentPage === menu.page ? COLORS.primary : 'transparent',
+                color: currentPage === menu.page ? '#ffffff' : COLORS.textSecondary,
                 border: 'none',
-                borderRadius: '10px',
-                fontSize: '14px',
+                borderRadius: BORDER_RADIUS.md,
+                fontSize: TYPOGRAPHY.fontSize.sm,
                 cursor: 'pointer',
-                transition: 'all 0.25s ease',
+                transition: `all ${0.25}s ease`,
                 textAlign: 'left',
-                fontFamily: 'inherit',
-                fontWeight: currentPage === menu.page ? '600' : '500'
+                fontFamily: TYPOGRAPHY.fontFamily,
+                fontWeight: currentPage === menu.page ? TYPOGRAPHY.fontWeight.semibold : TYPOGRAPHY.fontWeight.medium
               }}
               onMouseOver={(e) => {
                 if (currentPage !== menu.page) {
-                  e.target.style.background = '#f0f0f0';
-                  e.target.style.color = '#1a1a1a';
+                  e.target.style.background = COLORS.backgroundTertiary;
+                  e.target.style.color = COLORS.text;
                 }
               }}
               onMouseOut={(e) => {
                 if (currentPage !== menu.page) {
                   e.target.style.background = 'transparent';
-                  e.target.style.color = '#666';
+                  e.target.style.color = COLORS.textSecondary;
                 }
               }}
             >
-              <span style={{ fontSize: '18px', width: '20px', textAlign: 'center' }}>
+              <span style={{ fontSize: TYPOGRAPHY.fontSize.xl, width: '20px', textAlign: 'center' }}>
                 {menu.icon}
               </span>
               <span>{menu.label}</span>

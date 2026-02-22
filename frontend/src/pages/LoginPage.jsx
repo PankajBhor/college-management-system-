@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LoginForm from '../components/LoginForm';
 import { loginUser, getBackdoorUser } from '../services/authService';
+import { COLORS, TYPOGRAPHY, SPACING, SHADOWS, BORDER_RADIUS } from '../utils/designSystem';
 
 const LoginPage = ({ onLoginSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -62,73 +63,77 @@ const LoginPage = ({ onLoginSuccess }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#f5f7fa',
-      padding: '20px'
+      background: `linear-gradient(135deg, ${COLORS.backgroundTertiary} 0%, ${COLORS.backgroundSecondary} 100%)`,
+      padding: SPACING['2xl'],
+      fontFamily: TYPOGRAPHY.fontFamily
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '500px',
-        background: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-        padding: '50px 40px',
-        border: '1px solid #e8e8e8'
+        maxWidth: '480px',
+        background: COLORS.background,
+        borderRadius: BORDER_RADIUS.lg,
+        boxShadow: SHADOWS.xl,
+        padding: SPACING['4xl'],
+        border: `1px solid ${COLORS.border}`
       }}>
-        <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '15px' }}>🏫</div>
+        {/* Header Section */}
+        <div style={{ marginBottom: SPACING['4xl'], textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: SPACING.lg }}>🏫</div>
           <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            margin: '0 0 10px 0',
-            color: '#1a1a1a'
+            fontSize: TYPOGRAPHY.fontSize['3xl'],
+            fontWeight: TYPOGRAPHY.fontWeight.bold,
+            margin: `0 0 ${SPACING.sm} 0`,
+            color: COLORS.text
           }}>
             Jaihind College
           </h1>
           <p style={{
-            fontSize: '14px',
-            color: '#666',
+            fontSize: TYPOGRAPHY.fontSize.sm,
+            color: COLORS.textSecondary,
             margin: 0,
-            fontWeight: '500'
+            fontWeight: TYPOGRAPHY.fontWeight.medium
           }}>
-            Faculty Management System
+            Management Information System
           </p>
         </div>
 
-        <div style={{ marginBottom: '40px' }}>
+        {/* Sign In Section */}
+        <div style={{ marginBottom: SPACING['3xl'] }}>
           <h2 style={{
-            fontSize: '24px',
-            fontWeight: '600',
-            color: '#1a1a1a',
-            margin: '0 0 10px 0'
+            fontSize: TYPOGRAPHY.fontSize.xl,
+            fontWeight: TYPOGRAPHY.fontWeight.semibold,
+            color: COLORS.text,
+            margin: `0 0 ${SPACING.md} 0`
           }}>
-            Sign In
+            Welcome Back
           </h2>
           <p style={{
-            fontSize: '14px',
-            color: '#666',
+            fontSize: TYPOGRAPHY.fontSize.sm,
+            color: COLORS.textSecondary,
             margin: 0,
-            fontWeight: '500'
+            fontWeight: TYPOGRAPHY.fontWeight.normal
           }}>
-            Enter your credentials to access your dashboard
+            Sign in to access your dashboard
           </p>
         </div>
 
         <LoginForm onSubmit={handleLogin} isLoading={isLoading} error={error} />
 
-        <div style={{ marginTop: '40px', paddingTop: '30px', borderTop: '1px solid #e8e8e8' }}>
+        {/* Demo Credentials Section */}
+        <div style={{ marginTop: SPACING['4xl'], paddingTop: SPACING['2xl'], borderTop: `1px solid ${COLORS.border}` }}>
           <p style={{
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#1a1a1a',
-            margin: '0 0 20px 0'
+            fontSize: TYPOGRAPHY.fontSize.sm,
+            fontWeight: TYPOGRAPHY.fontWeight.semibold,
+            color: COLORS.text,
+            margin: `0 0 ${SPACING.lg} 0`
           }}>
-            📋 Demo Credentials:
+            📋 Demo Accounts
           </p>
           
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr',
-            gap: '12px'
+            gap: SPACING.md
           }}>
             {Object.entries({
               'Principal': { email: 'principal@college.com', pass: 'password', desc: 'Full system access' },
@@ -138,34 +143,34 @@ const LoginPage = ({ onLoginSuccess }) => {
               'HOD': { email: 'hod@college.com', pass: 'password', desc: 'Department management' }
             }).map(([role, { email, pass, desc }]) => (
               <div key={role} style={{
-                padding: '14px',
-                background: '#f8f9fa',
-                borderRadius: '10px',
-                border: '1px solid #e8e8e8'
+                padding: SPACING.md,
+                background: COLORS.backgroundSecondary,
+                borderRadius: BORDER_RADIUS.base,
+                border: `1px solid ${COLORS.border}`
               }}>
                 <div style={{
-                  fontWeight: '700',
-                  color: '#1a1a1a',
-                  marginBottom: '4px',
-                  fontSize: '13px'
+                  fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                  color: COLORS.text,
+                  marginBottom: SPACING.xs,
+                  fontSize: TYPOGRAPHY.fontSize.sm
                 }}>
                   {role}
                 </div>
                 <div style={{
-                  fontSize: '12px',
-                  color: '#666',
-                  marginBottom: '4px',
-                  fontFamily: 'monospace',
-                  background: 'white',
-                  padding: '6px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #e0e0e0'
+                  fontSize: TYPOGRAPHY.fontSize.xs,
+                  color: COLORS.textSecondary,
+                  marginBottom: SPACING.xs,
+                  fontFamily: 'Menlo, monospace',
+                  background: COLORS.background,
+                  padding: SPACING.sm,
+                  borderRadius: BORDER_RADIUS.base,
+                  border: `1px solid ${COLORS.border}`
                 }}>
                   {email} / {pass}
                 </div>
                 <div style={{
-                  fontSize: '11px',
-                  color: '#888',
+                  fontSize: TYPOGRAPHY.fontSize.xs,
+                  color: COLORS.textTertiary,
                   fontStyle: 'italic'
                 }}>
                   {desc}

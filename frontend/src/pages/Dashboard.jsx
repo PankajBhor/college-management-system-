@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
 import { useEnquiry } from '../hooks/useEnquiry';
+import { COLORS, TYPOGRAPHY, SPACING } from '../utils/designSystem';
 
 const Dashboard = ({ user }) => {
   const { enquiries, fetchEnquiries } = useEnquiry();
@@ -72,21 +73,21 @@ const Dashboard = ({ user }) => {
   const currentStats = stats;
 
   return (
-    <div style={{ padding: '0' }}>
-      <div style={{ marginBottom: '35px' }}>
+    <div style={{ padding: '0', fontFamily: TYPOGRAPHY.fontFamily }}>
+      <div style={{ marginBottom: SPACING['4xl'] }}>
         <h2 style={{
-          color: '#1a1a1a',
-          margin: '0 0 10px 0',
-          fontSize: '28px',
-          fontWeight: '700'
+          color: COLORS.text,
+          margin: `0 0 ${SPACING.md} 0`,
+          fontSize: TYPOGRAPHY.fontSize['4xl'],
+          fontWeight: TYPOGRAPHY.fontWeight.bold
         }}>
           Dashboard
         </h2>
         <p style={{
-          color: '#666',
+          color: COLORS.textSecondary,
           margin: 0,
-          fontSize: '14px',
-          fontWeight: '500'
+          fontSize: TYPOGRAPHY.fontSize.sm,
+          fontWeight: TYPOGRAPHY.fontWeight.medium
         }}>
           Welcome back, {user?.name || 'Administrator'} • {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
@@ -95,8 +96,8 @@ const Dashboard = ({ user }) => {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: '20px',
-        marginBottom: '40px'
+        gap: SPACING['2xl'],
+        marginBottom: SPACING['4xl']
       }}>
         {currentStats.map((stat, index) => (
           <Card

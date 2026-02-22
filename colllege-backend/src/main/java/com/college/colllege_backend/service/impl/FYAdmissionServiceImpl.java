@@ -119,6 +119,19 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         admission.setAnnualIncome(request.getAnnualIncome());
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
+        
+        // Set file paths
+        admission.setDomicileCertificatePath(request.getDomicileCertificatePath());
+        admission.setTenthMarkSheetPath(request.getTenthMarkSheetPath());
+        admission.setTwelfthMarkSheetPath(request.getTwelfthMarkSheetPath());
+        admission.setLeavingCertificatePath(request.getLeavingCertificatePath());
+        admission.setCasteCertificatePath(request.getCasteCertificatePath());
+        admission.setNonCreamyLayerCertificatePath(request.getNonCreamyLayerCertificatePath());
+        admission.setIncomeCertificatePath(request.getIncomeCertificatePath());
+        admission.setDefenceCertificatePath(request.getDefenceCertificatePath());
+        admission.setAadhaarCardPath(request.getAadhaarCardPath());
+        admission.setAnyOtherDocumentPath(request.getAnyOtherDocumentPath());
+        
         admission.setUpdatedAt(LocalDateTime.now());
 
         return fyAdmissionRepository.save(admission);

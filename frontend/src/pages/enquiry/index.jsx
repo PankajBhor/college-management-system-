@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useEnquiry } from '../../hooks/useEnquiry';
 import { useAuth } from '../../hooks/useAuth';
 import EnquiryList from './EnquiryList';
-import Modal from '../../components/Modal';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 // helper dropdown data
 import {
@@ -14,8 +13,6 @@ import {
 const EnquiryIndex = () => {
   const { enquiries, loading, fetchEnquiries, addEnquiry, removeEnquiry } = useEnquiry();
   const { user } = useAuth();
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'new' or 'empty'
 
   // filter state for the table
   const [filters, setFilters] = useState({
@@ -32,16 +29,6 @@ const EnquiryIndex = () => {
     fetchEnquiries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleNewEnquiry = async (formData) => {
-    try {
-      await addEnquiry(formData);
-      setShowModal(false);
-      alert('Enquiry added successfully!');
-    } catch (error) {
-      alert('Error adding enquiry: ' + error.message);
-    }
-  };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this enquiry?')) {
@@ -225,35 +212,6 @@ const EnquiryIndex = () => {
               </button>
             </>
           )}
-          {canAddEnquiry && (
-            <button
-              onClick={() => {
-                setModalType('new');
-                setShowModal(true);
-              }}
-              style={{
-                padding: '10px 20px',
-                background: '#2563eb',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: '600',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.background = '#1d4ed8';
-                e.target.style.transform = 'translateY(-2px)';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.background = '#2563eb';
-                e.target.style.transform = 'translateY(0)';
-              }}
-            >
-              ➕ New Enquiry
-            </button>
-          )}
         </div>
       </div>
 
@@ -275,23 +233,7 @@ const EnquiryIndex = () => {
           color: '#666'
         }}>
           <p style={{ fontSize: '1.1em', margin: '0 0 10px 0' }}>📭 No enquiries yet</p>
-          <button
-            onClick={() => {
-              setModalType('new');
-              setShowModal(true);
-            }}
-            style={{
-              padding: '10px 20px',
-              background: '#f0f0f0',
-              color: '#333',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '1em'
-            }}
-          >
-            Add First Enquiry
-          </button>
+          <p style={{ margin: 0, fontSize: '14px', color: '#999' }}>Use the "New Enquiry" page to add new enquiries</p>
         </div>
       ) : (
         <EnquiryList
@@ -304,211 +246,11 @@ const EnquiryIndex = () => {
         />
       )}
 
-      {canAddEnquiry && (
-        <Modal
-          isOpen={showModal}
-          title={modalType === 'new' ? 'New Enquiry' : 'Edit Enquiry'}
-          onClose={() => setShowModal(false)}
-        >
-          <NewEnquiryForm onSubmit={handleNewEnquiry} onCancel={() => setShowModal(false)} />
-        </Modal>
-      )}
+
     </div>
   );
 };
 
-// Simple form component for the modal
-const NewEnquiryForm = ({ onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
-    studentName: '',
-    email: '',
-    phone: '',
-    course: '',
-    status: 'Pending',
-    notes: ''
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.studentName || !formData.email || !formData.phone) {
-      alert('Please fill all required fields');
-      return;
-    }
-    onSubmit(formData);
-    setFormData({
-      studentName: '',
-      email: '',
-      phone: '',
-      course: '',
-      status: 'Pending',
-      notes: ''
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-          Student Name *
-        </label>
-        <input
-          type="text"
-          value={formData.studentName}
-          onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '1em',
-            boxSizing: 'border-box',
-            fontFamily: 'inherit'
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-          Email *
-        </label>
-        <input
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '1em',
-            boxSizing: 'border-box',
-            fontFamily: 'inherit'
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-          Phone *
-        </label>
-        <input
-          type="tel"
-          value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '1em',
-            boxSizing: 'border-box',
-            fontFamily: 'inherit'
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-          Course
-        </label>
-        <input
-          type="text"
-          value={formData.course}
-          onChange={(e) => setFormData({ ...formData, course: e.target.value })}
-          placeholder="e.g., B.Tech - CSE"
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '1em',
-            boxSizing: 'border-box',
-            fontFamily: 'inherit'
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-          Status
-        </label>
-        <select
-          value={formData.status}
-          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '1em',
-            fontFamily: 'inherit'
-          }}
-        >
-          <option>Pending</option>
-          <option>Follow-up</option>
-          <option>Converted</option>
-          <option>Lost</option>
-        </select>
-      </div>
-
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-          Notes
-        </label>
-        <textarea
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '1em',
-            minHeight: '80px',
-            fontFamily: 'inherit',
-            boxSizing: 'border-box'
-          }}
-        />
-      </div>
-
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button
-          type="submit"
-          style={{
-            flex: 1,
-            padding: '10px',
-            background: '#e8e8e8',
-            color: '#333',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '500',
-            fontFamily: 'inherit'
-          }}
-        >
-          Save Enquiry
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            flex: 1,
-            padding: '10px',
-            background: '#f0f0f0',
-            color: '#333',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '500',
-            fontFamily: 'inherit'
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-};
-
 export default EnquiryIndex;
+
 

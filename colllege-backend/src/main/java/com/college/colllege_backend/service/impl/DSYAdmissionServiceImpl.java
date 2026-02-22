@@ -127,6 +127,15 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         admission.setPreference2(request.getPreference2());
         admission.setPreference3(request.getPreference3());
         admission.setPreference4(request.getPreference4());
+        
+        // Set file paths
+        admission.setDomicileCertificatePath(request.getDomicileCertificatePath());
+        admission.setSscMarkSheetPath(request.getSscMarkSheetPath());
+        admission.setHscMarkSheetPath(request.getHscMarkSheetPath());
+        admission.setCasteCertificatePath(request.getCasteCertificatePath());
+        admission.setNonCreamyLayerCertificatePath(request.getNonCreamyLayerCertificatePath());
+        admission.setAadhaarCardPath(request.getAadhaarCardPath());
+        
         admission.setUpdatedAt(LocalDateTime.now());
 
         return dsyAdmissionRepository.save(admission);
