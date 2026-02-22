@@ -5,7 +5,8 @@ export const menuConfig = {
     { icon: '👥', label: 'Students', page: 'students' },
     { icon: '💰', label: 'Fees', page: 'fees' },
     { icon: '📚', label: 'Courses', page: 'courses' },
-    { icon: '📞', label: 'Enquiries', page: 'enquiries' }
+    { icon: '�', label: 'Admissions', page: 'admissions' },
+    { icon: '�📞', label: 'Enquiries', page: 'enquiries' }
   ],
   OFFICE_STAFF: [
     { icon: '📊', label: 'Dashboard', page: 'dashboard' },

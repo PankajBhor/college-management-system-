@@ -23,9 +23,9 @@ public class FileStorageService {
 
         // Validate file type (PDF and images only)
         String contentType = file.getContentType();
-        if (!contentType.equals("application/pdf")
+        if (contentType == null || (!contentType.equals("application/pdf")
                 && !contentType.equals("image/png")
-                && !contentType.equals("image/jpeg")) {
+                && !contentType.equals("image/jpeg"))) {
             throw new IllegalArgumentException("Only PDF, PNG, and JPEG files are allowed");
         }
 

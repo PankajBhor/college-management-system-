@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './FYAdmissionForm.css';
 import { admissionService } from '../../services/admissionService';
 
@@ -130,7 +130,7 @@ const FYAdmissionForm = () => {
 
     setLoading(true);
     try {
-      const response = await admissionService.createFYAdmission(formData, documents);
+      await admissionService.createFYAdmission(formData, documents);
       setSubmitted(true);
       alert('FY Admission form submitted successfully!');
       setTimeout(() => {

@@ -20,7 +20,7 @@ const DashboardLayout = ({ user, onLogout }) => {
       'students': ['PRINCIPAL', 'OFFICE_STAFF', 'FACULTY', 'HOD'],
       'fees': ['PRINCIPAL', 'OFFICE_STAFF'],
       'courses': ['PRINCIPAL', 'FACULTY', 'HOD'],
-      'admissions': ['PRINCIPAL', 'OFFICE_STAFF']
+      'admissions': ['PRINCIPAL', 'OFFICE_STAFF'],
       'department': ['HOD']
     };
 

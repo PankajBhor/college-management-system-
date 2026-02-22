@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './DSYAdmissionForm.css';
 import { admissionService } from '../../services/admissionService';
 
@@ -127,7 +127,7 @@ const DSYAdmissionForm = () => {
 
     setLoading(true);
     try {
-      const response = await admissionService.createDSYAdmission(formData, documents);
+      await admissionService.createDSYAdmission(formData, documents);
       setSubmitted(true);
       alert('DSY Admission form submitted successfully!');
       setTimeout(() => {
