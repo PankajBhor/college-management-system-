@@ -9,12 +9,19 @@ const API_INSTANCE = axios.create({
 
 /**
  * Add authorization token to requests
+ * Important: Don't set Content-Type for FormData - let axios compute it with boundary
  */
 API_INSTANCE.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // If sending FormData, ensure Content-Type is not set (let axios auto-detect)
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
+  
   return config;
 });
 
