@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { facultyOptionsDummy } from '../../data/facultyOptionsDummy';
 import {
   locationOptions,
   categoryOptions,
@@ -6,6 +7,7 @@ import {
   admissionForOptions
 } from '../../data/mockEnquiries';
 import enquiryService from '../../services/enquiryService';
+import { getAllFaculty } from '../../services/facultyService';
 
 const NewEnquiry = () => {
   const [formData, setFormData] = useState({
@@ -21,8 +23,29 @@ const NewEnquiry = () => {
     otherLocation: '',
     category: '',
     branchesInterested: [],
-    referenceFaculty: ''
+    referenceFaculty: '',
+    dteRegistrationDone: false
   });
+
+  const [facultyOptions, setFacultyOptions] = useState([]);
+  // Fetch faculty list for dropdown
+  useEffect(() => {
+    async function fetchFaculty() {
+      const facultyList = await getAllFaculty();
+      if (facultyList && facultyList.length > 0) {
+        setFacultyOptions(facultyList);
+      } else {
+        setFacultyOptions(facultyOptionsDummy.map(name => ({ name })));
+      }
+    }
+    fetchFaculty();
+  }, []);
+  const handleToggleDTE = () => {
+    setFormData(prev => ({
+      ...prev,
+      dteRegistrationDone: !prev.dteRegistrationDone
+    }));
+  };
 
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [error, setError] = useState('');
@@ -471,18 +494,63 @@ const NewEnquiry = () => {
             })}
           </div>
 
+          {/* DTE Registration Section */}
+          <h3 style={styles.sectionTitle}>🏢 DTE Registration</h3>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>DTE Registration done or not</label>
+            <div style={{ display: 'flex', gap: '15px', marginTop: '8px' }}>
+              <button
+                type="button"
+                style={{
+                  padding: '8px 24px',
+                  background: formData.dteRegistrationDone ? '#2563eb' : '#e0e0e0',
+                  color: formData.dteRegistrationDone ? 'white' : '#333',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  outline: formData.dteRegistrationDone ? '2px solid #2563eb' : 'none'
+                }}
+                onClick={() => setFormData(prev => ({ ...prev, dteRegistrationDone: true }))}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                style={{
+                  padding: '8px 24px',
+                  background: !formData.dteRegistrationDone ? '#2563eb' : '#e0e0e0',
+                  color: !formData.dteRegistrationDone ? 'white' : '#333',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  outline: !formData.dteRegistrationDone ? '2px solid #2563eb' : 'none'
+                }}
+                onClick={() => setFormData(prev => ({ ...prev, dteRegistrationDone: false }))}
+              >
+                No
+              </button>
+            </div>
+          </div>
+
           {/* Reference Faculty Section */}
           <h3 style={styles.sectionTitle}>👨‍🏫 Reference Faculty</h3>
           <div style={styles.formGroup}>
-            <label style={styles.label}>Reference Faculty Name</label>
-            <input
-              type="text"
+            <label style={styles.label}>Reference Faculty</label>
+            <select
               name="referenceFaculty"
               value={formData.referenceFaculty}
               onChange={handleInputChange}
-              style={styles.input}
-              placeholder="Enter faculty name"
-            />
+              style={styles.select}
+            >
+              <option value="">Select faculty</option>
+              {facultyOptions.map(faculty => (
+                <option key={faculty.id || faculty.employeeId || faculty.email} value={faculty.name || faculty.email}>
+                  {faculty.name || faculty.email}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Button Group */}
@@ -503,7 +571,8 @@ const NewEnquiry = () => {
                   otherLocation: '',
                   category: '',
                   branchesInterested: [],
-                  referenceFaculty: ''
+                  referenceFaculty: '',
+                  dteRegistrationDone: false
                 });
                 setSelectedBranches([]);
                 setError('');

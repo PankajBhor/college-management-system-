@@ -32,6 +32,9 @@ public class EnquiryController {
     @Autowired
     private EnquiryRepository enquiryRepository;
 
+    @Autowired
+    private com.college.colllege_backend.service.EmailService emailService;
+
     /**
      * Get all enquiries
      */
@@ -62,6 +65,40 @@ public class EnquiryController {
         try {
             Enquiry enquiry = convertToEntity(request);
             Enquiry savedEnquiry = enquiryRepository.save(enquiry);
+
+            // Send fee structure email
+            String to = savedEnquiry.getEmail();
+            String subject = "Jaihind College – Diploma Engineering Fee Structure (Demo)";
+            String body = "🏫 Jaihind College – Diploma Engineering Fee Structure (Demo)\n\n"
+                    + "Dear Parent/Student,\n"
+                    + "Below is the approximate fee structure for Diploma Engineering courses. The fees are same for all departments (Computer, Mechanical, Civil, Electrical, etc.). Only the year and caste category affect the final payable fees.\n\n"
+                    + "📘 1st Year Fees\n"
+                    + "Category\tTotal Fees (Approx.)\n"
+                    + "OPEN\t₹45,000\n"
+                    + "OBC\t₹25,000\n"
+                    + "SC / ST\t₹5,000\n"
+                    + "EWS\t₹20,000\n"
+                    + "📘 2nd Year Fees\n"
+                    + "Category\tTotal Fees (Approx.)\n"
+                    + "OPEN\t₹42,000\n"
+                    + "OBC\t₹22,000\n"
+                    + "SC / ST\t₹4,000\n"
+                    + "EWS\t₹18,000\n"
+                    + "📘 3rd Year Fees\n"
+                    + "Category\tTotal Fees (Approx.)\n"
+                    + "OPEN\t₹40,000\n"
+                    + "OBC\t₹20,000\n"
+                    + "SC / ST\t₹3,000\n"
+                    + "EWS\t₹16,000\n\n"
+                    + "📌 Note:\n"
+                    + "• Fees may change according to government rules and scholarships.\n"
+                    + "• Additional charges like exam fees, uniform, books, and hostel are separate.\n"
+                    + "• Scholarships are available as per government norms.\n\n"
+                    + "For more details, please contact the Admission Office.";
+            if (to != null && !to.isBlank()) {
+                emailService.sendEmail(to, subject, body);
+            }
+
             return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedEnquiry));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -203,7 +240,8 @@ public class EnquiryController {
                 enquiry.getStatus(),
                 enquiry.getEnquiryDate(),
                 enquiry.getCreatedAt(),
-                enquiry.getUpdatedAt()
+                enquiry.getUpdatedAt(),
+                enquiry.isDteRegistrationDone()
         );
     }
 

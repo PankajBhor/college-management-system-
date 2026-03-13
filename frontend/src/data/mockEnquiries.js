@@ -18,6 +18,7 @@ export const mockEnquiries = [
       { branch: 'IT', priority: 2 }
     ],
     referenceFaculty: 'Prof. Sharma',
+    dteRegistrationDone: true,
     enquiryDate: '2024-02-15',
     status: 'Pending'
   },
@@ -39,6 +40,7 @@ export const mockEnquiries = [
       { branch: 'E&TC', priority: 2 }
     ],
     referenceFaculty: 'Prof. Desai',
+    dteRegistrationDone: false,
     enquiryDate: '2024-02-14',
     status: 'Success'
   },
@@ -60,6 +62,7 @@ export const mockEnquiries = [
       { branch: 'Mechanical', priority: 2 }
     ],
     referenceFaculty: 'Prof. Kumar',
+    dteRegistrationDone: true,
     enquiryDate: '2024-02-13',
     status: 'Pending'
   },
@@ -80,6 +83,7 @@ export const mockEnquiries = [
       { branch: 'IT', priority: 1 }
     ],
     referenceFaculty: 'Prof. Smith',
+    dteRegistrationDone: false,
     enquiryDate: '2024-02-12',
     status: 'Pending'
   },
@@ -101,6 +105,7 @@ export const mockEnquiries = [
       { branch: 'Mehatronics', priority: 2 }
     ],
     referenceFaculty: 'Prof. Patel',
+    dteRegistrationDone: true,
     enquiryDate: '2024-02-11',
     status: 'Success'
   }

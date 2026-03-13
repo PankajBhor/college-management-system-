@@ -22,13 +22,21 @@ public class Enquiry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     @NotBlank(message = "First name cannot be blank")
     private String firstName;
 
     private String middleName;
 
-    @Column(nullable = false)
+    @Column(name = "dte_registration_done", nullable = false)
+    private boolean dteRegistrationDone = false;
+
+    public boolean isDteRegistrationDone() {
+        return dteRegistrationDone;
+    }
+
+    public void setDteRegistrationDone(boolean dteRegistrationDone) {
+        this.dteRegistrationDone = dteRegistrationDone;
+    }
     @NotBlank(message = "Last name cannot be blank")
     private String lastName;
 
@@ -120,6 +128,7 @@ public class Enquiry {
         this.middleName = middleName;
     }
 
+    @Column(name = "dte_registration_done", nullable = false)
     public String getLastName() {
         return lastName;
     }

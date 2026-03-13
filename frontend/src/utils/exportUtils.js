@@ -4,25 +4,30 @@ import jsPDF from 'jspdf';
 /**
  * Export enquiries to Excel format
  */
-export const exportToExcel = (enquiries) => {
+export const exportToExcel = (enquiries, selectedFields = null) => {
   try {
-    // Create CSV content
-    const headers = ['S.No', 'Name', 'Email', 'Phone', 'Admission For', 'Location', 'Category', 'Status', 'Date'];
-    
-    const rows = enquiries.map((enquiry, index) => {
-      const fullName = `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
-      return [
-        index + 1,
-        fullName,
-        enquiry.email,
-        enquiry.personalMobileNumber,
-        enquiry.admissionFor || '-',
-        enquiry.location === 'Other' ? enquiry.otherLocation : enquiry.location,
-        enquiry.category || '-',
-        enquiry.status,
-        formatDate(enquiry.enquiryDate)
-      ];
-    });
+    // If fields are selected, filter data accordingly
+    let headers, rows;
+    if (selectedFields && Array.isArray(selectedFields) && selectedFields.length > 0) {
+      headers = selectedFields;
+      rows = enquiries.map((enquiry) => headers.map(f => enquiry[f] !== undefined ? enquiry[f] : ''));
+    } else {
+      headers = ['S.No', 'Name', 'Email', 'Phone', 'Admission For', 'Location', 'Category', 'Status', 'Date'];
+      rows = enquiries.map((enquiry, index) => {
+        const fullName = `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
+        return [
+          index + 1,
+          fullName,
+          enquiry.email,
+          enquiry.personalMobileNumber,
+          enquiry.admissionFor || '-',
+          enquiry.location === 'Other' ? enquiry.otherLocation : enquiry.location,
+          enquiry.category || '-',
+          enquiry.status,
+          formatDate(enquiry.enquiryDate)
+        ];
+      });
+    }
 
     // Convert to CSV string
     let csvContent = headers.join(',') + '\n';
@@ -38,11 +43,11 @@ export const exportToExcel = (enquiries) => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', `enquiries_${new Date().getTime()}.csv`);
     link.style.visibility = 'hidden';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -55,7 +60,7 @@ export const exportToExcel = (enquiries) => {
 /**
  * Export enquiries to PDF format
  */
-export const exportToPDF = (enquiries) => {
+export const exportToPDF = (enquiries, selectedFields = null) => {
   try {
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -81,11 +86,29 @@ export const exportToPDF = (enquiries) => {
     doc.setFont(undefined, 'bold');
     doc.setTextColor(255);
     doc.setFillColor(37, 99, 235); // Blue background
-    
-    const colWidths = [12, 30, 35, 25, 20, 25]; // S.No, Name, Email, Phone, Status, Date
-    const headers = ['S.No', 'Name', 'Email', 'Phone', 'Status', 'Date'];
+
+    let headers, rows, colWidths;
+    if (selectedFields && Array.isArray(selectedFields) && selectedFields.length > 0) {
+      headers = selectedFields;
+      colWidths = Array(headers.length).fill(30); // Default width for custom fields
+      rows = enquiries.map((enquiry) => headers.map(f => enquiry[f] !== undefined ? String(enquiry[f]).substring(0, 20) : ''));
+    } else {
+      colWidths = [12, 30, 35, 25, 20, 25];
+      headers = ['S.No', 'Name', 'Email', 'Phone', 'Status', 'Date'];
+      rows = enquiries.map((enquiry, index) => {
+        const fullName = `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
+        return [
+          String(index + 1),
+          fullName.substring(0, 20),
+          enquiry.email.substring(0, 20),
+          enquiry.personalMobileNumber.substring(0, 15),
+          enquiry.status,
+          formatDate(enquiry.enquiryDate)
+        ];
+      });
+    }
+
     let xPosition = margin;
-    
     headers.forEach((header, i) => {
       doc.rect(xPosition, yPosition - 7, colWidths[i], 8, 'F');
       doc.text(header, xPosition + 1, yPosition - 2);
@@ -97,24 +120,14 @@ export const exportToPDF = (enquiries) => {
     doc.setFontSize(9);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(0);
-    
+
     let rowCount = 0;
-    enquiries.forEach((enquiry, index) => {
+    rows.forEach((rowData) => {
       // Check if we need a new page
       if (yPosition > pageHeight - 20) {
         doc.addPage();
         yPosition = margin;
       }
-
-      const fullName = `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
-      const rowData = [
-        String(index + 1),
-        fullName.substring(0, 20),
-        enquiry.email.substring(0, 20),
-        enquiry.personalMobileNumber.substring(0, 15),
-        enquiry.status,
-        formatDate(enquiry.enquiryDate)
-      ];
 
       // Alternate row background
       if (rowCount % 2 === 0) {

@@ -22,11 +22,13 @@ public class EnquiryResponseDTO {
     private String enquiryDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean dteRegistrationDone;
 
     // Constructors
     public EnquiryResponseDTO() {
     }
 
+    // 18-argument constructor for backward compatibility (without dteRegistrationDone)
     public EnquiryResponseDTO(Long id, String firstName, String middleName, String lastName,
             String personalMobileNumber, String guardianMobileNumber, String email,
             String meritDetails, String admissionFor, String location, String otherLocation,
@@ -50,6 +52,42 @@ public class EnquiryResponseDTO {
         this.enquiryDate = enquiryDate;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.dteRegistrationDone = false;
+    }
+
+    public EnquiryResponseDTO(Long id, String firstName, String middleName, String lastName,
+            String personalMobileNumber, String guardianMobileNumber, String email,
+            String meritDetails, String admissionFor, String location, String otherLocation,
+            String category, String branchesInterested, String referenceFaculty,
+            String status, String enquiryDate, LocalDateTime createdAt, LocalDateTime updatedAt,
+            boolean dteRegistrationDone) {
+        this.id = id;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.personalMobileNumber = personalMobileNumber;
+        this.guardianMobileNumber = guardianMobileNumber;
+        this.email = email;
+        this.meritDetails = meritDetails;
+        this.admissionFor = admissionFor;
+        this.location = location;
+        this.otherLocation = otherLocation;
+        this.category = category;
+        this.branchesInterested = branchesInterested;
+        this.referenceFaculty = referenceFaculty;
+        this.status = status;
+        this.enquiryDate = enquiryDate;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.dteRegistrationDone = dteRegistrationDone;
+    }
+
+    public boolean isDteRegistrationDone() {
+        return dteRegistrationDone;
+    }
+
+    public void setDteRegistrationDone(boolean dteRegistrationDone) {
+        this.dteRegistrationDone = dteRegistrationDone;
     }
 
     // Getters and Setters

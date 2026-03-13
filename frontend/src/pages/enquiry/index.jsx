@@ -3,73 +3,10 @@ import { useEnquiry } from '../../hooks/useEnquiry';
 import { useAuth } from '../../hooks/useAuth';
 import EnquiryList from './EnquiryList';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import ExportFieldChecklist from './ExportFieldChecklist';
 // helper dropdown data
-import {
   locationOptions,
-  categoryOptions,
-  branchOptions,
-  admissionForOptions
-} from '../../data/mockEnquiries';
-const EnquiryIndex = () => {
-  const { enquiries, loading, fetchEnquiries, addEnquiry, removeEnquiry } = useEnquiry();
-  const { user } = useAuth();
-
-  // filter state for the table
-  const [filters, setFilters] = useState({
-    admissionFor: '',
-    branch: '',
-    branchPriority: '',
-    location: '',
-    category: '',
-    status: '',
-    date: ''
-  });
-
-  useEffect(() => {
-    fetchEnquiries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this enquiry?')) {
-      try {
-        await removeEnquiry(id);
-        alert('Enquiry deleted successfully!');
-      } catch (error) {
-        alert('Error deleting enquiry: ' + error.message);
-      }
-    }
-  };
-
-  const handleStatusUpdate = async (id, newStatus) => {
-    // The status has already been updated in the backend by the EnquiryList component
-    // Just refresh the enquiries to reflect the change
-    try {
-      await fetchEnquiries();
-    } catch (error) {
-      console.error('Error refreshing enquiries after status update:', error);
-    }
-  };
-
-  // build filtered list based on current filters
-  const getFilteredEnquiries = () => {
-    return enquiries.filter((e) => {
-      if (filters.admissionFor && e.admissionFor !== filters.admissionFor) return false;
-      if (filters.location && e.location !== filters.location) return false;
-      if (filters.category && e.category !== filters.category) return false;
-      if (filters.status && e.status !== filters.status) return false;
-      if (filters.date && e.enquiryDate !== filters.date) return false;
-      if (filters.branch) {
-        let branches = e.branchesInterested;
-        if (typeof branches === 'string') {
-          try {
-            branches = JSON.parse(branches);
-          } catch (_){ branches = []; }
-        }
-        const match = branches.find(b => {
-          const basic = b.branch === filters.branch;
-          if (!basic) return false;
-          if (filters.branchPriority) {
+  categoryOptions
             return String(b.priority) === filters.branchPriority;
           }
           return true;
@@ -153,13 +90,7 @@ const EnquiryIndex = () => {
           {canAddEnquiry && (
             <>
               <button
-                onClick={() => {
-                  try {
-                    exportToExcel(enquiries);
-                  } catch (error) {
-                    alert('Error exporting to Excel: ' + error.message);
-                  }
-                }}
+                onClick={() => setExportModal({ open: true, type: 'excel' })}
                 style={{
                   padding: '10px 18px',
                   background: '#f0f0f0',
@@ -182,13 +113,7 @@ const EnquiryIndex = () => {
                 📊 Export Excel
               </button>
               <button
-                onClick={() => {
-                  try {
-                    exportToPDF(enquiries);
-                  } catch (error) {
-                    alert('Error exporting to PDF: ' + error.message);
-                  }
-                }}
+                onClick={() => setExportModal({ open: true, type: 'pdf' })}
                 style={{
                   padding: '10px 18px',
                   background: '#f0f0f0',
@@ -248,7 +173,29 @@ const EnquiryIndex = () => {
 
 
     </div>
-  );
+    <ExportFieldChecklist
+      open={exportModal.open}
+      fields={exportFields}
+      setFields={setExportFields}
+      onExport={() => {
+        setExportModal({ open: false, type: null });
+        if (exportModal.type === 'excel') {
+          try {
+            exportToExcel(enquiries, exportFields);
+          } catch (error) {
+            alert('Error exporting to Excel: ' + error.message);
+          }
+        } else if (exportModal.type === 'pdf') {
+          try {
+            exportToPDF(enquiries, exportFields);
+          } catch (error) {
+            alert('Error exporting to PDF: ' + error.message);
+          }
+        }
+      }}
+      onClose={() => setExportModal({ open: false, type: null })}
+    />
+  </>);
 };
 
 export default EnquiryIndex;
