@@ -1,17 +1,21 @@
 package com.college.colllege_backend.service.impl;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.college.colllege_backend.dto.FacultyRequestDTO;
 import com.college.colllege_backend.entity.Faculty;
 import com.college.colllege_backend.repository.FacultyRepository;
-import com.college.colllege_backend.service.FacultyService;
 import com.college.colllege_backend.service.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
+import com.college.colllege_backend.service.FacultyService;
 
 @Service
+@Transactional
 public class FacultyServiceImpl implements FacultyService {
+
     @Autowired
     private FacultyRepository facultyRepository;
 
@@ -33,13 +37,13 @@ public class FacultyServiceImpl implements FacultyService {
     @Override
     public Faculty getFacultyById(Long id) {
         return facultyRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Faculty not found"));
+                .orElseThrow(() -> new RuntimeException("Faculty not found"));
     }
 
     @Override
     public Faculty getFacultyByEmployeeId(String employeeId) {
         return facultyRepository.findByEmployeeId(employeeId)
-            .orElseThrow(() -> new RuntimeException("Faculty not found"));
+                .orElseThrow(() -> new RuntimeException("Faculty not found"));
     }
 
     @Override

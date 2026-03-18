@@ -1,22 +1,26 @@
 package com.college.colllege_backend.service.impl;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.college.colllege_backend.dto.StudentRequestDTO;
 import com.college.colllege_backend.dto.StudentResponseDTO;
 import com.college.colllege_backend.entity.Course;
 import com.college.colllege_backend.entity.Student;
 import com.college.colllege_backend.repository.CourseRepository;
 import com.college.colllege_backend.repository.StudentRepository;
-import com.college.colllege_backend.service.StudentService;
 import com.college.colllege_backend.service.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.college.colllege_backend.service.StudentService;
 
 @Service
+@Transactional
 public class StudentServiceImpl implements StudentService {
+
     @Autowired
     private StudentRepository studentRepository;
 
@@ -50,28 +54,28 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentResponseDTO getStudentById(Long id) {
         return studentRepository.findById(id)
-            .map(this::mapToDTO)
-            .orElseThrow(() -> new RuntimeException("Student not found"));
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
     }
 
     @Override
     public StudentResponseDTO getStudentByRollNumber(String rollNumber) {
         return studentRepository.findByRollNumber(rollNumber)
-            .map(this::mapToDTO)
-            .orElseThrow(() -> new RuntimeException("Student not found"));
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
     }
 
     @Override
     public List<StudentResponseDTO> getAllStudents() {
         return studentRepository.findAll().stream()
-            .map(this::mapToDTO)
-            .collect(Collectors.toList());
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public StudentResponseDTO updateStudent(Long id, StudentRequestDTO request) {
         Student student = studentRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new RuntimeException("Student not found"));
 
         student.setName(request.getName());
         student.setSemester(request.getSemester());

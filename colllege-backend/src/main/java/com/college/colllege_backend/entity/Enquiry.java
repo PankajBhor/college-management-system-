@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -15,7 +16,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 @Entity
-@Table(name = "enquiries")
+@Table(name = "enquiries", indexes = {
+    @Index(name = "idx_status", columnList = "status"),
+    @Index(name = "idx_category", columnList = "category"),
+    @Index(name = "idx_admission_for", columnList = "admission_for"),
+    @Index(name = "idx_ssc_seat_no", columnList = "ssc_seat_no")
+})
 public class Enquiry {
 
     @Id
@@ -79,6 +85,9 @@ public class Enquiry {
     @Column(name = "enquiry_date", nullable = false)
     private String enquiryDate;
 
+    @Column(name = "ssc_seat_no", nullable = true, unique = true)
+    private String sscSeatNo;
+
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
@@ -128,7 +137,6 @@ public class Enquiry {
         this.middleName = middleName;
     }
 
-    @Column(name = "dte_registration_done", nullable = false)
     public String getLastName() {
         return lastName;
     }
@@ -247,5 +255,13 @@ public class Enquiry {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getSscSeatNo() {
+        return sscSeatNo;
+    }
+
+    public void setSscSeatNo(String sscSeatNo) {
+        this.sscSeatNo = sscSeatNo;
     }
 }

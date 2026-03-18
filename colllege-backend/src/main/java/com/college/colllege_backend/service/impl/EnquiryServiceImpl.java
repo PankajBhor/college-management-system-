@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.college.colllege_backend.dto.EnquiryRequestDTO;
 import com.college.colllege_backend.dto.EnquiryResponseDTO;
@@ -13,6 +16,7 @@ import com.college.colllege_backend.repository.EnquiryRepository;
 import com.college.colllege_backend.service.EnquiryService;
 
 @Service
+@Transactional
 public class EnquiryServiceImpl implements EnquiryService {
 
     @Autowired
@@ -55,12 +59,42 @@ public class EnquiryServiceImpl implements EnquiryService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public Page<EnquiryResponseDTO> getAllEnquiriesPaginated(Pageable pageable) {
+        return enquiryRepository.findAll(pageable)
+                .map(this::mapToDTO);
+    }
+
     @Override
     public List<EnquiryResponseDTO> getEnquiriesByStatus(String status) {
         return enquiryRepository.findByStatus(status)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EnquiryResponseDTO> getEnquiriesByStatusPaginated(String status, Pageable pageable) {
+        return enquiryRepository.findByStatus(status, pageable)
+                .map(this::mapToDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EnquiryResponseDTO> getEnquiriesByCategoryPaginated(String category, Pageable pageable) {
+        return enquiryRepository.findByCategory(category, pageable)
+                .map(this::mapToDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EnquiryResponseDTO> getEnquiriesByAdmissionPaginated(String admissionFor, Pageable pageable) {
+        return enquiryRepository.findByAdmissionFor(admissionFor, pageable)
+                .map(this::mapToDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EnquiryResponseDTO> getEnquiriesByLocationPaginated(String location, Pageable pageable) {
+        return enquiryRepository.findByLocation(location, pageable)
+                .map(this::mapToDTO);
     }
 
     @Override

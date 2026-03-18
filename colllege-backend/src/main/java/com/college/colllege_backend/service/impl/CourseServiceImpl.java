@@ -1,16 +1,20 @@
 package com.college.colllege_backend.service.impl;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.college.colllege_backend.dto.CourseRequestDTO;
 import com.college.colllege_backend.entity.Course;
 import com.college.colllege_backend.repository.CourseRepository;
 import com.college.colllege_backend.service.CourseService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
+@Transactional
 public class CourseServiceImpl implements CourseService {
+
     @Autowired
     private CourseRepository courseRepository;
 
@@ -24,13 +28,13 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public Course getCourseById(Long id) {
         return courseRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new RuntimeException("Course not found"));
     }
 
     @Override
     public Course getCourseByCode(String code) {
         return courseRepository.findByCode(code)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new RuntimeException("Course not found"));
     }
 
     @Override

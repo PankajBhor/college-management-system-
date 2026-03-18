@@ -3,7 +3,13 @@ package com.college.colllege_backend.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,12 +21,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.college.colllege_backend.dto.EnquiryRequestDTO;
 import com.college.colllege_backend.dto.EnquiryResponseDTO;
 import com.college.colllege_backend.entity.Enquiry;
 import com.college.colllege_backend.repository.EnquiryRepository;
+import com.college.colllege_backend.service.impl.EnquiryServiceImpl;
 
 import jakarta.validation.Valid;
 
@@ -29,17 +37,36 @@ import jakarta.validation.Valid;
 @CrossOrigin(origins = "http://localhost:3000")
 public class EnquiryController {
 
+    private static final Logger logger = LoggerFactory.getLogger(EnquiryController.class);
+
     @Autowired
     private EnquiryRepository enquiryRepository;
+
+    @Autowired
+    private EnquiryServiceImpl enquiryService;
 
     @Autowired
     private com.college.colllege_backend.service.EmailService emailService;
 
     /**
-     * Get all enquiries
+     * Get all enquiries with pagination support
      */
     @GetMapping
-    public ResponseEntity<List<EnquiryResponseDTO>> getAllEnquiries() {
+    public ResponseEntity<?> getAllEnquiries(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        // If pagination parameters provided, return paginated response
+        if (page != null && size != null) {
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+            Page<EnquiryResponseDTO> result = enquiryService.getAllEnquiriesPaginated(pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        // Otherwise return complete list (backward compatibility)
         List<EnquiryResponseDTO> enquiries = enquiryRepository.findAll()
                 .stream()
                 .map(this::convertToDTO)
@@ -63,11 +90,19 @@ public class EnquiryController {
     @PostMapping
     public ResponseEntity<?> createEnquiry(@Valid @RequestBody EnquiryRequestDTO request) {
         try {
+            logger.info("=============== CREATE ENQUIRY ENDPOINT CALLED ===============");
+            logger.info("Received enquiry request with email: {}", request.getEmail());
+
             Enquiry enquiry = convertToEntity(request);
+            logger.info("Enquiry entity converted, saving to database...");
+
             Enquiry savedEnquiry = enquiryRepository.save(enquiry);
+            logger.info("Enquiry saved successfully with ID: {}", savedEnquiry.getId());
 
             // Send fee structure email
             String to = savedEnquiry.getEmail();
+            logger.info("Email recipient: {}", to);
+
             String subject = "Jaihind College – Diploma Engineering Fee Structure (Demo)";
             String body = "🏫 Jaihind College – Diploma Engineering Fee Structure (Demo)\n\n"
                     + "Dear Parent/Student,\n"
@@ -95,12 +130,31 @@ public class EnquiryController {
                     + "• Additional charges like exam fees, uniform, books, and hostel are separate.\n"
                     + "• Scholarships are available as per government norms.\n\n"
                     + "For more details, please contact the Admission Office.";
+
             if (to != null && !to.isBlank()) {
-                emailService.sendEmail(to, subject, body);
+                try {
+                    logger.info(">>> ABOUT TO SEND EMAIL TO: {}", to);
+                    emailService.sendEmail(to, subject, body);
+                    logger.info(">>> EMAIL SENT SUCCESSFULLY <<<");
+                } catch (Exception emailError) {
+                    logger.error(">>> EMAIL SEND FAILED <<<");
+                    logger.error("Email Error Type: {}", emailError.getClass().getName());
+                    logger.error("Email Error Message: {}", emailError.getMessage());
+                    logger.error("Full Stack Trace: ", emailError);
+                    // Email failure doesn't block enquiry creation
+                    logger.warn("Enquiry created successfully, but email notification failed");
+                }
+            } else {
+                logger.warn("No email address provided, skipping email send");
             }
 
+            logger.info("=============== RETURNING SUCCESS RESPONSE ===============");
             return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedEnquiry));
         } catch (Exception e) {
+            logger.error("=============== CREATE ENQUIRY FAILED ===============");
+            logger.error("Exception Type: {}", e.getClass().getName());
+            logger.error("Exception Message: {}", e.getMessage());
+            logger.error("Full Stack Trace: ", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("{\"error\": \"" + e.getMessage() + "\"}");
         }
@@ -127,6 +181,8 @@ public class EnquiryController {
                     enquiry.setCategory(request.getCategory());
                     enquiry.setBranchesInterested(request.getBranchesInterested());
                     enquiry.setReferenceFaculty(request.getReferenceFaculty());
+                    enquiry.setSscSeatNo(request.getSscSeatNo());
+                    enquiry.setDteRegistrationDone(request.isDteRegistrationDone());
                     if (request.getStatus() != null) {
                         enquiry.setStatus(request.getStatus());
                     }
@@ -173,10 +229,25 @@ public class EnquiryController {
     }
 
     /**
-     * Get enquiries by status
+     * Get enquiries by status with pagination support
      */
     @GetMapping("/by-status/{status}")
-    public ResponseEntity<List<EnquiryResponseDTO>> getEnquiriesByStatus(@PathVariable String status) {
+    public ResponseEntity<?> getEnquiriesByStatus(
+            @PathVariable String status,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        // If pagination parameters provided, return paginated response
+        if (page != null && size != null) {
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+            Page<EnquiryResponseDTO> result = enquiryService.getEnquiriesByStatusPaginated(status, pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        // Otherwise return complete list (backward compatibility)
         List<EnquiryResponseDTO> enquiries = enquiryRepository.findByStatus(status)
                 .stream()
                 .map(this::convertToDTO)
@@ -185,10 +256,25 @@ public class EnquiryController {
     }
 
     /**
-     * Get enquiries by category
+     * Get enquiries by category with pagination support
      */
     @GetMapping("/by-category/{category}")
-    public ResponseEntity<List<EnquiryResponseDTO>> getEnquiriesByCategory(@PathVariable String category) {
+    public ResponseEntity<?> getEnquiriesByCategory(
+            @PathVariable String category,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        // If pagination parameters provided, return paginated response
+        if (page != null && size != null) {
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+            Page<EnquiryResponseDTO> result = enquiryService.getEnquiriesByCategoryPaginated(category, pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        // Otherwise return complete list (backward compatibility)
         List<EnquiryResponseDTO> enquiries = enquiryRepository.findByCategory(category)
                 .stream()
                 .map(this::convertToDTO)
@@ -197,10 +283,25 @@ public class EnquiryController {
     }
 
     /**
-     * Get enquiries by admission type
+     * Get enquiries by admission type with pagination support
      */
     @GetMapping("/by-admission/{admissionFor}")
-    public ResponseEntity<List<EnquiryResponseDTO>> getEnquiriesByAdmission(@PathVariable String admissionFor) {
+    public ResponseEntity<?> getEnquiriesByAdmission(
+            @PathVariable String admissionFor,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        // If pagination parameters provided, return paginated response
+        if (page != null && size != null) {
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+            Page<EnquiryResponseDTO> result = enquiryService.getEnquiriesByAdmissionPaginated(admissionFor, pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        // Otherwise return complete list (backward compatibility)
         List<EnquiryResponseDTO> enquiries = enquiryRepository.findByAdmissionFor(admissionFor)
                 .stream()
                 .map(this::convertToDTO)
@@ -209,15 +310,54 @@ public class EnquiryController {
     }
 
     /**
-     * Get enquiries by location
+     * Get enquiries by location with pagination support
      */
     @GetMapping("/by-location/{location}")
-    public ResponseEntity<List<EnquiryResponseDTO>> getEnquiriesByLocation(@PathVariable String location) {
+    public ResponseEntity<?> getEnquiriesByLocation(
+            @PathVariable String location,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        // If pagination parameters provided, return paginated response
+        if (page != null && size != null) {
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+            Page<EnquiryResponseDTO> result = enquiryService.getEnquiriesByLocationPaginated(location, pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        // Otherwise return complete list (backward compatibility)
         List<EnquiryResponseDTO> enquiries = enquiryRepository.findByLocation(location)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(enquiries);
+    }
+
+    /**
+     * Get enquiry by SSC Seat No
+     */
+    @GetMapping("/by-seat/{sscSeatNo}")
+    public ResponseEntity<?> getEnquiryBySscSeatNo(@PathVariable String sscSeatNo) {
+        try {
+            if (sscSeatNo == null || sscSeatNo.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("{\"error\": \"SSC Seat No cannot be empty\"}");
+            }
+
+            Enquiry enquiry = enquiryRepository.findBySscSeatNoIgnoreCase(sscSeatNo.trim());
+            if (enquiry != null) {
+                return ResponseEntity.ok(convertToDTO(enquiry));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("{\"error\": \"No enquiry found with Seat No: " + sscSeatNo + "\"}");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\": \"Error searching enquiry: " + e.getMessage() + "\"}");
+        }
     }
 
     // Helper methods for DTO conversion
@@ -241,7 +381,8 @@ public class EnquiryController {
                 enquiry.getEnquiryDate(),
                 enquiry.getCreatedAt(),
                 enquiry.getUpdatedAt(),
-                enquiry.isDteRegistrationDone()
+                enquiry.isDteRegistrationDone(),
+                enquiry.getSscSeatNo()
         );
     }
 
@@ -262,6 +403,8 @@ public class EnquiryController {
         enquiry.setReferenceFaculty(dto.getReferenceFaculty());
         enquiry.setStatus(dto.getStatus() != null ? dto.getStatus() : "Pending");
         enquiry.setEnquiryDate(dto.getEnquiryDate());
+        enquiry.setSscSeatNo(dto.getSscSeatNo());
+        enquiry.setDteRegistrationDone(dto.isDteRegistrationDone());
         return enquiry;
     }
 }

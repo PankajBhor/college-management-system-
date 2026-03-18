@@ -7,12 +7,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "dsy_admissions")
+@Table(name = "dsy_admissions", indexes = {
+    @Index(name = "idx_dsy_status", columnList = "status"),
+    @Index(name = "idx_dsy_category", columnList = "category"),
+    @Index(name = "idx_dsy_admission_type", columnList = "admission_type")
+})
 public class DSYAdmission {
 
     @Id

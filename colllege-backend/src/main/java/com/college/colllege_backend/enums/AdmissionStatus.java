@@ -1,19 +1,18 @@
 package com.college.colllege_backend.enums;
 
 /**
- * Enquiry status enumeration - Fixed to use single source of truth
+ * Admission status enumeration - Fixed to use single source of truth
  */
-public enum EnquiryStatus {
+public enum AdmissionStatus {
     PENDING("Pending"),
-    INTERESTED("Interested"),
-    NOT_INTERESTED("Not Interested"),
     APPROVED("Approved"),
     REJECTED("Rejected"),
-    SUCCESS("Success");
+    SUCCESS("Success"),
+    INCOMPLETE("Incomplete");
 
     private final String displayName;
 
-    EnquiryStatus(String displayName) {
+    AdmissionStatus(String displayName) {
         this.displayName = displayName;
     }
 
@@ -21,11 +20,11 @@ public enum EnquiryStatus {
         return displayName;
     }
 
-    public static EnquiryStatus fromString(String value) {
+    public static AdmissionStatus fromString(String value) {
         if (value == null) {
             return PENDING;
         }
-        for (EnquiryStatus status : EnquiryStatus.values()) {
+        for (AdmissionStatus status : AdmissionStatus.values()) {
             if (status.displayName.equalsIgnoreCase(value) || status.name().equalsIgnoreCase(value)) {
                 return status;
             }

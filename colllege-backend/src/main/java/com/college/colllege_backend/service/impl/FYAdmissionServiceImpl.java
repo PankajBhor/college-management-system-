@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.college.colllege_backend.dto.FYAdmissionRequestDTO;
 import com.college.colllege_backend.entity.FYAdmission;
@@ -12,6 +15,7 @@ import com.college.colllege_backend.repository.FYAdmissionRepository;
 import com.college.colllege_backend.service.FYAdmissionService;
 
 @Service
+@Transactional
 public class FYAdmissionServiceImpl implements FYAdmissionService {
 
     @Autowired
@@ -72,9 +76,24 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         return fyAdmissionRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public Page<FYAdmission> getAllFYAdmissionsPaginated(Pageable pageable) {
+        return fyAdmissionRepository.findAll(pageable);
+    }
+
     @Override
     public List<FYAdmission> getFYAdmissionsByStatus(String status) {
         return fyAdmissionRepository.findByStatus(status);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FYAdmission> getFYAdmissionsByStatusPaginated(String status, Pageable pageable) {
+        return fyAdmissionRepository.findByStatus(status, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FYAdmission> getFYAdmissionsByAdmissionTypePaginated(String admissionType, Pageable pageable) {
+        return fyAdmissionRepository.findByAdmissionType(admissionType, pageable);
     }
 
     @Override
@@ -119,7 +138,7 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         admission.setAnnualIncome(request.getAnnualIncome());
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
-        
+
         // Set file paths
         admission.setDomicileCertificatePath(request.getDomicileCertificatePath());
         admission.setTenthMarkSheetPath(request.getTenthMarkSheetPath());
@@ -131,7 +150,7 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         admission.setDefenceCertificatePath(request.getDefenceCertificatePath());
         admission.setAadhaarCardPath(request.getAadhaarCardPath());
         admission.setAnyOtherDocumentPath(request.getAnyOtherDocumentPath());
-        
+
         admission.setUpdatedAt(LocalDateTime.now());
 
         return fyAdmissionRepository.save(admission);

@@ -23,6 +23,7 @@ public class EnquiryResponseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean dteRegistrationDone;
+    private String sscSeatNo;
 
     // Constructors
     public EnquiryResponseDTO() {
@@ -80,6 +81,34 @@ public class EnquiryResponseDTO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.dteRegistrationDone = dteRegistrationDone;
+    }
+
+    public EnquiryResponseDTO(Long id, String firstName, String middleName, String lastName,
+            String personalMobileNumber, String guardianMobileNumber, String email,
+            String meritDetails, String admissionFor, String location, String otherLocation,
+            String category, String branchesInterested, String referenceFaculty,
+            String status, String enquiryDate, LocalDateTime createdAt, LocalDateTime updatedAt,
+            boolean dteRegistrationDone, String sscSeatNo) {
+        this.id = id;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.personalMobileNumber = personalMobileNumber;
+        this.guardianMobileNumber = guardianMobileNumber;
+        this.email = email;
+        this.meritDetails = meritDetails;
+        this.admissionFor = admissionFor;
+        this.location = location;
+        this.otherLocation = otherLocation;
+        this.category = category;
+        this.branchesInterested = branchesInterested;
+        this.referenceFaculty = referenceFaculty;
+        this.status = status;
+        this.enquiryDate = enquiryDate;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.dteRegistrationDone = dteRegistrationDone;
+        this.sscSeatNo = sscSeatNo;
     }
 
     public boolean isDteRegistrationDone() {
@@ -233,5 +262,13 @@ public class EnquiryResponseDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getSscSeatNo() {
+        return sscSeatNo;
+    }
+
+    public void setSscSeatNo(String sscSeatNo) {
+        this.sscSeatNo = sscSeatNo;
     }
 }

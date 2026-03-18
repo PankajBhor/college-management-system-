@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.college.colllege_backend.dto.DocumentChecklistDTO;
 import com.college.colllege_backend.entity.DocumentChecklist;
@@ -12,6 +13,7 @@ import com.college.colllege_backend.repository.DocumentChecklistRepository;
 import com.college.colllege_backend.service.DocumentChecklistServiceInterface;
 
 @Service
+@Transactional
 public class DocumentChecklistServiceImpl implements DocumentChecklistServiceInterface {
 
     @Autowired

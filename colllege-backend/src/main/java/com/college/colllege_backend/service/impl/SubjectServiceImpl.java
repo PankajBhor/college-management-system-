@@ -1,17 +1,21 @@
 package com.college.colllege_backend.service.impl;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.college.colllege_backend.entity.Course;
 import com.college.colllege_backend.entity.Subject;
 import com.college.colllege_backend.repository.CourseRepository;
 import com.college.colllege_backend.repository.SubjectRepository;
 import com.college.colllege_backend.service.SubjectService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
+@Transactional
 public class SubjectServiceImpl implements SubjectService {
+
     @Autowired
     private SubjectRepository subjectRepository;
 
@@ -26,7 +30,7 @@ public class SubjectServiceImpl implements SubjectService {
     @Override
     public Subject getSubjectById(Long id) {
         return subjectRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Subject not found"));
+                .orElseThrow(() -> new RuntimeException("Subject not found"));
     }
 
     @Override
@@ -37,7 +41,7 @@ public class SubjectServiceImpl implements SubjectService {
     @Override
     public List<Subject> getSubjectsByCourseId(Long courseId) {
         Course course = courseRepository.findById(courseId)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new RuntimeException("Course not found"));
         return subjectRepository.findByCourse(course);
     }
 

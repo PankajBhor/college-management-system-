@@ -47,6 +47,10 @@ public class EnquiryRequestDTO {
 
     private String enquiryDate;
 
+    private String sscSeatNo;
+
+    private boolean dteRegistrationDone;
+
     // Getters and Setters
     public String getFirstName() {
         return firstName;
@@ -166,5 +170,21 @@ public class EnquiryRequestDTO {
 
     public void setEnquiryDate(String enquiryDate) {
         this.enquiryDate = enquiryDate;
+    }
+
+    public String getSscSeatNo() {
+        return sscSeatNo;
+    }
+
+    public void setSscSeatNo(String sscSeatNo) {
+        this.sscSeatNo = sscSeatNo;
+    }
+
+    public boolean isDteRegistrationDone() {
+        return dteRegistrationDone;
+    }
+
+    public void setDteRegistrationDone(boolean dteRegistrationDone) {
+        this.dteRegistrationDone = dteRegistrationDone;
     }
 }

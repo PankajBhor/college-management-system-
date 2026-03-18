@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.college.colllege_backend.dto.DSYAdmissionRequestDTO;
 import com.college.colllege_backend.entity.DSYAdmission;
@@ -12,6 +15,7 @@ import com.college.colllege_backend.repository.DSYAdmissionRepository;
 import com.college.colllege_backend.service.DSYAdmissionService;
 
 @Service
+@Transactional
 public class DSYAdmissionServiceImpl implements DSYAdmissionService {
 
     @Autowired
@@ -76,14 +80,29 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         return dsyAdmissionRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public Page<DSYAdmission> getAllDSYAdmissionsPaginated(Pageable pageable) {
+        return dsyAdmissionRepository.findAll(pageable);
+    }
+
     @Override
     public List<DSYAdmission> getDSYAdmissionsByStatus(String status) {
         return dsyAdmissionRepository.findByStatus(status);
     }
 
+    @Transactional(readOnly = true)
+    public Page<DSYAdmission> getDSYAdmissionsByStatusPaginated(String status, Pageable pageable) {
+        return dsyAdmissionRepository.findByStatus(status, pageable);
+    }
+
     @Override
     public List<DSYAdmission> getDSYAdmissionsByAdmissionType(String admissionType) {
         return dsyAdmissionRepository.findByAdmissionType(admissionType);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<DSYAdmission> getDSYAdmissionsByAdmissionTypePaginated(String admissionType, Pageable pageable) {
+        return dsyAdmissionRepository.findByAdmissionType(admissionType, pageable);
     }
 
     @Override
@@ -127,7 +146,7 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         admission.setPreference2(request.getPreference2());
         admission.setPreference3(request.getPreference3());
         admission.setPreference4(request.getPreference4());
-        
+
         // Set file paths
         admission.setDomicileCertificatePath(request.getDomicileCertificatePath());
         admission.setSscMarkSheetPath(request.getSscMarkSheetPath());
@@ -135,7 +154,7 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         admission.setCasteCertificatePath(request.getCasteCertificatePath());
         admission.setNonCreamyLayerCertificatePath(request.getNonCreamyLayerCertificatePath());
         admission.setAadhaarCardPath(request.getAadhaarCardPath());
-        
+
         admission.setUpdatedAt(LocalDateTime.now());
 
         return dsyAdmissionRepository.save(admission);

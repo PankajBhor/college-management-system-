@@ -1,18 +1,22 @@
 package com.college.colllege_backend.service.impl;
 
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.college.colllege_backend.dto.LoginRequestDTO;
 import com.college.colllege_backend.dto.LoginResponseDTO;
 import com.college.colllege_backend.entity.User;
 import com.college.colllege_backend.repository.UserRepository;
 import com.college.colllege_backend.service.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
+@Transactional
 public class AuthServiceImpl implements AuthService {
+
     @Autowired
     private UserRepository userRepository;
 
