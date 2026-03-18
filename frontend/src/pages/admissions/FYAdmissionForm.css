@@ -98,6 +98,13 @@ form {
   background-color: #fadbd8;
 }
 
+.form-group input.field-prefilled,
+.form-group select.field-prefilled {
+  background-color: #E3F2FD;
+  border-color: #90CAF9;
+  transition: background-color 0.3s ease;
+}
+
 .error-text {
   color: #e74c3c;
   font-size: 0.85rem;

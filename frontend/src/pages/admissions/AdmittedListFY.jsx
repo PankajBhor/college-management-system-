@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { formatDate } from '../../utils/formatters';
+import Pagination from '../../components/Pagination';
 
-const AdmittedListFY = ({ admissions, filters, setFilters, allAdmissions }) => {
+const AdmittedListFY = ({
+  admissions,
+  filters,
+  setFilters,
+  allAdmissions,
+  pageNumber = 0,
+  totalPages = 1,
+  pageSize = 10,
+  totalElements = 0,
+  onPageChange,
+  onPageSizeChange
+}) => {
   const [selectedAdmissionId, setSelectedAdmissionId] = useState(null);
 
   // Clean program name - remove number prefix
@@ -236,6 +248,17 @@ const AdmittedListFY = ({ admissions, filters, setFilters, allAdmissions }) => {
         }}>
           <p style={{ fontSize: '1.1em', margin: 0 }}>📭 No admitted students yet</p>
         </div>
+      )}
+
+      {(pageNumber !== undefined && totalPages > 0) && (
+        <Pagination
+          currentPage={pageNumber}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalElements={totalElements}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+        />
       )}
 
       {/* Modal for document details */}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { formatDate } from '../../utils/formatters';
 import enquiryService from '../../services/enquiryService';
+import Pagination from '../../components/Pagination';
 import {
   locationOptions,
   categoryOptions,
@@ -8,7 +9,20 @@ import {
   admissionForOptions
 } from '../../data/mockEnquiries';
 
-const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters, allEnquiries }) => {
+const EnquiryList = ({
+  enquiries,
+  onDelete,
+  onStatusUpdate,
+  filters,
+  setFilters,
+  allEnquiries,
+  pageNumber = 0,
+  totalPages = 1,
+  pageSize = 10,
+  totalElements = 0,
+  onPageChange,
+  onPageSizeChange
+}) => {
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState('');
 
@@ -331,6 +345,16 @@ const EnquiryList = ({ enquiries, onDelete, onStatusUpdate, filters, setFilters,
           ))}
         </tbody>
       </table>
+      {(pageNumber !== undefined && totalPages > 0) && (
+        <Pagination
+          currentPage={pageNumber}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalElements={totalElements}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+        />
+      )}
     </div>
   );
 };

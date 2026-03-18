@@ -11,17 +11,36 @@ const API_INSTANCE = axios.create({
 let enquiriesStore = [...mockEnquiries];
 
 /**
- * Get all enquiries
+ * Get all enquiries with pagination support
  */
-export async function getAllEnquiries() {
+export async function getAllEnquiries(page = 0, size = 10, sortBy = 'id', direction = 'DESC') {
   try {
     // Try real API first
-    const response = await API_INSTANCE.get('/enquiries');
+    const response = await API_INSTANCE.get('/enquiries', {
+      params: {
+        page,
+        size,
+        sortBy,
+        direction
+      }
+    });
     return response.data;
   } catch (error) {
     console.warn('API call failed, using mock data:', error.message);
-    // Fallback to mock data
-    return enquiriesStore;
+    // Fallback to mock data - paginate manually
+    const start = page * size;
+    const end = start + size;
+    return {
+      content: enquiriesStore.slice(start, end),
+      pageNumber: page,
+      pageSize: size,
+      totalElements: enquiriesStore.length,
+      totalPages: Math.ceil(enquiriesStore.length / size),
+      isFirst: page === 0,
+      isLast: end >= enquiriesStore.length,
+      hasNext: end < enquiriesStore.length,
+      hasPrevious: page > 0
+    };
   }
 }
 
@@ -158,49 +177,153 @@ export async function updateStatus(id, status) {
 }
 
 /**
- * Search enquiries by status
+ * Search enquiries by status with pagination
  */
-export async function searchEnquiries(status) {
-  const allEnquiries = await getAllEnquiries();
-  return allEnquiries.filter(e => e.status === status);
-}
-
-/**
- * Get enquiries by category
- */
-export async function getEnquiriesByCategory(category) {
+export async function searchEnquiries(status, page = 0, size = 10) {
   try {
-    const response = await API_INSTANCE.get(`/enquiries/by-category/${category}`);
+    const response = await API_INSTANCE.get(`/enquiries/by-status/${status}`, {
+      params: {
+        page,
+        size,
+        sortBy: 'id',
+        direction: 'DESC'
+      }
+    });
     return response.data;
   } catch (error) {
     console.warn('API call failed, using mock store:', error.message);
-    return enquiriesStore.filter(e => e.category === category);
+    // Fallback - filter and paginate in mock store
+    const filtered = enquiriesStore.filter(e => e.status === status);
+    const start = page * size;
+    const end = start + size;
+    return {
+      content: filtered.slice(start, end),
+      pageNumber: page,
+      pageSize: size,
+      totalElements: filtered.length,
+      totalPages: Math.ceil(filtered.length / size),
+      isFirst: page === 0,
+      isLast: end >= filtered.length,
+      hasNext: end < filtered.length,
+      hasPrevious: page > 0
+    };
   }
 }
 
 /**
- * Get enquiries by admission type
+ * Get enquiries by category with pagination
  */
-export async function getEnquiriesByAdmission(admissionFor) {
+export async function getEnquiriesByCategory(category, page = 0, size = 10) {
   try {
-    const response = await API_INSTANCE.get(`/enquiries/by-admission/${admissionFor}`);
+    const response = await API_INSTANCE.get(`/enquiries/by-category/${category}`, {
+      params: {
+        page,
+        size,
+        sortBy: 'id',
+        direction: 'DESC'
+      }
+    });
     return response.data;
   } catch (error) {
     console.warn('API call failed, using mock store:', error.message);
-    return enquiriesStore.filter(e => e.admissionFor === admissionFor);
+    // Fallback - filter and paginate in mock store
+    const filtered = enquiriesStore.filter(e => e.category === category);
+    const start = page * size;
+    const end = start + size;
+    return {
+      content: filtered.slice(start, end),
+      pageNumber: page,
+      pageSize: size,
+      totalElements: filtered.length,
+      totalPages: Math.ceil(filtered.length / size),
+      isFirst: page === 0,
+      isLast: end >= filtered.length,
+      hasNext: end < filtered.length,
+      hasPrevious: page > 0
+    };
   }
 }
 
 /**
- * Get enquiries by location
+ * Get enquiries by admission type with pagination
  */
-export async function getEnquiriesByLocation(location) {
+export async function getEnquiriesByAdmission(admissionFor, page = 0, size = 10) {
   try {
-    const response = await API_INSTANCE.get(`/enquiries/by-location/${location}`);
+    const response = await API_INSTANCE.get(`/enquiries/by-admission/${admissionFor}`, {
+      params: {
+        page,
+        size,
+        sortBy: 'id',
+        direction: 'DESC'
+      }
+    });
     return response.data;
   } catch (error) {
     console.warn('API call failed, using mock store:', error.message);
-    return enquiriesStore.filter(e => e.location === location);
+    // Fallback - filter and paginate in mock store
+    const filtered = enquiriesStore.filter(e => e.admissionFor === admissionFor);
+    const start = page * size;
+    const end = start + size;
+    return {
+      content: filtered.slice(start, end),
+      pageNumber: page,
+      pageSize: size,
+      totalElements: filtered.length,
+      totalPages: Math.ceil(filtered.length / size),
+      isFirst: page === 0,
+      isLast: end >= filtered.length,
+      hasNext: end < filtered.length,
+      hasPrevious: page > 0
+    };
+  }
+}
+
+/**
+ * Get enquiries by location with pagination
+ */
+export async function getEnquiriesByLocation(location, page = 0, size = 10) {
+  try {
+    const response = await API_INSTANCE.get(`/enquiries/by-location/${location}`, {
+      params: {
+        page,
+        size,
+        sortBy: 'id',
+        direction: 'DESC'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
+    // Fallback - filter and paginate in mock store
+    const filtered = enquiriesStore.filter(e => e.location === location);
+    const start = page * size;
+    const end = start + size;
+    return {
+      content: filtered.slice(start, end),
+      pageNumber: page,
+      pageSize: size,
+      totalElements: filtered.length,
+      totalPages: Math.ceil(filtered.length / size),
+      isFirst: page === 0,
+      isLast: end >= filtered.length,
+      hasNext: end < filtered.length,
+      hasPrevious: page > 0
+    };
+  }
+}
+
+/**
+ * Get enquiry by SSC Seat No
+ */
+export async function getEnquiryBySscSeatNo(sscSeatNo) {
+  try {
+    // Try real API first
+    const response = await API_INSTANCE.get(`/enquiries/by-seat/${sscSeatNo}`);
+    return response.data;
+  } catch (error) {
+    console.warn('API call failed, using mock store:', error.message);
+    // Fallback - search in mock store
+    return enquiriesStore.find(e => e.sscSeatNo && e.sscSeatNo.toUpperCase() === sscSeatNo.toUpperCase());
   }
 }
 
@@ -214,7 +337,8 @@ const enquiryServiceExports = {
   searchEnquiries,
   getEnquiriesByCategory,
   getEnquiriesByAdmission,
-  getEnquiriesByLocation
+  getEnquiriesByLocation,
+  getEnquiryBySscSeatNo
 };
 
 export default enquiryServiceExports;

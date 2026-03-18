@@ -2,47 +2,188 @@ import React, { useState } from 'react';
 import './DSYAdmissionForm.css';
 import { admissionService } from '../../services/admissionService';
 
-const DSYAdmissionForm = () => {
-  const [formData, setFormData] = useState({
-    applicantFirstName: '',
-    applicantMiddleName: '',
-    applicantLastName: '',
-    fatherFirstName: '',
-    fatherMiddleName: '',
-    fatherLastName: '',
-    motherFirstName: '',
-    motherMiddleName: '',
-    motherLastName: '',
-    localAddressVillageCity: '',
-    localAddressTal: '',
-    localAddressDist: '',
-    localAddressPinCode: '',
-    permanentAddressVillageCity: '',
-    permanentAddressTal: '',
-    permanentAddressDist: '',
-    permanentAddressPinCode: '',
-    occupation: '',
-    annualIncome: '',
-    mobileNo: '',
-    studentEmail: '',
-    gender: '',
-    dateOfBirth: '',
-    bloodGroup: '',
-    aadhaarNo: '',
-    educationalQualification: '',
-    instituteName: '',
-    previousProgramCode: '',
-    previousCGPA: '',
-    scienceMarks: '',
-    program: '',
-    category: '',
-    caste: '',
-    physicallyHandicapped: 'No',
-    admissionType: 'CAP-1',
-    preference1: '',
-    preference2: '',
-    preference3: '',
-    preference4: ''
+const DSYAdmissionForm = ({ prefilledEnquiry }) => {
+  // Helper function to convert branch name to program number
+  const mapBranchToProgramNumber = (branch) => {
+    const branchToProgramMap = {
+      'Computer': '2',
+      'Civil': '1',
+      'Electrical': '3',
+      'E&TC': '3',
+      'IT': '4',
+      'Mechanical': '5',
+      'Mehatronics': '6'
+    };
+    return branchToProgramMap[branch] || '';
+  };
+
+  // Helper function to get program name from number
+  const getProgramNameFromNumber = (num) => {
+    const numberToNameMap = {
+      '1': '1. Civil Engineering',
+      '2': '2. Computer Engineering',
+      '3': '3. Electronics & Telecommunication',
+      '4': '4. Information Technology',
+      '5': '5. Mechanical Engineering',
+      '6': '6. Mechatronics'
+    };
+    return numberToNameMap[num] || '';
+  };
+
+  // Helper function to get location (handle "Other" case)
+  const getLocationCity = (enquiry) => {
+    if (!enquiry) return '';
+    if (enquiry.location === 'Other') {
+      return enquiry.otherLocation || '';
+    }
+    return enquiry.location || '';
+  };
+
+  // Helper function to determine which fields are pre-filled
+  const getPrefilledFields = () => {
+    if (!prefilledEnquiry) return new Set();
+    return new Set([
+      'applicantFirstName',
+      'applicantMiddleName',
+      'applicantLastName',
+      'localAddress',
+      'mobileNo',
+      'studentEmail',
+      'program',
+      'category',
+      'preference1',
+      'preference2',
+      'preference3',
+      'preference4'
+    ]);
+  };
+
+  const prefilledFields = getPrefilledFields();
+
+  // Helper function to determine if field should have highlight class
+  const shouldHighlightField = (fieldName) => {
+    return prefilledFields.has(fieldName) && (formData[fieldName]);
+  };
+
+  const [formData, setFormData] = useState(() => {
+    if (prefilledEnquiry) {
+      // Get branch preferences from enquiry
+      let branches = prefilledEnquiry.branchesInterested;
+      let preference1 = '';
+      let preference2 = '';
+      let preference3 = '';
+      let preference4 = '';
+
+      if (typeof branches === 'string') {
+        try {
+          branches = JSON.parse(branches);
+        } catch {
+          branches = [];
+        }
+      }
+
+      if (Array.isArray(branches)) {
+        if (branches.length > 0) {
+          preference1 = mapBranchToProgramNumber(branches[0].branch);
+        }
+        if (branches.length > 1) {
+          preference2 = mapBranchToProgramNumber(branches[1].branch);
+        }
+        if (branches.length > 2) {
+          preference3 = mapBranchToProgramNumber(branches[2].branch);
+        }
+        if (branches.length > 3) {
+          preference4 = mapBranchToProgramNumber(branches[3].branch);
+        }
+      }
+
+      // Use first branch as main program
+      const mainProgram = preference1 ? getProgramNameFromNumber(preference1) : '';
+
+      return {
+        applicantFirstName: prefilledEnquiry.firstName || '',
+        applicantMiddleName: prefilledEnquiry.middleName || '',
+        applicantLastName: prefilledEnquiry.lastName || '',
+        fatherFirstName: '',
+        fatherMiddleName: '',
+        fatherLastName: '',
+        motherFirstName: '',
+        motherMiddleName: '',
+        motherLastName: '',
+        localAddress: getLocationCity(prefilledEnquiry),
+        localTal: '',
+        localDist: '',
+        localPinCode: '',
+        permanentAddress: getLocationCity(prefilledEnquiry),
+        permanentTal: '',
+        permanentDist: '',
+        permanentPinCode: '',
+        occupation: '',
+        annualIncome: '',
+        mobileNo: prefilledEnquiry.personalMobileNumber || '',
+        studentEmail: prefilledEnquiry.email || '',
+        gender: '',
+        dateOfBirth: '',
+        bloodGroup: '',
+        aadhaarNo: '',
+        educationalQualification: '',
+        instituteName: '',
+        previousProgramCode: '',
+        previousCGPA: '',
+        scienceMarks: '',
+        program: mainProgram,
+        category: prefilledEnquiry.category || '',
+        caste: '',
+        physicallyHandicapped: 'No',
+        admissionType: 'CAP-1',
+        preference1: preference1,
+        preference2: preference2,
+        preference3: preference3,
+        preference4: preference4
+      };
+    }
+
+    return {
+      applicantFirstName: '',
+      applicantMiddleName: '',
+      applicantLastName: '',
+      fatherFirstName: '',
+      fatherMiddleName: '',
+      fatherLastName: '',
+      motherFirstName: '',
+      motherMiddleName: '',
+      motherLastName: '',
+      localAddress: '',
+      localTal: '',
+      localDist: '',
+      localPinCode: '',
+      permanentAddress: '',
+      permanentTal: '',
+      permanentDist: '',
+      permanentPinCode: '',
+      occupation: '',
+      annualIncome: '',
+      mobileNo: '',
+      studentEmail: '',
+      gender: '',
+      dateOfBirth: '',
+      bloodGroup: '',
+      aadhaarNo: '',
+      educationalQualification: '',
+      instituteName: '',
+      previousProgramCode: '',
+      previousCGPA: '',
+      scienceMarks: '',
+      program: '',
+      category: '',
+      caste: '',
+      physicallyHandicapped: 'No',
+      admissionType: 'CAP-1',
+      preference1: '',
+      preference2: '',
+      preference3: '',
+      preference4: ''
+    };
   });
 
   const [documents, setDocuments] = useState({
@@ -82,11 +223,11 @@ const DSYAdmissionForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.applicantFirstName.trim()) newErrors.applicantFirstName = 'First name is required';
     if (!formData.applicantLastName.trim()) newErrors.applicantLastName = 'Last name is required';
-    if (!formData.localAddressVillageCity.trim()) newErrors.localAddressVillageCity = 'Local address is required';
-    if (!formData.permanentAddressVillageCity.trim()) newErrors.permanentAddressVillageCity = 'Permanent address is required';
+    if (!formData.localAddress.trim()) newErrors.localAddress = 'Local address is required';
+    if (!formData.permanentAddress.trim()) newErrors.permanentAddress = 'Permanent address is required';
     if (!formData.mobileNo.match(/^[0-9]{10}$/)) newErrors.mobileNo = 'Mobile number must be 10 digits';
     if (!formData.studentEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newErrors.studentEmail = 'Invalid email';
     if (!formData.gender) newErrors.gender = 'Gender is required';
@@ -171,7 +312,7 @@ const DSYAdmissionForm = () => {
                 value={formData.applicantFirstName}
                 onChange={handleInputChange}
                 placeholder="Enter first name"
-                className={errors.applicantFirstName ? 'input-error' : ''}
+                className={`${errors.applicantFirstName ? 'input-error' : ''} ${shouldHighlightField('applicantFirstName') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.applicantFirstName && <span className="error-text">{errors.applicantFirstName}</span>}
             </div>
@@ -184,6 +325,7 @@ const DSYAdmissionForm = () => {
                 value={formData.applicantMiddleName}
                 onChange={handleInputChange}
                 placeholder="Enter middle name"
+                className={shouldHighlightField('applicantMiddleName') ? 'field-prefilled' : ''}
               />
             </div>
 
@@ -195,7 +337,7 @@ const DSYAdmissionForm = () => {
                 value={formData.applicantLastName}
                 onChange={handleInputChange}
                 placeholder="Enter last name"
-                className={errors.applicantLastName ? 'input-error' : ''}
+                className={`${errors.applicantLastName ? 'input-error' : ''} ${shouldHighlightField('applicantLastName') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.applicantLastName && <span className="error-text">{errors.applicantLastName}</span>}
             </div>
@@ -336,7 +478,7 @@ const DSYAdmissionForm = () => {
                 value={formData.localAddress}
                 onChange={handleInputChange}
                 placeholder="Enter local address"
-                className={errors.localAddress ? 'input-error' : ''}
+                className={`${errors.localAddress ? 'input-error' : ''} ${shouldHighlightField('localAddress') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.localAddress && <span className="error-text">{errors.localAddress}</span>}
             </div>
@@ -446,7 +588,7 @@ const DSYAdmissionForm = () => {
                 value={formData.mobileNo}
                 onChange={handleInputChange}
                 placeholder="Enter 10-digit mobile number"
-                className={errors.mobileNo ? 'input-error' : ''}
+                className={`${errors.mobileNo ? 'input-error' : ''} ${shouldHighlightField('mobileNo') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.mobileNo && <span className="error-text">{errors.mobileNo}</span>}
             </div>
@@ -459,7 +601,7 @@ const DSYAdmissionForm = () => {
                 value={formData.studentEmail}
                 onChange={handleInputChange}
                 placeholder="Enter email address"
-                className={errors.studentEmail ? 'input-error' : ''}
+                className={`${errors.studentEmail ? 'input-error' : ''} ${shouldHighlightField('studentEmail') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.studentEmail && <span className="error-text">{errors.studentEmail}</span>}
             </div>
@@ -568,7 +710,7 @@ const DSYAdmissionForm = () => {
                 name="program"
                 value={formData.program}
                 onChange={handleInputChange}
-                className={errors.program ? 'input-error' : ''}
+                className={`${errors.program ? 'input-error' : ''} ${shouldHighlightField('program') ? 'field-prefilled' : ''}`.trim()}
               >
                 <option value="">Select Program</option>
                 <option value="1. Civil Engineering">1. Civil Engineering</option>
@@ -587,6 +729,7 @@ const DSYAdmissionForm = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
+                className={shouldHighlightField('category') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Category</option>
                 <option value="General">General</option>
@@ -664,6 +807,7 @@ const DSYAdmissionForm = () => {
                 name="preference1"
                 value={formData.preference1}
                 onChange={handleInputChange}
+                className={shouldHighlightField('preference1') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Preference</option>
                 <option value="1">1. Civil Engineering</option>
@@ -681,6 +825,7 @@ const DSYAdmissionForm = () => {
                 name="preference2"
                 value={formData.preference2}
                 onChange={handleInputChange}
+                className={shouldHighlightField('preference2') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Preference</option>
                 <option value="1">1. Civil Engineering</option>
@@ -698,6 +843,7 @@ const DSYAdmissionForm = () => {
                 name="preference3"
                 value={formData.preference3}
                 onChange={handleInputChange}
+                className={shouldHighlightField('preference3') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Preference</option>
                 <option value="1">1. Civil Engineering</option>
@@ -715,6 +861,7 @@ const DSYAdmissionForm = () => {
                 name="preference4"
                 value={formData.preference4}
                 onChange={handleInputChange}
+                className={shouldHighlightField('preference4') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Preference</option>
                 <option value="1">1. Civil Engineering</option>

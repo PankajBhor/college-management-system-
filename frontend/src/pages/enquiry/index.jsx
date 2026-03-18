@@ -4,26 +4,113 @@ import { useAuth } from '../../hooks/useAuth';
 import EnquiryList from './EnquiryList';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import ExportFieldChecklist from './ExportFieldChecklist';
-// helper dropdown data
+import {
   locationOptions,
-  categoryOptions
-            return String(b.priority) === filters.branchPriority;
+  categoryOptions,
+  branchOptions,
+  admissionForOptions
+} from '../../data/mockEnquiries';
+
+function EnquiryIndex() {
+  const { user } = useAuth();
+  const {
+    enquiries,
+    loading,
+    fetchEnquiries,
+    removeEnquiry,
+    editEnquiry,
+    pageNumber,
+    totalPages,
+    pageSize,
+    totalElements,
+    goToPage,
+    changePageSize
+  } = useEnquiry();
+
+  // State definitions
+  const [filters, setFilters] = useState({
+    admissionFor: '',
+    branch: '',
+    branchPriority: '',
+    location: '',
+    category: '',
+    status: '',
+    date: ''
+  });
+  const [exportModal, setExportModal] = useState({ open: false, type: null });
+  const [exportFields, setExportFields] = useState([]);
+
+  // Fetch enquiries on component mount
+  useEffect(() => {
+    fetchEnquiries();
+  }, []);
+
+  // Filter enquiries based on current filters
+  const getFilteredEnquiries = () => {
+    return enquiries.filter((enquiry) => {
+      // Apply each filter
+      if (filters.admissionFor && enquiry.admissionFor !== filters.admissionFor) {
+        return false;
+      }
+      if (filters.location && enquiry.location !== filters.location) {
+        return false;
+      }
+      if (filters.category && enquiry.category !== filters.category) {
+        return false;
+      }
+      if (filters.status && enquiry.status !== filters.status) {
+        return false;
+      }
+      if (filters.date && enquiry.enquiryDate !== filters.date) {
+        return false;
+      }
+
+      // Filter by branch if selected
+      if (filters.branch || filters.branchPriority) {
+        let branches = enquiry.branchesInterested;
+        if (typeof branches === 'string') {
+          try {
+            branches = JSON.parse(branches);
+          } catch {
+            branches = [];
+          }
+        }
+
+        if (filters.branch && !branches.some((b) => b.branch === filters.branch)) {
+          return false;
+        }
+
+        if (filters.branchPriority) {
+          if (!branches.some((b) => String(b.priority) === filters.branchPriority)) {
+            return false;
           }
           return true;
-        });
-        if (!match) return false;
+        }
+        return true;
       }
       return true;
     });
   };
 
-  // helper to render dropdown options
-  const renderOptions = (options) =>
-    options.map((opt) => (
-      <option key={opt} value={opt}>
-        {opt}
-      </option>
-    ));
+  // Handle delete enquiry
+  const handleDelete = async (enquiryId) => {
+    if (window.confirm('Are you sure you want to delete this enquiry?')) {
+      try {
+        await removeEnquiry(enquiryId);
+      } catch (error) {
+        alert('Error deleting enquiry: ' + error.message);
+      }
+    }
+  };
+
+  // Handle status update
+  const handleStatusUpdate = async (enquiryId, newStatus) => {
+    try {
+      await editEnquiry(enquiryId, { status: newStatus });
+    } catch (error) {
+      alert('Error updating status: ' + error.message);
+    }
+  };
 
   // Check if user is enquiry staff or principal
   const canAddEnquiry = user && (user.role === 'ENQUIRY_STAFF' || user.role === 'PRINCIPAL');
@@ -168,35 +255,40 @@ import ExportFieldChecklist from './ExportFieldChecklist';
           filters={filters}
           setFilters={setFilters}
           allEnquiries={enquiries}
+          pageNumber={pageNumber}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalElements={totalElements}
+          onPageChange={goToPage}
+          onPageSizeChange={changePageSize}
         />
       )}
 
-
+      <ExportFieldChecklist
+        open={exportModal.open}
+        fields={exportFields}
+        setFields={setExportFields}
+        onExport={() => {
+          setExportModal({ open: false, type: null });
+          if (exportModal.type === 'excel') {
+            try {
+              exportToExcel(enquiries, exportFields);
+            } catch (error) {
+              alert('Error exporting to Excel: ' + error.message);
+            }
+          } else if (exportModal.type === 'pdf') {
+            try {
+              exportToPDF(enquiries, exportFields);
+            } catch (error) {
+              alert('Error exporting to PDF: ' + error.message);
+            }
+          }
+        }}
+        onClose={() => setExportModal({ open: false, type: null })}
+      />
     </div>
-    <ExportFieldChecklist
-      open={exportModal.open}
-      fields={exportFields}
-      setFields={setExportFields}
-      onExport={() => {
-        setExportModal({ open: false, type: null });
-        if (exportModal.type === 'excel') {
-          try {
-            exportToExcel(enquiries, exportFields);
-          } catch (error) {
-            alert('Error exporting to Excel: ' + error.message);
-          }
-        } else if (exportModal.type === 'pdf') {
-          try {
-            exportToPDF(enquiries, exportFields);
-          } catch (error) {
-            alert('Error exporting to PDF: ' + error.message);
-          }
-        }
-      }}
-      onClose={() => setExportModal({ open: false, type: null })}
-    />
-  </>);
-};
+  );
+}
 
 export default EnquiryIndex;
 

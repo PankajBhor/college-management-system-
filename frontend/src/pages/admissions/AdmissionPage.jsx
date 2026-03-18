@@ -7,11 +7,23 @@ import AdmittedListDSY from './AdmittedListDSY';
 
 const AdmissionPage = () => {
   const { user } = useAuth();
-  const { 
-    fyAdmissions, 
+  const {
+    fyAdmissions,
     dsyAdmissions,
+    fyPageNumber,
+    fyPageSize,
+    fyTotalPages,
+    fyTotalElements,
+    dsyPageNumber,
+    dsyPageSize,
+    dsyTotalPages,
+    dsyTotalElements,
     fetchFYAdmissions,
     fetchDSYAdmissions,
+    goToFYPage,
+    changeFYPageSize,
+    goToDSYPage,
+    changeDSYPageSize,
     loading
   } = useAdmission();
 
@@ -279,9 +291,31 @@ const AdmissionPage = () => {
               ⏳ Loading admissions...
             </div>
           ) : admittedTab === 'fy' ? (
-            <AdmittedListFY admissions={admittedFY} filters={filters} setFilters={setFilters} allAdmissions={baseAdmittedFY} />
+            <AdmittedListFY
+              admissions={admittedFY}
+              filters={filters}
+              setFilters={setFilters}
+              allAdmissions={baseAdmittedFY}
+              pageNumber={fyPageNumber}
+              totalPages={fyTotalPages}
+              pageSize={fyPageSize}
+              totalElements={fyTotalElements}
+              onPageChange={goToFYPage}
+              onPageSizeChange={changeFYPageSize}
+            />
           ) : (
-            <AdmittedListDSY admissions={admittedDSY} filters={filters} setFilters={setFilters} allAdmissions={baseAdmittedDSY} />
+            <AdmittedListDSY
+              admissions={admittedDSY}
+              filters={filters}
+              setFilters={setFilters}
+              allAdmissions={baseAdmittedDSY}
+              pageNumber={dsyPageNumber}
+              totalPages={dsyTotalPages}
+              pageSize={dsyPageSize}
+              totalElements={dsyTotalElements}
+              onPageChange={goToDSYPage}
+              onPageSizeChange={changeDSYPageSize}
+            />
           )}
         </div>
       )}

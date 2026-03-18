@@ -2,42 +2,143 @@ import React, { useState } from 'react';
 import './FYAdmissionForm.css';
 import { admissionService } from '../../services/admissionService';
 
-const FYAdmissionForm = () => {
-  const [formData, setFormData] = useState({
-    applicantFirstName: '',
-    applicantMiddleName: '',
-    applicantLastName: '',
-    fatherFirstName: '',
-    fatherMiddleName: '',
-    fatherLastName: '',
-    motherFirstName: '',
-    motherMiddleName: '',
-    motherLastName: '',
-    villageCity: '',
-    tal: '',
-    dist: '',
-    pinCode: '',
-    occupation: '',
-    mobileNo: '',
-    studentEmail: '',
-    gender: '',
-    dateOfBirth: '',
-    bloodGroup: '',
-    aadhaarNo: '',
-    schoolName: '',
-    yop: '',
-    marksObtained: '',
-    totalMarks: '',
-    englishMarks: '',
-    mathMarks: '',
-    scienceMarks: '',
-    bestOfFiveMarks: '',
-    program: '',
-    category: '',
-    caste: '',
-    annualIncome: '',
-    physicallyHandicapped: 'No',
-    admissionType: 'CAP-1'
+const FYAdmissionForm = ({ prefilledEnquiry }) => {
+  // Helper function to get program name from branch name
+  const mapBranchToProgram = (branch) => {
+    const programMap = {
+      'Computer': '2. Computer Engineering',
+      'Civil': '1. Civil Engineering',
+      'Electrical': '3. Electronics & Telecommunication',
+      'E&TC': '3. Electronics & Telecommunication',
+      'IT': '4. Information Technology',
+      'Mechanical': '5. Mechanical Engineering',
+      'Mehatronics': '6. Mechatronics'
+    };
+    return programMap[branch] || '';
+  };
+
+  // Helper function to get location (handle "Other" case)
+  const getLocationCity = (enquiry) => {
+    if (!enquiry) return '';
+    if (enquiry.location === 'Other') {
+      return enquiry.otherLocation || '';
+    }
+    return enquiry.location || '';
+  };
+
+  // Helper function to determine which fields are pre-filled
+  const getPrefilledFields = () => {
+    if (!prefilledEnquiry) return new Set();
+    return new Set([
+      'applicantFirstName',
+      'applicantMiddleName',
+      'applicantLastName',
+      'villageCity',
+      'mobileNo',
+      'studentEmail',
+      'program',
+      'category',
+      'marksObtained'
+    ]);
+  };
+
+  const prefilledFields = getPrefilledFields();
+
+  // Helper function to determine if field should have highlight class
+  const shouldHighlightField = (fieldName) => {
+    return prefilledFields.has(fieldName) && (formData[fieldName]);
+  };
+
+  const [formData, setFormData] = useState(() => {
+    if (prefilledEnquiry) {
+      // Get first branch preference if available
+      let branches = prefilledEnquiry.branchesInterested;
+      let firstBranch = '';
+      if (typeof branches === 'string') {
+        try {
+          branches = JSON.parse(branches);
+        } catch {
+          branches = [];
+        }
+      }
+      if (Array.isArray(branches) && branches.length > 0) {
+        firstBranch = mapBranchToProgram(branches[0].branch);
+      }
+
+      return {
+        applicantFirstName: prefilledEnquiry.firstName || '',
+        applicantMiddleName: prefilledEnquiry.middleName || '',
+        applicantLastName: prefilledEnquiry.lastName || '',
+        fatherFirstName: '',
+        fatherMiddleName: '',
+        fatherLastName: '',
+        motherFirstName: '',
+        motherMiddleName: '',
+        motherLastName: '',
+        villageCity: getLocationCity(prefilledEnquiry),
+        tal: '',
+        dist: '',
+        pinCode: '',
+        occupation: '',
+        mobileNo: prefilledEnquiry.personalMobileNumber || '',
+        studentEmail: prefilledEnquiry.email || '',
+        gender: '',
+        dateOfBirth: '',
+        bloodGroup: '',
+        aadhaarNo: '',
+        schoolName: '',
+        yop: '',
+        marksObtained: prefilledEnquiry.merit?.class10 || '',
+        totalMarks: '',
+        englishMarks: '',
+        mathMarks: '',
+        scienceMarks: '',
+        bestOfFiveMarks: '',
+        program: firstBranch,
+        category: prefilledEnquiry.category || '',
+        caste: '',
+        annualIncome: '',
+        physicallyHandicapped: 'No',
+        admissionType: 'CAP-1'
+      };
+    }
+
+    return {
+      applicantFirstName: '',
+      applicantMiddleName: '',
+      applicantLastName: '',
+      fatherFirstName: '',
+      fatherMiddleName: '',
+      fatherLastName: '',
+      motherFirstName: '',
+      motherMiddleName: '',
+      motherLastName: '',
+      villageCity: '',
+      tal: '',
+      dist: '',
+      pinCode: '',
+      occupation: '',
+      mobileNo: '',
+      studentEmail: '',
+      gender: '',
+      dateOfBirth: '',
+      bloodGroup: '',
+      aadhaarNo: '',
+      schoolName: '',
+      yop: '',
+      marksObtained: '',
+      totalMarks: '',
+      englishMarks: '',
+      mathMarks: '',
+      scienceMarks: '',
+      bestOfFiveMarks: '',
+      program: '',
+      category: '',
+      caste: '',
+      annualIncome: '',
+      physicallyHandicapped: 'No',
+      admissionType: 'CAP-1'
+    };
   });
 
   const [documents, setDocuments] = useState({
@@ -174,7 +275,7 @@ const FYAdmissionForm = () => {
                 value={formData.applicantFirstName}
                 onChange={handleInputChange}
                 placeholder="Enter first name"
-                className={errors.applicantFirstName ? 'input-error' : ''}
+                className={`${errors.applicantFirstName ? 'input-error' : ''} ${shouldHighlightField('applicantFirstName') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.applicantFirstName && <span className="error-text">{errors.applicantFirstName}</span>}
             </div>
@@ -187,6 +288,7 @@ const FYAdmissionForm = () => {
                 value={formData.applicantMiddleName}
                 onChange={handleInputChange}
                 placeholder="Enter middle name"
+                className={shouldHighlightField('applicantMiddleName') ? 'field-prefilled' : ''}
               />
             </div>
 
@@ -198,7 +300,7 @@ const FYAdmissionForm = () => {
                 value={formData.applicantLastName}
                 onChange={handleInputChange}
                 placeholder="Enter last name"
-                className={errors.applicantLastName ? 'input-error' : ''}
+                className={`${errors.applicantLastName ? 'input-error' : ''} ${shouldHighlightField('applicantLastName') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.applicantLastName && <span className="error-text">{errors.applicantLastName}</span>}
             </div>
@@ -339,7 +441,7 @@ const FYAdmissionForm = () => {
                 value={formData.villageCity}
                 onChange={handleInputChange}
                 placeholder="Enter village/city"
-                className={errors.villageCity ? 'input-error' : ''}
+                className={`${errors.villageCity ? 'input-error' : ''} ${shouldHighlightField('villageCity') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.villageCity && <span className="error-text">{errors.villageCity}</span>}
             </div>
@@ -418,7 +520,7 @@ const FYAdmissionForm = () => {
                 value={formData.mobileNo}
                 onChange={handleInputChange}
                 placeholder="Enter 10-digit mobile number"
-                className={errors.mobileNo ? 'input-error' : ''}
+                className={`${errors.mobileNo ? 'input-error' : ''} ${shouldHighlightField('mobileNo') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.mobileNo && <span className="error-text">{errors.mobileNo}</span>}
             </div>
@@ -431,7 +533,7 @@ const FYAdmissionForm = () => {
                 value={formData.studentEmail}
                 onChange={handleInputChange}
                 placeholder="Enter email address"
-                className={errors.studentEmail ? 'input-error' : ''}
+                className={`${errors.studentEmail ? 'input-error' : ''} ${shouldHighlightField('studentEmail') ? 'field-prefilled' : ''}`.trim()}
               />
               {errors.studentEmail && <span className="error-text">{errors.studentEmail}</span>}
             </div>
@@ -507,6 +609,7 @@ const FYAdmissionForm = () => {
                 value={formData.marksObtained}
                 onChange={handleInputChange}
                 placeholder="Enter marks"
+                className={shouldHighlightField('marksObtained') ? 'field-prefilled' : ''}
               />
             </div>
 
@@ -573,7 +676,7 @@ const FYAdmissionForm = () => {
                 name="program"
                 value={formData.program}
                 onChange={handleInputChange}
-                className={errors.program ? 'input-error' : ''}
+                className={`${errors.program ? 'input-error' : ''} ${shouldHighlightField('program') ? 'field-prefilled' : ''}`.trim()}
               >
                 <option value="">Select Program</option>
                 <option value="1. Civil Engineering">1. Civil Engineering</option>
@@ -592,6 +695,7 @@ const FYAdmissionForm = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
+                className={shouldHighlightField('category') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Category</option>
                 <option value="General">General</option>

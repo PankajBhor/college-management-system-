@@ -77,11 +77,18 @@ export async function getFYAdmissionById(id) {
 }
 
 /**
- * Get all FY admissions
+ * Get all FY admissions with pagination
  */
-export async function getAllFYAdmissions() {
+export async function getAllFYAdmissions(page = 0, size = 10, sortBy = 'id', direction = 'DESC') {
   try {
-    const response = await API_INSTANCE.get('/admissions/fy');
+    const response = await API_INSTANCE.get('/admissions/fy', {
+      params: {
+        page,
+        size,
+        sortBy,
+        direction
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching FY admissions:', error);
@@ -90,11 +97,18 @@ export async function getAllFYAdmissions() {
 }
 
 /**
- * Get FY admissions by status
+ * Get FY admissions by status with pagination
  */
-export async function getFYAdmissionsByStatus(status) {
+export async function getFYAdmissionsByStatus(status, page = 0, size = 10) {
   try {
-    const response = await API_INSTANCE.get(`/admissions/fy/status/${status}`);
+    const response = await API_INSTANCE.get(`/admissions/fy/status/${status}`, {
+      params: {
+        page,
+        size,
+        sortBy: 'id',
+        direction: 'DESC'
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching FY admissions by status:', error);
@@ -103,11 +117,18 @@ export async function getFYAdmissionsByStatus(status) {
 }
 
 /**
- * Get FY admissions by admission type
+ * Get FY admissions by admission type with pagination
  */
-export async function getFYAdmissionsByType(admissionType) {
+export async function getFYAdmissionsByType(admissionType, page = 0, size = 10) {
   try {
-    const response = await API_INSTANCE.get(`/admissions/fy/admission-type/${admissionType}`);
+    const response = await API_INSTANCE.get(`/admissions/fy/admission-type/${admissionType}`, {
+      params: {
+        page,
+        size,
+        sortBy: 'id',
+        direction: 'DESC'
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching FY admissions by type:', error);
@@ -189,11 +210,18 @@ export async function getDSYAdmissionById(id) {
 }
 
 /**
- * Get all DSY admissions
+ * Get all DSY admissions with pagination
  */
-export async function getAllDSYAdmissions() {
+export async function getAllDSYAdmissions(page = 0, size = 10, sortBy = 'id', direction = 'DESC') {
   try {
-    const response = await API_INSTANCE.get('/admissions/dsy');
+    const response = await API_INSTANCE.get('/admissions/dsy', {
+      params: {
+        page,
+        size,
+        sortBy,
+        direction
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching DSY admissions:', error);
@@ -202,11 +230,18 @@ export async function getAllDSYAdmissions() {
 }
 
 /**
- * Get DSY admissions by status
+ * Get DSY admissions by status with pagination
  */
-export async function getDSYAdmissionsByStatus(status) {
+export async function getDSYAdmissionsByStatus(status, page = 0, size = 10) {
   try {
-    const response = await API_INSTANCE.get(`/admissions/dsy/status/${status}`);
+    const response = await API_INSTANCE.get(`/admissions/dsy/status/${status}`, {
+      params: {
+        page,
+        size,
+        sortBy: 'id',
+        direction: 'DESC'
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching DSY admissions by status:', error);
@@ -215,11 +250,18 @@ export async function getDSYAdmissionsByStatus(status) {
 }
 
 /**
- * Get DSY admissions by admission type
+ * Get DSY admissions by admission type with pagination
  */
-export async function getDSYAdmissionsByType(admissionType) {
+export async function getDSYAdmissionsByType(admissionType, page = 0, size = 10) {
   try {
-    const response = await API_INSTANCE.get(`/admissions/dsy/admission-type/${admissionType}`);
+    const response = await API_INSTANCE.get(`/admissions/dsy/admission-type/${admissionType}`, {
+      params: {
+        page,
+        size,
+        sortBy: 'id',
+        direction: 'DESC'
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching DSY admissions by type:', error);

@@ -7,12 +7,35 @@ export function useEnquiry() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchEnquiries = useCallback(async () => {
+  // Pagination state
+  const [pageNumber, setPageNumber] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
+  const fetchEnquiries = useCallback(async (page = 0, size = 10, sortBy = 'id', direction = 'DESC') => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllEnquiries();
-      setEnquiries(data);
+      const data = await getAllEnquiries(page, size, sortBy, direction);
+
+      // Handle both paginated and non-paginated responses
+      if (data.content) {
+        // Paginated response from API
+        setEnquiries(data.content);
+        setPageNumber(data.pageNumber);
+        setPageSize(data.pageSize);
+        setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements);
+      } else if (Array.isArray(data)) {
+        // Non-paginated response (backward compatibility)
+        setEnquiries(data);
+        setPageNumber(0);
+        setPageSize(data.length);
+        setTotalPages(1);
+        setTotalElements(data.length);
+      }
+
       return data;
     } catch (err) {
       setError(err.message);
@@ -21,6 +44,17 @@ export function useEnquiry() {
       setLoading(false);
     }
   }, []);
+
+  const goToPage = useCallback((page) => {
+    if (page >= 0 && page < totalPages) {
+      return fetchEnquiries(page, pageSize);
+    }
+  }, [totalPages, pageSize, fetchEnquiries]);
+
+  const changePageSize = useCallback((newSize) => {
+    setPageSize(newSize);
+    return fetchEnquiries(0, newSize); // Reset to first page
+  }, [fetchEnquiries]);
 
   const addEnquiry = useCallback(async (enquiryData) => {
     try {
@@ -58,7 +92,13 @@ export function useEnquiry() {
     enquiries,
     loading,
     error,
+    pageNumber,
+    pageSize,
+    totalPages,
+    totalElements,
     fetchEnquiries,
+    goToPage,
+    changePageSize,
     addEnquiry,
     editEnquiry,
     removeEnquiry

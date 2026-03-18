@@ -2,6 +2,7 @@
 export const mockEnquiries = [
   {
     id: 1,
+    sscSeatNo: 'JK001',
     firstName: 'Amit',
     middleName: '',
     lastName: 'Kumar',
@@ -24,6 +25,7 @@ export const mockEnquiries = [
   },
   {
     id: 2,
+    sscSeatNo: 'JK002',
     firstName: 'Priya',
     middleName: 'Kumari',
     lastName: 'Singh',
@@ -46,6 +48,7 @@ export const mockEnquiries = [
   },
   {
     id: 3,
+    sscSeatNo: 'JK003',
     firstName: 'Ravi',
     middleName: '',
     lastName: 'Patel',
@@ -68,6 +71,7 @@ export const mockEnquiries = [
   },
   {
     id: 4,
+    sscSeatNo: 'JK004',
     firstName: 'Neha',
     middleName: 'Singh',
     lastName: 'Sharma',
@@ -89,6 +93,7 @@ export const mockEnquiries = [
   },
   {
     id: 5,
+    sscSeatNo: 'JK005',
     firstName: 'Arjun',
     middleName: 'Singh',
     lastName: 'Gupta',
