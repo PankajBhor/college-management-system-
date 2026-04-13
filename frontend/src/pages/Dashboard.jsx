@@ -37,8 +37,8 @@ const Dashboard = ({ user }) => {
       } else if (user?.role === 'PRINCIPAL') {
         // Principal also sees enquiry stats in addition to other stats
         const defaultStats = [
-          { title: 'Total Students', value: '1,247', icon: '👥', color: '#e8e8e8', textColor: '#1a1a1a' },
-          { title: 'Pending Fees', value: '₹4,25,000', icon: '💰', color: '#efefef', textColor: '#1a1a1a' },
+          // { title: 'Total Students', value: '1,247', icon: '👥', color: '#e8e8e8', textColor: '#1a1a1a' },
+          // { title: 'Pending Fees', value: '₹4,25,000', icon: '💰', color: '#efefef', textColor: '#1a1a1a' },
           { title: 'Total Enquiries', value: totalEnquiries.toString(), icon: '📞', color: '#f5f5f5', textColor: '#1a1a1a' },
           { title: 'Converted', value: successEnquiries.toString(), icon: '✅', color: '#f0f0f0', textColor: '#1a1a1a' }
         ];
@@ -48,8 +48,8 @@ const Dashboard = ({ user }) => {
       // Default stats for other roles
       const defaultStats = {
         OFFICE_STAFF: [
-          { title: 'Students', value: '1,247', icon: '👥', color: '#e8e8e8', textColor: '#1a1a1a' },
-          { title: 'Pending Fees', value: '₹4,25,000', icon: '💰', color: '#efefef', textColor: '#1a1a1a' },
+          // { title: 'Students', value: '1,247', icon: '👥', color: '#e8e8e8', textColor: '#1a1a1a' },
+          // { title: 'Pending Fees', value: '₹4,25,000', icon: '💰', color: '#efefef', textColor: '#1a1a1a' },
           { title: 'New Admissions', value: '156', icon: '📝', color: '#f5f5f5', textColor: '#1a1a1a' },
           { title: 'Queries Pending', value: '23', icon: '❓', color: '#f0f0f0', textColor: '#1a1a1a' }
         ],
@@ -136,7 +136,7 @@ const Dashboard = ({ user }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: '#666' }}>Active Users:</span>
-              <span style={{ fontWeight: '600', color: '#1a1a1a' }}>342</span>
+              <span style={{ fontWeight: '600', color: '#1a1a1a' }}>4</span>              
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: '#666' }}>System Status:</span>
