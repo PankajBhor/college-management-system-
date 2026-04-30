@@ -24,11 +24,13 @@ public class FeesServiceImpl implements FeesService {
     private StudentRepository studentRepository;
 
     @Override
+    @SuppressWarnings("null")
     public Fees createFees(Fees fees) {
         return feesRepository.save(fees);
     }
 
     @Override
+    @SuppressWarnings("null")
     public Fees getFeesById(Long id) {
         return feesRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Fees not found"));
@@ -40,6 +42,7 @@ public class FeesServiceImpl implements FeesService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public List<Fees> getFeesByStudentId(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -63,14 +66,13 @@ public class FeesServiceImpl implements FeesService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public void deleteFees(Long id) {
         feesRepository.deleteById(id);
     }
 
     @Override
     public Double getTotalPendingFees(Long studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
         List<Fees> pendingFees = feesRepository.findByStatus(FeeStatus.PENDING);
         return pendingFees.stream()
                 .filter(f -> f.getStudent().getId().equals(studentId))

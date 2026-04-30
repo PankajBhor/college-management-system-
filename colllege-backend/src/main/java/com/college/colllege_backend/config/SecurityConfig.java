@@ -50,10 +50,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors()
-                .and()
-                .csrf()
-                .disable() // Disable CSRF only for stateless API (token-based auth)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable()) // Disable CSRF only for stateless API (token-based auth)
                 .authorizeHttpRequests(requests -> requests
                 // Public endpoints - NO authentication required
                 .requestMatchers("/api/users/login").permitAll()

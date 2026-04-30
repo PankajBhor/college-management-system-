@@ -1,17 +1,25 @@
 package com.college.colllege_backend.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.college.colllege_backend.dto.CourseRequestDTO;
 import com.college.colllege_backend.entity.Course;
 import com.college.colllege_backend.repository.CourseRepository;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -27,6 +35,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
+    @SuppressWarnings("null")
     public ResponseEntity<?> getCourse(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(courseRepository.findById(id).get());
@@ -48,6 +57,7 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
+    @SuppressWarnings("null")
     public ResponseEntity<?> updateCourse(@PathVariable Long id, @Valid @RequestBody CourseRequestDTO request) {
         try {
             Course course = courseRepository.findById(id).get();
@@ -62,6 +72,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
+    @SuppressWarnings("null")
     public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
         try {
             courseRepository.deleteById(id);

@@ -46,7 +46,7 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
         </label>
         <input
           type="email"
-          placeholder="principal@college.com"
+          placeholder="Enter Your Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={isLoading}
@@ -76,7 +76,7 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
         </label>
         <input
           type="password"
-          placeholder="password"
+          placeholder="Enter Your Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}

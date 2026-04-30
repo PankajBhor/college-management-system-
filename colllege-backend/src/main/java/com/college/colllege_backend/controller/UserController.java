@@ -16,7 +16,6 @@ import jakarta.validation.Valid;
 import com.college.colllege_backend.dto.LoginRequestDTO;
 import com.college.colllege_backend.dto.LoginResponseDTO;
 import com.college.colllege_backend.dto.UserResponseDTO;
-import com.college.colllege_backend.entity.User;
 import com.college.colllege_backend.repository.UserRepository;
 import com.college.colllege_backend.service.AuthService;
 
@@ -34,8 +33,8 @@ public class UserController {
     @GetMapping
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
-            .map(u -> new UserResponseDTO(u.getId(), u.getName(), u.getEmail(), u.getRole()))
-            .collect(Collectors.toList());
+                .map(u -> new UserResponseDTO(u.getId(), u.getName(), u.getEmail(), u.getRole()))
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/login")

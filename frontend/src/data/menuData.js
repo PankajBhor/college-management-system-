@@ -32,20 +32,4 @@ export const menuConfig = {
   ]
 };
 
-// Test user accounts
-export const testUsers = {
-  'principal@college.com': { name: 'Dr. Pankaj Sharma', role: 'PRINCIPAL' },
-  'office@college.com': { name: 'Priya Office', role: 'OFFICE_STAFF' },
-  'enquiry@college.com': { name: 'Rahul Enquiry', role: 'ENQUIRY_STAFF' },
-  'faculty@college.com': { name: 'Prof. Anita', role: 'FACULTY' },
-  'hod@college.com': { name: 'Dr. Rajesh HOD', role: 'HOD' }
-};
 
-// Backdoor users for quick testing
-export const backdoorUsers = {
-  'principal': { name: 'Dr. Pankaj Sharma', role: 'PRINCIPAL' },
-  'office': { name: 'Priya Office', role: 'OFFICE_STAFF' },
-  'enquiry': { name: 'Rahul Enquiry', role: 'ENQUIRY_STAFF' },
-  'faculty': { name: 'Prof. Anita', role: 'FACULTY' },
-  'hod': { name: 'Dr. Rajesh HOD', role: 'HOD' }
-};

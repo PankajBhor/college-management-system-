@@ -8,6 +8,7 @@ import {
 } from '../../data/mockEnquiries';
 import enquiryService from '../../services/enquiryService';
 import { getAllFaculty } from '../../services/facultyService';
+import logger from '../../services/loggerService';
 
 const NewEnquiry = () => {
   const [formData, setFormData] = useState({
@@ -97,7 +98,7 @@ const NewEnquiry = () => {
       console.log('Enquiry Data:', enquiryData);
       
       const response = await enquiryService.createEnquiry(enquiryData);
-      console.log('Response:', response);
+      logger.info('Enquiry submitted successfully', { enquiryData, response });
       
       alert('Enquiry submitted successfully!');
       
