@@ -34,7 +34,7 @@ public class User {
 
     @Column(nullable = false)
     @NotBlank(message = "Role cannot be blank")
-    private String role; // ENQUIRY_STAFF, OFFICE_STAFF, PRINCIPAL, HOD, FACULTY, STUDENT
+    private String role; // PRINCIPAL, OFFICE_STAFF, HOD, FACULTY, ENQUIRY_STAFF
 
     @NotBlank(message = "Name cannot be blank")
     private String name;

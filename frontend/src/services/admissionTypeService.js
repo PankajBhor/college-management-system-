@@ -1,0 +1,1 @@
+export { getAllAdmissionTypes } from './lookupService';

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeader } from './authHeader';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
@@ -26,9 +27,9 @@ class ApiClient {
     // Request interceptor - Add auth token
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+        const authHeader = getAuthHeader();
+        if (authHeader) {
+          config.headers.Authorization = authHeader;
         }
         return config;
       },
@@ -98,7 +99,7 @@ class ApiClient {
    */
   setAuthToken(token) {
     if (token) {
-      this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      this.client.defaults.headers.common['Authorization'] = `Basic ${token}`;
       localStorage.setItem('authToken', token);
     } else {
       delete this.client.defaults.headers.common['Authorization'];

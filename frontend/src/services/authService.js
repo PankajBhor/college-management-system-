@@ -11,11 +11,17 @@ const API_INSTANCE = axios.create({
  * Login user with email and password
  */
 export async function loginUser(email, password) {
-  const response = await API_INSTANCE.post('/users/login', {
-    email,
-    password
-  });
-  return response.data;
+  try {
+    const response = await API_INSTANCE.post('/users/login', {
+      email,
+      password
+    });
+    localStorage.setItem('authToken', window.btoa(`${email}:${password}`));
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.error || error.response?.data?.message || error.message;
+    throw new Error(message);
+  }
 }
 
 

@@ -23,8 +23,8 @@ export function useEnquiry() {
       if (data.content) {
         // Paginated response from API
         setEnquiries(data.content);
-        setPageNumber(data.pageNumber);
-        setPageSize(data.pageSize);
+        setPageNumber(data.pageNumber ?? data.number ?? page);
+        setPageSize(data.pageSize ?? data.size ?? size);
         setTotalPages(data.totalPages);
         setTotalElements(data.totalElements);
       } else if (Array.isArray(data)) {

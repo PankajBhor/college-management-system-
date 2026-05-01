@@ -1,0 +1,1 @@
+export { getAllBranches } from './lookupService';

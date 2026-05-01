@@ -1,20 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FYAdmissionForm.css';
 import { admissionService } from '../../services/admissionService';
+import {
+  getAllAdmissionRounds,
+  getAllBloodGroups,
+  getAllBranches,
+  getAllCategories,
+  getAllGenders,
+  getAllYesNoOptions,
+  getOptionValue
+} from '../../services/lookupService';
 
 const FYAdmissionForm = ({ prefilledEnquiry }) => {
-  // Helper function to get program name from branch name
-  const mapBranchToProgram = (branch) => {
-    const programMap = {
-      'Computer': '2. Computer Engineering',
-      'Civil': '1. Civil Engineering',
-      'Electrical': '3. Electronics & Telecommunication',
-      'E&TC': '3. Electronics & Telecommunication',
-      'IT': '4. Information Technology',
-      'Mechanical': '5. Mechanical Engineering',
-      'Mehatronics': '6. Mechatronics'
-    };
-    return programMap[branch] || '';
+  const [branchOptions, setBranchOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [genderOptions, setGenderOptions] = useState([]);
+  const [bloodGroupOptions, setBloodGroupOptions] = useState([]);
+  const [yesNoOptions, setYesNoOptions] = useState([]);
+  const [admissionRoundOptions, setAdmissionRoundOptions] = useState([]);
+  const [branchMap, setBranchMap] = useState({});
+
+  // Fetch branches from database on component mount
+  useEffect(() => {
+    async function fetchBranches() {
+      try {
+        const [branches, categories, genders, bloodGroups, yesNo, admissionRounds] = await Promise.all([
+          getAllBranches(),
+          getAllCategories(),
+          getAllGenders(),
+          getAllBloodGroups(),
+          getAllYesNoOptions(),
+          getAllAdmissionRounds()
+        ]);
+        setBranchOptions(branches || []);
+        setCategoryOptions(categories || []);
+        setGenderOptions(genders || []);
+        setBloodGroupOptions(bloodGroups || []);
+        setYesNoOptions(yesNo || []);
+        setAdmissionRoundOptions(admissionRounds || []);
+        
+        // Create map for branch name to display format
+        const map = {};
+        branches?.forEach(branch => {
+          map[branch.branchName] = `${branch.branchCode}. ${branch.branchName}`;
+        });
+        setBranchMap(map);
+      } catch (error) {
+        console.error('Error fetching branches:', error);
+      }
+    }
+    fetchBranches();
+  }, []);
+
+  // Helper function to get program name from branch name (uses database-driven map)
+  const mapBranchToProgram = (branchName) => {
+    return branchMap[branchName] || '';
   };
 
   // Helper function to get location (handle "Other" case)
@@ -386,9 +426,10 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={errors.gender ? 'input-error' : ''}
               >
                 <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                {genderOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
               {errors.gender && <span className="error-text">{errors.gender}</span>}
             </div>
@@ -415,14 +456,10 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
                 onChange={handleInputChange}
               >
                 <option value="">Select Blood Group</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
+                {bloodGroupOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
             </div>
           </div>
@@ -679,12 +716,9 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={`${errors.program ? 'input-error' : ''} ${shouldHighlightField('program') ? 'field-prefilled' : ''}`.trim()}
               >
                 <option value="">Select Program</option>
-                <option value="1. Civil Engineering">1. Civil Engineering</option>
-                <option value="2. Computer Engineering">2. Computer Engineering</option>
-                <option value="3. Electronics & Telecommunication">3. Electronics & Telecommunication</option>
-                <option value="4. Information Technology">4. Information Technology</option>
-                <option value="5. Mechanical Engineering">5. Mechanical Engineering</option>
-                <option value="6. Mechatronics">6. Mechatronics</option>
+                {branchOptions.map(branch => (
+                  <option key={branch.id || branch.branchCode} value={branch.label}>{branch.label}</option>
+                ))}
               </select>
               {errors.program && <span className="error-text">{errors.program}</span>}
             </div>
@@ -698,10 +732,10 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={shouldHighlightField('category') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Category</option>
-                <option value="General">General</option>
-                <option value="OBC">OBC</option>
-                <option value="SC">SC</option>
-                <option value="ST">ST</option>
+                {categoryOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
             </div>
           </div>
@@ -725,8 +759,10 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
                 value={formData.physicallyHandicapped}
                 onChange={handleInputChange}
               >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
+                {yesNoOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
             </div>
           </div>
@@ -741,10 +777,10 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={errors.admissionType ? 'input-error' : ''}
               >
                 <option value="">Select Admission Type</option>
-                <option value="CAP-1">CAP-1</option>
-                <option value="CAP-2">CAP-2</option>
-                <option value="CAP-3">CAP-3</option>
-                <option value="TFWS">TFWS</option>
+                {admissionRoundOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
               {errors.admissionType && <span className="error-text">{errors.admissionType}</span>}
             </div>

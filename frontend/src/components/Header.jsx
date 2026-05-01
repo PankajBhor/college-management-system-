@@ -1,7 +1,7 @@
 import React from 'react';
 import { COLORS, TYPOGRAPHY, SPACING, SHADOWS, BORDER_RADIUS } from '../utils/designSystem';
 
-const Header = ({ user, onLogout }) => {
+const Header = ({ user, onLogout, sidebarOpen, onToggleSidebar }) => {
   return (
     <div style={{
       position: 'fixed',
@@ -19,7 +19,41 @@ const Header = ({ user, onLogout }) => {
       borderBottom: `1px solid ${COLORS.border}`,
       fontFamily: TYPOGRAPHY.fontFamily
     }}>
-      <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING.lg }}>
+        {/* Menu Button */}
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            style={{
+              background: COLORS.backgroundTertiary,
+              border: `1px solid ${COLORS.border}`,
+              padding: `${SPACING.sm} ${SPACING.md}`,
+              borderRadius: BORDER_RADIUS.md,
+              cursor: 'pointer',
+              fontSize: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: COLORS.text,
+              transition: 'all 0.2s ease',
+              width: '44px',
+              height: '44px',
+              minWidth: '44px'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = COLORS.primaryLight;
+              e.target.style.borderColor = COLORS.primary;
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = COLORS.backgroundTertiary;
+              e.target.style.borderColor = COLORS.border;
+            }}
+            title={sidebarOpen ? 'Close menu' : 'Open menu'}
+          >
+            {sidebarOpen ? '✕' : '☰'}
+          </button>
+        )}
+
         <h1 style={{
           margin: 0,
           fontSize: TYPOGRAPHY.fontSize.xl,

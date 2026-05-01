@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { mockStudents } from '../data/mockStudents';
+import { getAuthHeader } from './authHeader';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 const API_INSTANCE = axios.create({
@@ -7,20 +7,24 @@ const API_INSTANCE = axios.create({
   headers: {}
 });
 
-// In-memory storage for students during development
-let studentsStore = [...mockStudents];
+API_INSTANCE.interceptors.request.use((config) => {
+  const authHeader = getAuthHeader();
+  if (authHeader) {
+    config.headers.Authorization = authHeader;
+  }
+  return config;
+});
 
 /**
  * Get all students
  */
 export async function getAllStudents() {
   try {
-    // Try real API first
     const response = await API_INSTANCE.get('/students');
     return response.data;
   } catch (error) {
-    // Fallback to mock data
-    return studentsStore;
+    console.error('Error fetching students:', error.message);
+    throw error;
   }
 }
 
@@ -32,7 +36,8 @@ export async function getStudentById(id) {
     const response = await API_INSTANCE.get(`/students/${id}`);
     return response.data;
   } catch (error) {
-    return studentsStore.find(s => s.id === id);
+    console.error('Error fetching student:', error.message);
+    throw error;
   }
 }
 
@@ -60,13 +65,8 @@ export async function createStudent(studentData) {
     const response = await API_INSTANCE.post('/students', studentData);
     return response.data;
   } catch (error) {
-    // Fallback - create in mock store
-    const newStudent = {
-      id: Math.max(...studentsStore.map(s => s.id), 0) + 1,
-      ...studentData
-    };
-    studentsStore.push(newStudent);
-    return newStudent;
+    console.error('Error creating student:', error.message);
+    throw error;
   }
 }
 
@@ -78,13 +78,8 @@ export async function updateStudent(id, studentData) {
     const response = await API_INSTANCE.put(`/students/${id}`, studentData);
     return response.data;
   } catch (error) {
-    // Fallback - update in mock store
-    const index = studentsStore.findIndex(s => s.id === id);
-    if (index !== -1) {
-      studentsStore[index] = { ...studentsStore[index], ...studentData };
-      return studentsStore[index];
-    }
-    throw new Error('Student not found');
+    console.error('Error updating student:', error.message);
+    throw error;
   }
 }
 
@@ -96,13 +91,8 @@ export async function deleteStudent(id) {
     await API_INSTANCE.delete(`/students/${id}`);
     return { success: true };
   } catch (error) {
-    // Fallback - delete from mock store
-    const index = studentsStore.findIndex(s => s.id === id);
-    if (index !== -1) {
-      studentsStore.splice(index, 1);
-      return { success: true };
-    }
-    throw new Error('Student not found');
+    console.error('Error deleting student:', error.message);
+    throw error;
   }
 }
 

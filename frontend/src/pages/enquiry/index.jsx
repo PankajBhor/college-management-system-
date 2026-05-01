@@ -5,11 +5,12 @@ import EnquiryList from './EnquiryList';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 import ExportFieldChecklist from './ExportFieldChecklist';
 import {
-  locationOptions,
-  categoryOptions,
-  branchOptions,
-  admissionForOptions
-} from '../../data/mockEnquiries';
+  getAllAdmissionTypes,
+  getAllBranches,
+  getAllCategories,
+  getAllEnquiryStatuses,
+  getAllLocations
+} from '../../services/lookupService';
 
 function EnquiryIndex() {
   const { user } = useAuth();
@@ -18,7 +19,6 @@ function EnquiryIndex() {
     loading,
     fetchEnquiries,
     removeEnquiry,
-    editEnquiry,
     pageNumber,
     totalPages,
     pageSize,
@@ -39,10 +39,41 @@ function EnquiryIndex() {
   });
   const [exportModal, setExportModal] = useState({ open: false, type: null });
   const [exportFields, setExportFields] = useState([]);
+  const [lookupOptions, setLookupOptions] = useState({
+    locations: [],
+    categories: [],
+    branches: [],
+    admissionTypes: [],
+    statuses: []
+  });
 
   // Fetch enquiries on component mount
   useEffect(() => {
     fetchEnquiries();
+  }, [fetchEnquiries]);
+
+  useEffect(() => {
+    async function fetchLookupOptions() {
+      try {
+        const [locations, categories, branches, admissionTypes, statuses] = await Promise.all([
+          getAllLocations(),
+          getAllCategories(),
+          getAllBranches(),
+          getAllAdmissionTypes(),
+          getAllEnquiryStatuses()
+        ]);
+        setLookupOptions({
+          locations: locations || [],
+          categories: categories || [],
+          branches: branches || [],
+          admissionTypes: admissionTypes || [],
+          statuses: statuses || []
+        });
+      } catch (error) {
+        console.error('Error loading enquiry lookup options:', error);
+      }
+    }
+    fetchLookupOptions();
   }, []);
 
   // Filter enquiries based on current filters
@@ -106,7 +137,7 @@ function EnquiryIndex() {
   // Handle status update
   const handleStatusUpdate = async (enquiryId, newStatus) => {
     try {
-      await editEnquiry(enquiryId, { status: newStatus });
+      await fetchEnquiries(pageNumber, pageSize);
     } catch (error) {
       alert('Error updating status: ' + error.message);
     }
@@ -261,6 +292,7 @@ function EnquiryIndex() {
           totalElements={totalElements}
           onPageChange={goToPage}
           onPageSizeChange={changePageSize}
+          lookupOptions={lookupOptions}
         />
       )}
 

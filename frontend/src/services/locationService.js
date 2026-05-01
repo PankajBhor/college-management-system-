@@ -1,0 +1,1 @@
+export { getAllLocations } from './lookupService';

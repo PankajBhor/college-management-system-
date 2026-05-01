@@ -5,12 +5,10 @@ package com.college.colllege_backend.enums;
  */
 public enum UserRole {
     PRINCIPAL("Principal"),
-    ADMIN("Admin"),
-    STAFF("Office Staff"),
-    ENQUIRY_STAFF("Enquiry Staff"),
-    FACULTY("Faculty"),
+    OFFICE_STAFF("Office Staff"),
     HOD("Head of Department"),
-    STUDENT("Student");
+    ENQUIRY_STAFF("Enquiry Staff"),
+    FACULTY("Faculty");
 
     private final String displayName;
 
@@ -24,12 +22,12 @@ public enum UserRole {
 
     public static UserRole fromString(String value) {
         if (value == null) {
-            return STUDENT;
+            throw new IllegalArgumentException("Role is required");
         }
         try {
             return UserRole.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return STUDENT;
+            throw new IllegalArgumentException("Invalid role: " + value);
         }
     }
 }

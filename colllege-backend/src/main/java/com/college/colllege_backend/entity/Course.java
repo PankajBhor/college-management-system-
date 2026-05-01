@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "courses")
 public class Course {
@@ -25,9 +27,11 @@ public class Course {
     private String description;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Student> students;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Subject> subjects;
 
     // Constructors

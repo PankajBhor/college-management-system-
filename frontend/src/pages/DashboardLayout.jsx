@@ -10,6 +10,7 @@ import { COLORS, SPACING, SHADOWS } from '../utils/designSystem';
 
 const DashboardLayout = ({ user, onLogout }) => {
   const [activePage, setActivePage] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Check if user has access to a page
   const canAccessPage = (page) => {
@@ -136,21 +137,23 @@ const DashboardLayout = ({ user, onLogout }) => {
     <div style={{
       minHeight: '100vh',
       background: COLORS.backgroundSecondary,
-      paddingLeft: '80px',
-      paddingTop: '80px',
+      paddingLeft: sidebarOpen ? '330px' : '50px',
+      paddingTop: '100px',
       paddingRight: SPACING['2xl'],
       paddingBottom: SPACING['2xl'],
-      transition: 'padding-left 0.3s ease',
+      transition: 'padding-left 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
       position: 'relative'
     }}>
       {/* Header */}
-      <Header user={user} onLogout={onLogout} />
+      <Header user={user} onLogout={onLogout} sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
       {/* Sidebar */}
       <Sidebar
         onNavigate={setActivePage}
         currentPage={activePage}
         userRole={user?.role}
+        isOpen={sidebarOpen}
+        onOpenChange={setSidebarOpen}
       />
 
       {/* Main Content */}

@@ -1,33 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './DSYAdmissionForm.css';
 import { admissionService } from '../../services/admissionService';
+import {
+  getAllAdmissionRounds,
+  getAllBloodGroups,
+  getAllBranches,
+  getAllCategories,
+  getAllEducationalQualifications,
+  getAllGenders,
+  getAllYesNoOptions,
+  getOptionValue
+} from '../../services/lookupService';
 
 const DSYAdmissionForm = ({ prefilledEnquiry }) => {
-  // Helper function to convert branch name to program number
-  const mapBranchToProgramNumber = (branch) => {
-    const branchToProgramMap = {
-      'Computer': '2',
-      'Civil': '1',
-      'Electrical': '3',
-      'E&TC': '3',
-      'IT': '4',
-      'Mechanical': '5',
-      'Mehatronics': '6'
-    };
-    return branchToProgramMap[branch] || '';
+  const [branchOptions, setBranchOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [genderOptions, setGenderOptions] = useState([]);
+  const [bloodGroupOptions, setBloodGroupOptions] = useState([]);
+  const [yesNoOptions, setYesNoOptions] = useState([]);
+  const [admissionRoundOptions, setAdmissionRoundOptions] = useState([]);
+  const [qualificationOptions, setQualificationOptions] = useState([]);
+  const [branchToCodeMap, setBranchToCodeMap] = useState({});
+  const [codeToDisplayMap, setCodeToDisplayMap] = useState({});
+
+  // Fetch branches from database on component mount
+  useEffect(() => {
+    async function fetchBranches() {
+      try {
+        const [branches, categories, genders, bloodGroups, yesNo, admissionRounds, qualifications] = await Promise.all([
+          getAllBranches(),
+          getAllCategories(),
+          getAllGenders(),
+          getAllBloodGroups(),
+          getAllYesNoOptions(),
+          getAllAdmissionRounds(),
+          getAllEducationalQualifications()
+        ]);
+        setBranchOptions(branches || []);
+        setCategoryOptions(categories || []);
+        setGenderOptions(genders || []);
+        setBloodGroupOptions(bloodGroups || []);
+        setYesNoOptions(yesNo || []);
+        setAdmissionRoundOptions(admissionRounds || []);
+        setQualificationOptions(qualifications || []);
+        
+        // Create maps for branch conversions
+        const btc = {};
+        const ctd = {};
+        branches?.forEach(branch => {
+          btc[branch.branchName] = branch.branchCode;
+          ctd[branch.branchCode] = `${branch.branchCode}. ${branch.branchName}`;
+        });
+        setBranchToCodeMap(btc);
+        setCodeToDisplayMap(ctd);
+      } catch (error) {
+        console.error('Error fetching branches:', error);
+      }
+    }
+    fetchBranches();
+  }, []);
+
+  // Helper function to convert branch name to program code (uses database)
+  const mapBranchToProgramNumber = (branchName) => {
+    return branchToCodeMap[branchName] || '';
   };
 
-  // Helper function to get program name from number
-  const getProgramNameFromNumber = (num) => {
-    const numberToNameMap = {
-      '1': '1. Civil Engineering',
-      '2': '2. Computer Engineering',
-      '3': '3. Electronics & Telecommunication',
-      '4': '4. Information Technology',
-      '5': '5. Mechanical Engineering',
-      '6': '6. Mechatronics'
-    };
-    return numberToNameMap[num] || '';
+  // Helper function to get program display name from code (uses database)
+  const getProgramNameFromNumber = (code) => {
+    return codeToDisplayMap[code] || '';
   };
 
   // Helper function to get location (handle "Other" case)
@@ -423,9 +463,10 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={errors.gender ? 'input-error' : ''}
               >
                 <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                {genderOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
               {errors.gender && <span className="error-text">{errors.gender}</span>}
             </div>
@@ -452,14 +493,10 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 onChange={handleInputChange}
               >
                 <option value="">Select Blood Group</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
+                {bloodGroupOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
             </div>
           </div>
@@ -640,12 +677,10 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 onChange={handleInputChange}
               >
                 <option value="">Select Qualification</option>
-                <option value="HSC">HSC</option>
-                <option value="HSC Sci">HSC Sci</option>
-                <option value="VOC">VOC</option>
-                <option value="MVCJ">MVCJ</option>
-                <option value="JCOE">JCOE</option>
-                <option value="D/P/O">D/P/O</option>
+                {qualificationOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
             </div>
 
@@ -713,12 +748,9 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={`${errors.program ? 'input-error' : ''} ${shouldHighlightField('program') ? 'field-prefilled' : ''}`.trim()}
               >
                 <option value="">Select Program</option>
-                <option value="1. Civil Engineering">1. Civil Engineering</option>
-                <option value="2. Computer Engineering">2. Computer Engineering</option>
-                <option value="3. Electronics & Telecommunication">3. Electronics & Telecommunication</option>
-                <option value="4. Information Technology">4. Information Technology</option>
-                <option value="5. Mechanical Engineering">5. Mechanical Engineering</option>
-                <option value="6. Mechatronics">6. Mechatronics</option>
+                {branchOptions.map(branch => (
+                  <option key={branch.id || branch.branchCode} value={branch.label}>{branch.label}</option>
+                ))}
               </select>
               {errors.program && <span className="error-text">{errors.program}</span>}
             </div>
@@ -732,10 +764,10 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={shouldHighlightField('category') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Category</option>
-                <option value="General">General</option>
-                <option value="OBC">OBC</option>
-                <option value="SC">SC</option>
-                <option value="ST">ST</option>
+                {categoryOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
             </div>
           </div>
@@ -772,8 +804,10 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 value={formData.physicallyHandicapped}
                 onChange={handleInputChange}
               >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
+                {yesNoOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
             </div>
 
@@ -786,10 +820,10 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={errors.admissionType ? 'input-error' : ''}
               >
                 <option value="">Select Admission Type</option>
-                <option value="CAP-1">CAP-1</option>
-                <option value="CAP-2">CAP-2</option>
-                <option value="CAP-3">CAP-3</option>
-                <option value="EWS">EWS</option>
+                {admissionRoundOptions.map(option => {
+                  const value = getOptionValue(option);
+                  return <option key={option.id || option.code || value} value={value}>{value}</option>;
+                })}
               </select>
               {errors.admissionType && <span className="error-text">{errors.admissionType}</span>}
             </div>
@@ -810,12 +844,9 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={shouldHighlightField('preference1') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Preference</option>
-                <option value="1">1. Civil Engineering</option>
-                <option value="2">2. Computer Engineering</option>
-                <option value="3">3. Electronics & Telecommunication</option>
-                <option value="4">4. Information Technology</option>
-                <option value="5">5. Mechanical Engineering</option>
-                <option value="6">6. Mechatronics</option>
+                {branchOptions.map(branch => (
+                  <option key={branch.id || branch.branchCode} value={branch.branchCode}>{branch.label}</option>
+                ))}
               </select>
             </div>
 
@@ -828,12 +859,9 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={shouldHighlightField('preference2') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Preference</option>
-                <option value="1">1. Civil Engineering</option>
-                <option value="2">2. Computer Engineering</option>
-                <option value="3">3. Electronics & Telecommunication</option>
-                <option value="4">4. Information Technology</option>
-                <option value="5">5. Mechanical Engineering</option>
-                <option value="6">6. Mechatronics</option>
+                {branchOptions.map(branch => (
+                  <option key={branch.id || branch.branchCode} value={branch.branchCode}>{branch.label}</option>
+                ))}
               </select>
             </div>
 
@@ -846,12 +874,9 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={shouldHighlightField('preference3') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Preference</option>
-                <option value="1">1. Civil Engineering</option>
-                <option value="2">2. Computer Engineering</option>
-                <option value="3">3. Electronics & Telecommunication</option>
-                <option value="4">4. Information Technology</option>
-                <option value="5">5. Mechanical Engineering</option>
-                <option value="6">6. Mechatronics</option>
+                {branchOptions.map(branch => (
+                  <option key={branch.id || branch.branchCode} value={branch.branchCode}>{branch.label}</option>
+                ))}
               </select>
             </div>
 
@@ -864,12 +889,9 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
                 className={shouldHighlightField('preference4') ? 'field-prefilled' : ''}
               >
                 <option value="">Select Preference</option>
-                <option value="1">1. Civil Engineering</option>
-                <option value="2">2. Computer Engineering</option>
-                <option value="3">3. Electronics & Telecommunication</option>
-                <option value="4">4. Information Technology</option>
-                <option value="5">5. Mechanical Engineering</option>
-                <option value="6">6. Mechatronics</option>
+                {branchOptions.map(branch => (
+                  <option key={branch.id || branch.branchCode} value={branch.branchCode}>{branch.label}</option>
+                ))}
               </select>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeader } from './authHeader';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 const API_INSTANCE = axios.create({
@@ -12,9 +13,9 @@ const API_INSTANCE = axios.create({
  * Important: Don't set Content-Type for FormData - let axios compute it with boundary
  */
 API_INSTANCE.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const authHeader = getAuthHeader();
+  if (authHeader) {
+    config.headers.Authorization = authHeader;
   }
   
   // If sending FormData, ensure Content-Type is not set (let axios auto-detect)

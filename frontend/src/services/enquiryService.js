@@ -1,6 +1,5 @@
-
 import axios from 'axios';
-import { mockEnquiries } from '../data/mockEnquiries';
+import { getAuthHeader } from './authHeader';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 const API_INSTANCE = axios.create({
@@ -8,15 +7,19 @@ const API_INSTANCE = axios.create({
   headers: {}
 });
 
-// In-memory storage for enquiries during development
-let enquiriesStore = [...mockEnquiries];
+API_INSTANCE.interceptors.request.use((config) => {
+  const authHeader = getAuthHeader();
+  if (authHeader) {
+    config.headers.Authorization = authHeader;
+  }
+  return config;
+});
 
 /**
  * Get all enquiries with pagination support
  */
 export async function getAllEnquiries(page = 0, size = 10, sortBy = 'id', direction = 'DESC') {
   try {
-    // Try real API first
     const response = await API_INSTANCE.get('/enquiries', {
       params: {
         page,
@@ -27,21 +30,8 @@ export async function getAllEnquiries(page = 0, size = 10, sortBy = 'id', direct
     });
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock data:', error.message);
-    // Fallback to mock data - paginate manually
-    const start = page * size;
-    const end = start + size;
-    return {
-      content: enquiriesStore.slice(start, end),
-      pageNumber: page,
-      pageSize: size,
-      totalElements: enquiriesStore.length,
-      totalPages: Math.ceil(enquiriesStore.length / size),
-      isFirst: page === 0,
-      isLast: end >= enquiriesStore.length,
-      hasNext: end < enquiriesStore.length,
-      hasPrevious: page > 0
-    };
+    console.error('Error fetching enquiries:', error.message);
+    throw error;
   }
 }
 
@@ -53,8 +43,8 @@ export async function getEnquiryById(id) {
     const response = await API_INSTANCE.get(`/enquiries/${id}`);
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock data:', error.message);
-    return enquiriesStore.find(e => e.id === id);
+    console.error('Error fetching enquiry:', error.message);
+    throw error;
   }
 }
 
@@ -86,16 +76,8 @@ export async function createEnquiry(enquiryData) {
     const response = await API_INSTANCE.post('/enquiries', apiData);
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - create in mock store
-    const newEnquiry = {
-      id: Math.max(...enquiriesStore.map(e => e.id), 0) + 1,
-      ...enquiryData,
-      enquiryDate: new Date().toISOString().split('T')[0],
-      status: enquiryData.status || 'Pending'
-    };
-    enquiriesStore.push(newEnquiry);
-    return newEnquiry;
+    console.error('Error creating enquiry:', error.message);
+    throw error;
   }
 }
 
@@ -127,14 +109,8 @@ export async function updateEnquiry(id, enquiryData) {
     const response = await API_INSTANCE.put(`/enquiries/${id}`, apiData);
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - update in mock store
-    const index = enquiriesStore.findIndex(e => e.id === id);
-    if (index !== -1) {
-      enquiriesStore[index] = { ...enquiriesStore[index], ...enquiryData };
-      return enquiriesStore[index];
-    }
-    throw new Error('Enquiry not found');
+    console.error('Error updating enquiry:', error.message);
+    throw error;
   }
 }
 
@@ -146,14 +122,8 @@ export async function deleteEnquiry(id) {
     await API_INSTANCE.delete(`/enquiries/${id}`);
     return { success: true };
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - delete from mock store
-    const index = enquiriesStore.findIndex(e => e.id === id);
-    if (index !== -1) {
-      enquiriesStore.splice(index, 1);
-      return { success: true };
-    }
-    throw new Error('Enquiry not found');
+    console.error('Error deleting enquiry:', error.message);
+    throw error;
   }
 }
 
@@ -165,15 +135,8 @@ export async function updateStatus(id, status) {
     const response = await API_INSTANCE.patch(`/enquiries/${id}/status`, { status });
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - update in mock store
-    const index = enquiriesStore.findIndex(e => e.id === id);
-    if (index !== -1) {
-      enquiriesStore[index].status = status;
-      enquiriesStore[index].updatedAt = new Date().toISOString();
-      return enquiriesStore[index];
-    }
-    throw new Error('Enquiry not found');
+    console.error('Error updating enquiry status:', error.message);
+    throw error;
   }
 }
 
@@ -192,22 +155,8 @@ export async function searchEnquiries(status, page = 0, size = 10) {
     });
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - filter and paginate in mock store
-    const filtered = enquiriesStore.filter(e => e.status === status);
-    const start = page * size;
-    const end = start + size;
-    return {
-      content: filtered.slice(start, end),
-      pageNumber: page,
-      pageSize: size,
-      totalElements: filtered.length,
-      totalPages: Math.ceil(filtered.length / size),
-      isFirst: page === 0,
-      isLast: end >= filtered.length,
-      hasNext: end < filtered.length,
-      hasPrevious: page > 0
-    };
+    console.error('Error searching enquiries by status:', error.message);
+    throw error;
   }
 }
 
@@ -226,22 +175,8 @@ export async function getEnquiriesByCategory(category, page = 0, size = 10) {
     });
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - filter and paginate in mock store
-    const filtered = enquiriesStore.filter(e => e.category === category);
-    const start = page * size;
-    const end = start + size;
-    return {
-      content: filtered.slice(start, end),
-      pageNumber: page,
-      pageSize: size,
-      totalElements: filtered.length,
-      totalPages: Math.ceil(filtered.length / size),
-      isFirst: page === 0,
-      isLast: end >= filtered.length,
-      hasNext: end < filtered.length,
-      hasPrevious: page > 0
-    };
+    console.error('Error fetching enquiries by category:', error.message);
+    throw error;
   }
 }
 
@@ -260,22 +195,8 @@ export async function getEnquiriesByAdmission(admissionFor, page = 0, size = 10)
     });
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - filter and paginate in mock store
-    const filtered = enquiriesStore.filter(e => e.admissionFor === admissionFor);
-    const start = page * size;
-    const end = start + size;
-    return {
-      content: filtered.slice(start, end),
-      pageNumber: page,
-      pageSize: size,
-      totalElements: filtered.length,
-      totalPages: Math.ceil(filtered.length / size),
-      isFirst: page === 0,
-      isLast: end >= filtered.length,
-      hasNext: end < filtered.length,
-      hasPrevious: page > 0
-    };
+    console.error('Error fetching enquiries by admission:', error.message);
+    throw error;
   }
 }
 
@@ -294,22 +215,8 @@ export async function getEnquiriesByLocation(location, page = 0, size = 10) {
     });
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - filter and paginate in mock store
-    const filtered = enquiriesStore.filter(e => e.location === location);
-    const start = page * size;
-    const end = start + size;
-    return {
-      content: filtered.slice(start, end),
-      pageNumber: page,
-      pageSize: size,
-      totalElements: filtered.length,
-      totalPages: Math.ceil(filtered.length / size),
-      isFirst: page === 0,
-      isLast: end >= filtered.length,
-      hasNext: end < filtered.length,
-      hasPrevious: page > 0
-    };
+    console.error('Error fetching enquiries by location:', error.message);
+    throw error;
   }
 }
 
@@ -318,13 +225,11 @@ export async function getEnquiriesByLocation(location, page = 0, size = 10) {
  */
 export async function getEnquiryBySscSeatNo(sscSeatNo) {
   try {
-    // Try real API first
     const response = await API_INSTANCE.get(`/enquiries/by-seat/${sscSeatNo}`);
     return response.data;
   } catch (error) {
-    console.warn('API call failed, using mock store:', error.message);
-    // Fallback - search in mock store
-    return enquiriesStore.find(e => e.sscSeatNo && e.sscSeatNo.toUpperCase() === sscSeatNo.toUpperCase());
+    console.error('Error fetching enquiry by SSC seat number:', error.message);
+    throw error;
   }
 }
 

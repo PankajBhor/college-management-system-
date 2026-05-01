@@ -2,12 +2,7 @@ import React, { useState } from 'react';
 import { formatDate } from '../../utils/formatters';
 import enquiryService from '../../services/enquiryService';
 import Pagination from '../../components/Pagination';
-import {
-  locationOptions,
-  categoryOptions,
-  branchOptions,
-  admissionForOptions
-} from '../../data/mockEnquiries';
+import { getOptionValue } from '../../services/lookupService';
 
 const EnquiryList = ({
   enquiries,
@@ -21,10 +16,16 @@ const EnquiryList = ({
   pageSize = 10,
   totalElements = 0,
   onPageChange,
-  onPageSizeChange
+  onPageSizeChange,
+  lookupOptions = {}
 }) => {
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState('');
+  const locationOptions = lookupOptions.locations || [];
+  const categoryOptions = lookupOptions.categories || [];
+  const branchOptions = lookupOptions.branches || [];
+  const admissionForOptions = lookupOptions.admissionTypes || [];
+  const statusOptions = lookupOptions.statuses || [];
 
   const getStatusColor = (status) => {
     const colors = {
@@ -139,7 +140,10 @@ const EnquiryList = ({
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.admissionFor} onChange={handleFilterChange('admissionFor')} style={{ fontSize: '0.85em', padding: '4px' }}>
                   <option value="">All</option>
-                  {admissionForOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                  {admissionForOptions.map(opt => {
+                    const value = getOptionValue(opt);
+                    return <option key={opt.id || opt.code || value} value={value}>{value}</option>;
+                  })}
                 </select>
               </div>}
             </th>
@@ -148,7 +152,10 @@ const EnquiryList = ({
               {filters && <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                 <select value={filters.branch} onChange={handleFilterChange('branch')} style={{ fontSize: '0.8em', padding: '4px' }}>
                   <option value="">Branch</option>
-                  {branchOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                  {branchOptions.map(opt => {
+                    const value = opt.branchName || opt.name || opt.label;
+                    return <option key={opt.id || opt.branchCode || value} value={value}>{opt.label || value}</option>;
+                  })}
                 </select>
                 <select value={filters.branchPriority} onChange={handleFilterChange('branchPriority')} style={{ fontSize: '0.8em', padding: '4px' }}>
                   <option value="">Pref</option>
@@ -161,7 +168,10 @@ const EnquiryList = ({
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.location} onChange={handleFilterChange('location')} style={{ fontSize: '0.85em', padding: '4px' }}>
                   <option value="">All</option>
-                  {locationOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                  {locationOptions.map(opt => {
+                    const value = getOptionValue(opt);
+                    return <option key={opt.id || opt.code || value} value={value}>{value}</option>;
+                  })}
                 </select>
               </div>}
             </th>
@@ -170,7 +180,10 @@ const EnquiryList = ({
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.category} onChange={handleFilterChange('category')} style={{ fontSize: '0.85em', padding: '4px' }}>
                   <option value="">All</option>
-                  {categoryOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                  {categoryOptions.map(opt => {
+                    const value = getOptionValue(opt);
+                    return <option key={opt.id || opt.code || value} value={value}>{value}</option>;
+                  })}
                 </select>
               </div>}
             </th>
@@ -179,11 +192,10 @@ const EnquiryList = ({
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.status} onChange={handleFilterChange('status')} style={{ fontSize: '0.85em', padding: '4px' }}>
                   <option value="">All</option>
-                  <option>Pending</option>
-                  <option>Success</option>
-                  <option>Follow-up</option>
-                  <option>Converted</option>
-                  <option>Lost</option>
+                  {statusOptions.map(opt => {
+                    const value = getOptionValue(opt);
+                    return <option key={opt.id || opt.code || value} value={value}>{value}</option>;
+                  })}
                 </select>
               </div>}
             </th>

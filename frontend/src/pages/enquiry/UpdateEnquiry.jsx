@@ -1,13 +1,48 @@
-import React, { useState } from 'react';
-import {
-  locationOptions,
-  categoryOptions,
-  branchOptions,
-  admissionForOptions
-} from '../../data/mockEnquiries';
+import React, { useState, useEffect } from 'react';
 import enquiryService from '../../services/enquiryService';
+import {
+  getAllAdmissionTypes,
+  getAllBranches,
+  getAllCategories,
+  getAllEnquiryStatuses,
+  getAllLocations,
+  getOptionValue
+} from '../../services/lookupService';
+import { getAllFaculty } from '../../services/facultyService';
 
 const UpdateEnquiry = ({ enquiry, onUpdate }) => {
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [branchOptions, setBranchOptions] = useState([]);
+  const [admissionTypeOptions, setAdmissionTypeOptions] = useState([]);
+  const [statusOptions, setStatusOptions] = useState([]);
+  const [facultyOptions, setFacultyOptions] = useState([]);
+
+  // Fetch all dropdown data from database
+  useEffect(() => {
+    async function fetchDropdownData() {
+      try {
+        const [locations, categories, branches, admissionTypes, statuses, faculties] = await Promise.all([
+          getAllLocations(),
+          getAllCategories(),
+          getAllBranches(),
+          getAllAdmissionTypes(),
+          getAllEnquiryStatuses(),
+          getAllFaculty()
+        ]);
+
+        setLocationOptions(locations || []);
+        setCategoryOptions(categories || []);
+        setBranchOptions(branches || []);
+        setAdmissionTypeOptions(admissionTypes || []);
+        setStatusOptions(statuses || []);
+        setFacultyOptions(faculties || []);
+      } catch (error) {
+        console.error('Error fetching dropdown data:', error);
+      }
+    }
+    fetchDropdownData();
+  }, []);
   const [formData, setFormData] = useState(enquiry || {
     firstName: '',
     middleName: '',
@@ -377,8 +412,8 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
                 required
               >
                 <option value="">Select admission type</option>
-                {admissionForOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
+                {admissionTypeOptions.map(option => (
+                  <option key={option.id || option.code} value={getOptionValue(option)}>{getOptionValue(option)}</option>
                 ))}
               </select>
             </div>
@@ -394,7 +429,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
               >
                 <option value="">Select category</option>
                 {categoryOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
+                  <option key={option.id || option.code} value={getOptionValue(option)}>{getOptionValue(option)}</option>
                 ))}
               </select>
             </div>
@@ -407,10 +442,9 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
                 onChange={handleInputChange}
                 style={styles.select}
               >
-                <option value="Pending">Pending</option>
-                <option value="Follow-up">Follow-up</option>
-                <option value="Converted">Converted</option>
-                <option value="Lost">Lost</option>
+                {statusOptions.map(option => (
+                  <option key={option.id || option.code} value={getOptionValue(option)}>{getOptionValue(option)}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -429,9 +463,8 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
               >
                 <option value="">Select location</option>
                 {locationOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
+                  <option key={option.id || option.code} value={getOptionValue(option)}>{getOptionValue(option)}</option>
                 ))}
-                <option value="Other">Other (Specify Below)</option>
               </select>
             </div>
 
@@ -458,20 +491,21 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
           </p>
           <div style={styles.branchContainer}>
             {branchOptions.map(branch => {
-              const priority = selectedBranches.indexOf(branch) + 1;
-              const isSelected = selectedBranches.includes(branch);
+              const branchName = branch.branchName || branch.name || branch.label;
+              const priority = selectedBranches.indexOf(branchName) + 1;
+              const isSelected = selectedBranches.includes(branchName);
               return (
-                <div key={branch} style={styles.branchItem}>
+                <div key={branch.id || branch.branchCode || branchName} style={styles.branchItem}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
                     <input
                       type="checkbox"
-                      id={`branch-${branch}`}
+                      id={`branch-${branchName}`}
                       checked={isSelected}
-                      onChange={() => handleBranchToggle(branch)}
+                      onChange={() => handleBranchToggle(branchName)}
                       style={styles.checkbox}
                     />
-                    <label htmlFor={`branch-${branch}`} style={{ margin: 0, fontWeight: '500', cursor: 'pointer' }}>
-                      {branch}
+                    <label htmlFor={`branch-${branchName}`} style={{ margin: 0, fontWeight: '500', cursor: 'pointer' }}>
+                      {branch.label || branchName}
                     </label>
                   </div>
                   {isSelected && (
@@ -496,14 +530,19 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
           <h3 style={styles.sectionTitle}>👨‍🏫 Reference Faculty</h3>
           <div style={styles.formGroup}>
             <label style={styles.label}>Reference Faculty Name</label>
-            <input
-              type="text"
+            <select
               name="referenceFaculty"
               value={formData.referenceFaculty}
               onChange={handleInputChange}
-              style={styles.input}
-              placeholder="Enter faculty name"
-            />
+              style={styles.select}
+            >
+              <option value="">Select faculty</option>
+              {facultyOptions.map(faculty => (
+                <option key={faculty.id || faculty.employeeId || faculty.email} value={faculty.name || faculty.email}>
+                  {faculty.name || faculty.email}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Button Group */}

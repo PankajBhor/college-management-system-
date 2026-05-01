@@ -3,7 +3,7 @@ package com.college.colllege_backend.service.impl;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +20,8 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private UserRepository userRepository;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public LoginResponseDTO login(LoginRequestDTO request) {
@@ -31,7 +32,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = userOpt.get();
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!isPasswordValid(request.getPassword(), user)) {
             throw new RuntimeException("Invalid password");
         }
 
@@ -56,5 +57,27 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String hashPassword(String password) {
         return passwordEncoder.encode(password);
+    }
+
+    private boolean isPasswordValid(String rawPassword, User user) {
+        String storedPassword = user.getPassword();
+        if (storedPassword == null || storedPassword.isBlank()) {
+            return false;
+        }
+
+        if (isBCryptHash(storedPassword)) {
+            return passwordEncoder.matches(rawPassword, storedPassword);
+        }
+
+        boolean validLegacyPassword = rawPassword.equals(storedPassword);
+        if (validLegacyPassword) {
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            userRepository.save(user);
+        }
+        return validLegacyPassword;
+    }
+
+    private boolean isBCryptHash(String password) {
+        return password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$");
     }
 }
