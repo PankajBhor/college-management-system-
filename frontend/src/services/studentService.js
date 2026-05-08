@@ -96,7 +96,7 @@ export async function deleteStudent(id) {
   }
 }
 
-export default {
+const studentService = {
   getAllStudents,
   getStudentById,
   getStudentsByCourse,
@@ -105,3 +105,5 @@ export default {
   updateStudent,
   deleteStudent
 };
+
+export default studentService;

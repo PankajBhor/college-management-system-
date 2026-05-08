@@ -94,6 +94,8 @@ public class FYAdmission {
     private String defenceCertificatePath;
     private String aadhaarCardPath;
     private String anyOtherDocumentPath;
+    private String studentPhotoPath;
+    private String undertakingFormPath;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -460,6 +462,11 @@ public class FYAdmission {
         this.anyOtherDocumentPath = anyOtherDocumentPath;
     }
 
+    public String getStudentPhotoPath() { return studentPhotoPath; }
+    public void setStudentPhotoPath(String studentPhotoPath) { this.studentPhotoPath = studentPhotoPath; }
+    public String getUndertakingFormPath() { return undertakingFormPath; }
+    public void setUndertakingFormPath(String undertakingFormPath) { this.undertakingFormPath = undertakingFormPath; }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -484,3 +491,4 @@ public class FYAdmission {
         this.status = status;
     }
 }
+

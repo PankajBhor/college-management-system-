@@ -8,6 +8,7 @@ public enum UserRole {
     OFFICE_STAFF("Office Staff"),
     HOD("Head of Department"),
     ENQUIRY_STAFF("Enquiry Staff"),
+    ACADEMIC_COORDINATOR("Academic Coordinator"),
     FACULTY("Faculty");
 
     private final String displayName;
@@ -31,3 +32,4 @@ public enum UserRole {
         }
     }
 }
+

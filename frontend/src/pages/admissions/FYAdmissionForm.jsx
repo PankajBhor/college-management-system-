@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './FYAdmissionForm.css';
 import { admissionService } from '../../services/admissionService';
+import jsPDF from 'jspdf';
 import {
   getAllAdmissionRounds,
   getAllBloodGroups,
@@ -11,7 +12,7 @@ import {
   getOptionValue
 } from '../../services/lookupService';
 
-const FYAdmissionForm = ({ prefilledEnquiry }) => {
+const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = null }) => {
   const [branchOptions, setBranchOptions] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [genderOptions, setGenderOptions] = useState([]);
@@ -89,7 +90,10 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
     return prefilledFields.has(fieldName) && (formData[fieldName]);
   };
 
-  const [formData, setFormData] = useState(() => {
+  const initialFormData = () => {
+    if (editAdmission) {
+      return { ...editAdmission };
+    }
     if (prefilledEnquiry) {
       // Get first branch preference if available
       let branches = prefilledEnquiry.branchesInterested;
@@ -179,7 +183,8 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
       physicallyHandicapped: 'No',
       admissionType: 'CAP-1'
     };
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
 
   const [documents, setDocuments] = useState({
     domicileCertificate: null,
@@ -191,11 +196,14 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
     incomeCertificate: null,
     defenceCertificate: null,
     aadhaarCard: null,
-    anyOther: null
+    anyOther: null,
+    studentPhoto: null,
+    undertakingForm: null
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const selectedProgramName = formData.program || '_____________';
 
   const fyDocuments = [
     { key: 'domicileCertificate', label: 'Domicile / Nationality Certificate' },
@@ -207,7 +215,9 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
     { key: 'incomeCertificate', label: 'Income Certificate' },
     { key: 'defenceCertificate', label: 'Defence Certificate' },
     { key: 'aadhaarCard', label: 'Aadhaar Card' },
-    { key: 'anyOther', label: 'Any Other' }
+    { key: 'anyOther', label: 'Any Other' },
+    { key: 'studentPhoto', label: 'Student signed passport size photo' },
+    { key: 'undertakingForm', label: 'Undertaking / Anti-ragging undertaking form' }
   ];
 
   const handleInputChange = (e) => {
@@ -249,6 +259,18 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
     
     if (!formData.applicantFirstName.trim()) newErrors.applicantFirstName = 'First name is required';
     if (!formData.applicantLastName.trim()) newErrors.applicantLastName = 'Last name is required';
+    if (!formData.fatherFirstName.trim()) newErrors.fatherFirstName = 'Father first name is required';
+    if (!formData.motherFirstName.trim()) newErrors.motherFirstName = 'Mother first name is required';
+    if (!formData.tal.trim()) newErrors.tal = 'Taluka is required';
+    if (!formData.dist.trim()) newErrors.dist = 'District is required';
+    if (!formData.pinCode.trim()) newErrors.pinCode = 'Pin code is required';
+    if (!formData.occupation.trim()) newErrors.occupation = 'Occupation is required';
+    if (!formData.aadhaarNo.trim()) newErrors.aadhaarNo = 'Aadhaar number is required';
+    if (!formData.schoolName.trim()) newErrors.schoolName = 'School name is required';
+    if (!formData.yop) newErrors.yop = 'Year of passing is required';
+    if (!formData.totalMarks) newErrors.totalMarks = 'Total marks is required';
+    if (!formData.marksObtained) newErrors.marksObtained = 'Marks obtained is required';
+    if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.villageCity.trim()) newErrors.villageCity = 'Village/City is required';
     if (!formData.mobileNo.match(/^[0-9]{10}$/)) newErrors.mobileNo = 'Mobile number must be 10 digits';
     if (!formData.studentEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newErrors.studentEmail = 'Invalid email';
@@ -261,6 +283,36 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+
+  const downloadUndertaking = () => {
+    const fullName = `${formData.applicantFirstName} ${formData.applicantMiddleName || ''} ${formData.applicantLastName}`.replace(/\s+/g, ' ').trim();
+    const doc = new jsPDF();
+    const lines = [
+      'UNDERTAKING AND ANTI-RAGGING FORM',
+      '',
+      `Student Name: ${fullName}`,
+      `Program: ${selectedProgramName}`,
+      `Admission Type: ${formData.admissionType}`,
+      `Mobile: ${formData.mobileNo}`,
+      `Email: ${formData.studentEmail}`,
+      `Aadhaar: ${formData.aadhaarNo}`,
+      `Category: ${formData.category}`,
+      '',
+      `I, ${fullName}, apply for admission to Diploma in ${selectedProgramName}.`,
+      'I undertake to follow all rules and regulations laid down by DTE, MSBTE and the institute.',
+      'I understand attendance, conduct, fee payment and examination requirements.',
+      '',
+      'Anti-Ragging Undertaking:',
+      'I hereby undertake that I will not participate in ragging in any form.',
+      'If any incident by me comes to the notice of the institute authority, disciplinary action may be taken against me.',
+      '',
+      'Student Signature: ____________________',
+      'Parent/Guardian Signature: ____________________',
+      'Date: ____________________'
+    ];
+    doc.text(lines, 14, 18);
+    doc.save(`FY_undertaking_${fullName || 'student'}.pdf`);
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -271,12 +323,19 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
 
     setLoading(true);
     try {
-      await admissionService.createFYAdmission(formData, documents);
+      if (editAdmission?.id) {
+        await admissionService.updateFYAdmissionWithDocuments(editAdmission.id, formData, documents);
+      } else {
+        await admissionService.createFYAdmission(formData, documents);
+      }
       setSubmitted(true);
-      alert('FY Admission form submitted successfully!');
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      alert(editAdmission?.id ? 'FY Admission form updated successfully!' : 'FY Admission form submitted successfully!');
+      if (onSaved) await onSaved();
+      if (!editAdmission?.id) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     } catch (error) {
       alert('Error submitting form: ' + (error.response?.data?.message || error.message));
     } finally {
@@ -826,13 +885,14 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
         {/* Undertaking Section */}
         <fieldset className="form-section undertaking">
           <legend>Undertakings</legend>
+          <button type="button" className="btn btn-secondary" onClick={downloadUndertaking}>Download Auto-filled Anti-ragging Form</button>
           
           <div className="undertaking-text">
             <h3>Legal Guardian Undertaking:</h3>
             <p>
               In lieu of JCEI's Jaihind Polytechnic Kuran, Tal. Junnar, Dist. Pune considering the 
               application of Mr./Mrs. {formData.applicantFirstName} {formData.applicantLastName} for admission to Diploma in 
-              _____________ (Program), I hereby agree & undertaking that at the test (Tuition Fee + Development Fee) 
+              {selectedProgramName}, I hereby agree & undertaking that at the test (Tuition Fee + Development Fee) 
               & other charges & / or Fees decide by the Maharashtra State board of Technical Education, 
               Fees Fixation Committee are more than the Interim Fees for the current academic year, 
               then I will pay the difference on the Institute on demand. I shall also pay the fees & 
@@ -844,7 +904,7 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
           <div className="undertaking-text">
             <h3>Academic Year Undertaking (2025-2026):</h3>
             <ul>
-              <li>I Mr/Mrs {formData.applicantFirstName} {formData.applicantLastName} students of 2nd year Diploma in CIVIL Engg/Tech. will attend all theory lectures & practicals.</li>
+              <li>I Mr/Mrs {formData.applicantFirstName} {formData.applicantLastName} student of 1st year Diploma in {selectedProgramName} will attend all theory lectures & practicals.</li>
               <li>I will appear for all the program tests & will pass with minimum 50% marks.</li>
               <li>I will not involve in any sort of common off.</li>
               <li>I will follow all the rules & regulations laid down by the DTE, MSBTE & Institute from time to time.</li>
@@ -876,7 +936,7 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
           <button
             type="reset"
             className="btn btn-secondary"
-            onClick={() => setFormData({...formData})}
+            onClick={() => { setFormData(initialFormData()); setDocuments({ domicileCertificate: null, tenthMarkSheet: null, twelfthMarkSheet: null, leavingCertificate: null, casteCertificate: null, nonCreamyLayerCertificate: null, incomeCertificate: null, defenceCertificate: null, aadhaarCard: null, anyOther: null, studentPhoto: null, undertakingForm: null }); setErrors({}); }}
           >
             Reset Form
           </button>
@@ -887,3 +947,4 @@ const FYAdmissionForm = ({ prefilledEnquiry }) => {
 };
 
 export default FYAdmissionForm;
+

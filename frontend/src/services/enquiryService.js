@@ -68,6 +68,7 @@ export async function createEnquiry(enquiryData) {
       category: enquiryData.category,
       branchesInterested: JSON.stringify(enquiryData.branchesInterested),
       referenceFaculty: enquiryData.referenceFaculty,
+      sscSeatNo: enquiryData.sscSeatNo,
       dteRegistrationDone: enquiryData.dteRegistrationDone,
       status: enquiryData.status || 'Pending',
       enquiryDate: enquiryData.enquiryDate
@@ -101,6 +102,7 @@ export async function updateEnquiry(id, enquiryData) {
       category: enquiryData.category,
       branchesInterested: JSON.stringify(enquiryData.branchesInterested),
       referenceFaculty: enquiryData.referenceFaculty,
+      sscSeatNo: enquiryData.sscSeatNo,
       dteRegistrationDone: enquiryData.dteRegistrationDone,
       status: enquiryData.status,
       enquiryDate: enquiryData.enquiryDate

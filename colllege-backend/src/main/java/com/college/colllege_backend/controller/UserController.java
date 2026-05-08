@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +23,7 @@ import com.college.colllege_backend.dto.UserResponseDTO;
 import com.college.colllege_backend.entity.User;
 import com.college.colllege_backend.enums.UserRole;
 import com.college.colllege_backend.repository.UserRepository;
+import com.college.colllege_backend.service.AutoIncrementService;
 import com.college.colllege_backend.service.AuthService;
 
 @RestController
@@ -34,10 +37,13 @@ public class UserController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private AutoIncrementService autoIncrementService;
+
     @GetMapping
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(u -> new UserResponseDTO(u.getId(), u.getName(), u.getEmail(), u.getRole()))
+                .map(u -> new UserResponseDTO(u.getId(), u.getName(), u.getEmail(), u.getRole(), u.getDepartmentCode()))
                 .collect(Collectors.toList());
     }
 
@@ -64,12 +70,26 @@ public class UserController {
             user.setName(request.getName());
             user.setEmail(request.getEmail());
             user.setRole(role.name());
+            user.setDepartmentCode(request.getDepartmentCode());
             user.setPassword(authService.hashPassword(request.getPassword()));
 
             User saved = userRepository.save(user);
-            return ResponseEntity.ok(new UserResponseDTO(saved.getId(), saved.getName(), saved.getEmail(), saved.getRole()));
+            return ResponseEntity.ok(new UserResponseDTO(saved.getId(), saved.getName(), saved.getEmail(), saved.getRole(), saved.getDepartmentCode()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"error\": \"User not found\"}");
+        }
+        userRepository.deleteById(id);
+        autoIncrementService.resetNextId("users");
+        return ResponseEntity.noContent().build();
+    }
 }
+
+
+

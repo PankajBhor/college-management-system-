@@ -83,6 +83,9 @@ public class FYAdmissionRequestDTO {
     private String defenceCertificatePath;
     private String aadhaarCardPath;
     private String anyOtherDocumentPath;
+    private String studentPhotoPath;
+    private String undertakingFormPath;
+    private String status;
 
     // Getters and Setters
     public String getApplicantFirstName() {
@@ -436,4 +439,11 @@ public class FYAdmissionRequestDTO {
     public void setAnyOtherDocumentPath(String anyOtherDocumentPath) {
         this.anyOtherDocumentPath = anyOtherDocumentPath;
     }
+    public String getStudentPhotoPath() { return studentPhotoPath; }
+    public void setStudentPhotoPath(String studentPhotoPath) { this.studentPhotoPath = studentPhotoPath; }
+    public String getUndertakingFormPath() { return undertakingFormPath; }
+    public void setUndertakingFormPath(String undertakingFormPath) { this.undertakingFormPath = undertakingFormPath; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
+

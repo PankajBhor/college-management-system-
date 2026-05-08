@@ -24,8 +24,6 @@ public class Course {
     @NotNull(message = "Duration cannot be null")
     private Integer duration; // 4 years
 
-    private String description;
-
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Student> students;
@@ -76,14 +74,6 @@ public class Course {
         this.duration = duration;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public List<Student> getStudents() {
         return students;
     }
@@ -100,3 +90,4 @@ public class Course {
         this.subjects = subjects;
     }
 }
+

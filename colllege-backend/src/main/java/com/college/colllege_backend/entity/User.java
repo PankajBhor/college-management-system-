@@ -39,6 +39,9 @@ public class User {
     @NotBlank(message = "Name cannot be blank")
     private String name;
 
+    @Column(name = "department_code")
+    private String departmentCode;
+
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
@@ -97,6 +100,14 @@ public class User {
         this.name = name;
     }
 
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+
+    public void setDepartmentCode(String departmentCode) {
+        this.departmentCode = departmentCode;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -113,3 +124,4 @@ public class User {
         this.updatedAt = updatedAt;
     }
 }
+

@@ -13,8 +13,6 @@ public class CourseRequestDTO {
     @NotNull(message = "Duration is required")
     private Integer duration;
 
-    private String description;
-
     // Getters and Setters
     public String getCode() {
         return code;
@@ -39,12 +37,5 @@ public class CourseRequestDTO {
     public void setDuration(Integer duration) {
         this.duration = duration;
     }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }
+

@@ -62,8 +62,11 @@ export async function getAllBranches() {
   const response = await API_INSTANCE.get('/courses');
   return (response.data || []).map(course => ({
     id: course.id,
+    code: course.code,
+    name: course.name,
     branchCode: course.code,
     branchName: course.name,
+    duration: course.duration,
     value: course.name,
     label: `${course.code}. ${course.name}`
   }));
@@ -89,3 +92,5 @@ const lookupService = {
 };
 
 export default lookupService;
+
+

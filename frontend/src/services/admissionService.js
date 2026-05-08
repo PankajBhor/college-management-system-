@@ -8,6 +8,19 @@ const API_INSTANCE = axios.create({
   headers: {}
 });
 
+const buildAdmissionFormData = (admissionData, documents = {}) => {
+  const formData = new FormData();
+  Object.keys(admissionData).forEach(key => {
+    if (admissionData[key] !== null && admissionData[key] !== undefined && admissionData[key] !== '') {
+      formData.append(key, admissionData[key]);
+    }
+  });
+  Object.entries(documents).forEach(([key, file]) => {
+    if (file) formData.append(key, file);
+  });
+  return formData;
+};
+
 /**
  * Add authorization token to requests
  * Important: Don't set Content-Type for FormData - let axios compute it with boundary
@@ -53,6 +66,8 @@ export async function createFYAdmission(admissionData, documents = {}) {
     if (documents.defenceCertificate) formData.append('defenceCertificate', documents.defenceCertificate);
     if (documents.aadhaarCard) formData.append('aadhaarCard', documents.aadhaarCard);
     if (documents.anyOther) formData.append('anyOther', documents.anyOther);
+    if (documents.studentPhoto) formData.append('studentPhoto', documents.studentPhoto);
+    if (documents.undertakingForm) formData.append('undertakingForm', documents.undertakingForm);
 
     // Use the existing API_INSTANCE - it already has auth interceptor
     // Let axios automatically handle Content-Type with boundary for FormData
@@ -150,6 +165,16 @@ export async function updateFYAdmission(id, admissionData) {
   }
 }
 
+export async function updateFYAdmissionWithDocuments(id, admissionData, documents = {}) {
+  try {
+    const response = await API_INSTANCE.put(`/admissions/fy/${id}`, buildAdmissionFormData(admissionData, documents));
+    return response.data;
+  } catch (error) {
+    console.error('Error updating FY admission with documents:', error);
+    throw error;
+  }
+}
+
 /**
  * Delete FY admission
  */
@@ -186,6 +211,8 @@ export async function createDSYAdmission(admissionData, documents = {}) {
     if (documents.casteCertificate) formData.append('casteCertificate', documents.casteCertificate);
     if (documents.nonCreamyLayerCertificate) formData.append('nonCreamyLayerCertificate', documents.nonCreamyLayerCertificate);
     if (documents.aadhaarCard) formData.append('aadhaarCard', documents.aadhaarCard);
+    if (documents.studentPhoto) formData.append('studentPhoto', documents.studentPhoto);
+    if (documents.undertakingForm) formData.append('undertakingForm', documents.undertakingForm);
 
     // Use the existing API_INSTANCE - it already has auth interceptor
     // Let axios automatically handle Content-Type with boundary for FormData
@@ -283,6 +310,16 @@ export async function updateDSYAdmission(id, admissionData) {
   }
 }
 
+export async function updateDSYAdmissionWithDocuments(id, admissionData, documents = {}) {
+  try {
+    const response = await API_INSTANCE.put(`/admissions/dsy/${id}`, buildAdmissionFormData(admissionData, documents));
+    return response.data;
+  } catch (error) {
+    console.error('Error updating DSY admission with documents:', error);
+    throw error;
+  }
+}
+
 /**
  * Delete DSY admission
  */
@@ -333,6 +370,7 @@ export const admissionService = {
   getFYAdmissionsByStatus,
   getFYAdmissionsByType,
   updateFYAdmission,
+  updateFYAdmissionWithDocuments,
   deleteFYAdmission,
   
   // DSY Admissions
@@ -342,6 +380,7 @@ export const admissionService = {
   getDSYAdmissionsByStatus,
   getDSYAdmissionsByType,
   updateDSYAdmission,
+  updateDSYAdmissionWithDocuments,
   deleteDSYAdmission,
   
   // Documents

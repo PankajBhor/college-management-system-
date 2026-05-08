@@ -38,6 +38,8 @@ public class EnquiryServiceImpl implements EnquiryService {
         enquiry.setCategory(request.getCategory());
         enquiry.setBranchesInterested(request.getBranchesInterested());
         enquiry.setReferenceFaculty(request.getReferenceFaculty());
+        enquiry.setSscSeatNo(request.getSscSeatNo());
+        enquiry.setDteRegistrationDone(request.isDteRegistrationDone());
         enquiry.setStatus("Pending");
         enquiry.setEnquiryDate(request.getEnquiryDate());
 
@@ -141,6 +143,10 @@ public class EnquiryServiceImpl implements EnquiryService {
         if (request.getReferenceFaculty() != null) {
             enquiry.setReferenceFaculty(request.getReferenceFaculty());
         }
+        if (request.getSscSeatNo() != null) {
+            enquiry.setSscSeatNo(request.getSscSeatNo());
+        }
+        enquiry.setDteRegistrationDone(request.isDteRegistrationDone());
         if (request.getStatus() != null) {
             enquiry.setStatus(request.getStatus());
         }
@@ -176,7 +182,9 @@ public class EnquiryServiceImpl implements EnquiryService {
                 enquiry.getStatus(),
                 enquiry.getEnquiryDate(),
                 enquiry.getCreatedAt(),
-                enquiry.getUpdatedAt()
+                enquiry.getUpdatedAt(),
+                enquiry.isDteRegistrationDone(),
+                enquiry.getSscSeatNo()
         );
     }
 }

@@ -1,5 +1,6 @@
 package com.college.colllege_backend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,9 +8,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.college.colllege_backend.entity.Course;
 import com.college.colllege_backend.entity.LookupOption;
+import com.college.colllege_backend.entity.ReferenceFaculty;
 import com.college.colllege_backend.entity.User;
 import com.college.colllege_backend.repository.CourseRepository;
 import com.college.colllege_backend.repository.LookupOptionRepository;
+import com.college.colllege_backend.repository.ReferenceFacultyRepository;
 import com.college.colllege_backend.repository.UserRepository;
 
 @Configuration
@@ -19,18 +22,33 @@ public class DataInitializer {
     CommandLineRunner seedDatabaseMetadata(
             CourseRepository courseRepository,
             LookupOptionRepository lookupOptionRepository,
+            ReferenceFacultyRepository referenceFacultyRepository,
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            @Value("${app.seed.default-user-password:password}") String defaultUserPassword) {
         return args -> {
             migrateLegacyPlainTextPasswords(userRepository, passwordEncoder);
 
-            seedCourse(courseRepository, "1", "Civil Engineering", 3, "Diploma branch");
-            seedCourse(courseRepository, "2", "Computer Engineering", 3, "Diploma branch");
-            seedCourse(courseRepository, "3", "Electrical Engineering", 3, "Diploma branch");
-            seedCourse(courseRepository, "4", "Electronics and Telecommunication Engineering", 3, "Diploma branch");
-            seedCourse(courseRepository, "5", "Mechanical Engineering", 3, "Diploma branch");
-            seedCourse(courseRepository, "6", "Information Technology", 3, "Diploma branch");
-            seedCourse(courseRepository, "7", "Mechatronics Engineering", 3, "Diploma branch");
+            seedUser(userRepository, passwordEncoder, "Dr. Pankaj Sharma", "principal@college.com", "PRINCIPAL", null, defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Priya Office", "office@college.com", "OFFICE_STAFF", null, defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Rahul Enquiry", "enquiry@college.com", "ENQUIRY_STAFF", null, defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Academic Coordinator", "academic@college.com", "ACADEMIC_COORDINATOR", null, defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Dr. Civil HOD", "hod-civil@college.com", "HOD", "1", defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Dr. Computer HOD", "hod-computer@college.com", "HOD", "2", defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Dr. Electrical HOD", "hod-electrical@college.com", "HOD", "3", defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Dr. ENTC HOD", "hod-entc@college.com", "HOD", "4", defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Dr. Mechanical HOD", "hod-mechanical@college.com", "HOD", "5", defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Dr. IT HOD", "hod-it@college.com", "HOD", "6", defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Dr. Mechatronics HOD", "hod-mechatronics@college.com", "HOD", "7", defaultUserPassword);
+            seedUser(userRepository, passwordEncoder, "Prof. Anita", "faculty@college.com", "FACULTY", "2", defaultUserPassword);
+
+            seedCourse(courseRepository, "1", "Civil Engineering", 3);
+            seedCourse(courseRepository, "2", "Computer Engineering", 3);
+            seedCourse(courseRepository, "3", "Electrical Engineering", 3);
+            seedCourse(courseRepository, "4", "Electronics and Telecommunication Engineering", 3);
+            seedCourse(courseRepository, "5", "Mechanical Engineering", 3);
+            seedCourse(courseRepository, "6", "Information Technology", 3);
+            seedCourse(courseRepository, "7", "Mechatronics Engineering", 3);
 
             seedLookup(lookupOptionRepository, "admission_types", "FY", "FY", 1);
             seedLookup(lookupOptionRepository, "admission_types", "DSY", "DSY", 2);
@@ -86,15 +104,18 @@ public class DataInitializer {
             seedLookup(lookupOptionRepository, "educational_qualifications", "DPO", "D/P/O", 6);
             seedLookup(lookupOptionRepository, "educational_qualifications", "ITI", "ITI", 7);
             seedLookup(lookupOptionRepository, "educational_qualifications", "COE", "COE", 8);
+
+            seedReferenceFaculty(referenceFacultyRepository, "Prof. Anita", "Computer Engineering", "faculty@college.com");
+            seedReferenceFaculty(referenceFacultyRepository, "Prof. Rahul Patil", "Civil Engineering", "rahul.patil@college.com");
+            seedReferenceFaculty(referenceFacultyRepository, "Prof. Neha Deshmukh", "Electronics and Telecommunication Engineering", "neha.deshmukh@college.com");
         };
     }
 
-    private void seedCourse(CourseRepository repository, String code, String name, Integer duration, String description) {
+    private void seedCourse(CourseRepository repository, String code, String name, Integer duration) {
         if (repository.findByCode(code).isPresent()) {
             return;
         }
         Course course = new Course(code, name, duration);
-        course.setDescription(description);
         repository.save(course);
     }
 
@@ -108,6 +129,33 @@ public class DataInitializer {
             return;
         }
         repository.save(new LookupOption(type, code, label, displayOrder));
+    }
+
+    private void seedUser(
+            UserRepository repository,
+            PasswordEncoder passwordEncoder,
+            String name,
+            String email,
+            String role,
+            String departmentCode,
+            String password) {
+        if (repository.findByEmail(email).isPresent()) {
+            return;
+        }
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+        user.setRole(role);
+        user.setDepartmentCode(departmentCode);
+        user.setPassword(passwordEncoder.encode(password));
+        repository.save(user);
+    }
+
+    private void seedReferenceFaculty(ReferenceFacultyRepository repository, String name, String department, String email) {
+        if (repository.findByEmail(email).isPresent()) {
+            return;
+        }
+        repository.save(new ReferenceFaculty(name, department, email));
     }
 
     private void migrateLegacyPlainTextPasswords(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -125,3 +173,7 @@ public class DataInitializer {
         return password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$");
     }
 }
+
+
+
+

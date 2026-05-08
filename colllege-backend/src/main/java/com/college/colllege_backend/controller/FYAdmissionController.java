@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -64,7 +65,9 @@ public class FYAdmissionController {
             @RequestPart(value = "incomeCertificate", required = false) MultipartFile incomeCertificate,
             @RequestPart(value = "defenceCertificate", required = false) MultipartFile defenceCertificate,
             @RequestPart(value = "aadhaarCard", required = false) MultipartFile aadhaarCard,
-            @RequestPart(value = "anyOther", required = false) MultipartFile anyOther) {
+            @RequestPart(value = "anyOther", required = false) MultipartFile anyOther,
+            @RequestPart(value = "studentPhoto", required = false) MultipartFile studentPhoto,
+            @RequestPart(value = "undertakingForm", required = false) MultipartFile undertakingForm) {
         try {
             // Create admission first to get the ID for file storage
             FYAdmission admission = fyAdmissionService.createFYAdmission(request);
@@ -109,6 +112,14 @@ public class FYAdmissionController {
             if (anyOther != null && !anyOther.isEmpty()) {
                 String filePath = fileStorageService.saveFile(anyOther, "FY", admission.getId().toString());
                 request.setAnyOtherDocumentPath(filePath);
+            }
+            if (studentPhoto != null && !studentPhoto.isEmpty()) {
+                String filePath = fileStorageService.saveFile(studentPhoto, "FY", admission.getId().toString());
+                request.setStudentPhotoPath(filePath);
+            }
+            if (undertakingForm != null && !undertakingForm.isEmpty()) {
+                String filePath = fileStorageService.saveFile(undertakingForm, "FY", admission.getId().toString());
+                request.setUndertakingFormPath(filePath);
             }
 
             // Update admission with document paths
@@ -245,6 +256,54 @@ public class FYAdmissionController {
             @Valid @RequestBody FYAdmissionRequestDTO request) {
         FYAdmission admission = fyAdmissionService.updateFYAdmission(id, request);
         return ResponseEntity.ok(admission);
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<FYAdmission> updateFYAdmissionWithDocuments(
+            @PathVariable Long id,
+            @ModelAttribute FYAdmissionRequestDTO request,
+            @RequestPart(value = "domicileCertificate", required = false) MultipartFile domicileCertificate,
+            @RequestPart(value = "tenthMarkSheet", required = false) MultipartFile tenthMarkSheet,
+            @RequestPart(value = "twelfthMarkSheet", required = false) MultipartFile twelfthMarkSheet,
+            @RequestPart(value = "leavingCertificate", required = false) MultipartFile leavingCertificate,
+            @RequestPart(value = "casteCertificate", required = false) MultipartFile casteCertificate,
+            @RequestPart(value = "nonCreamyLayerCertificate", required = false) MultipartFile nonCreamyLayerCertificate,
+            @RequestPart(value = "incomeCertificate", required = false) MultipartFile incomeCertificate,
+            @RequestPart(value = "defenceCertificate", required = false) MultipartFile defenceCertificate,
+            @RequestPart(value = "aadhaarCard", required = false) MultipartFile aadhaarCard,
+            @RequestPart(value = "anyOther", required = false) MultipartFile anyOther,
+            @RequestPart(value = "studentPhoto", required = false) MultipartFile studentPhoto,
+            @RequestPart(value = "undertakingForm", required = false) MultipartFile undertakingForm) {
+        FYAdmission existing = fyAdmissionService.getFYAdmissionById(id);
+        request.setDomicileCertificatePath(existing.getDomicileCertificatePath());
+        request.setTenthMarkSheetPath(existing.getTenthMarkSheetPath());
+        request.setTwelfthMarkSheetPath(existing.getTwelfthMarkSheetPath());
+        request.setLeavingCertificatePath(existing.getLeavingCertificatePath());
+        request.setCasteCertificatePath(existing.getCasteCertificatePath());
+        request.setNonCreamyLayerCertificatePath(existing.getNonCreamyLayerCertificatePath());
+        request.setIncomeCertificatePath(existing.getIncomeCertificatePath());
+        request.setDefenceCertificatePath(existing.getDefenceCertificatePath());
+        request.setAadhaarCardPath(existing.getAadhaarCardPath());
+        request.setAnyOtherDocumentPath(existing.getAnyOtherDocumentPath());
+        request.setStudentPhotoPath(existing.getStudentPhotoPath());
+        request.setUndertakingFormPath(existing.getUndertakingFormPath());
+        try {
+            if (domicileCertificate != null && !domicileCertificate.isEmpty()) request.setDomicileCertificatePath(fileStorageService.saveFile(domicileCertificate, "FY", id.toString()));
+            if (tenthMarkSheet != null && !tenthMarkSheet.isEmpty()) request.setTenthMarkSheetPath(fileStorageService.saveFile(tenthMarkSheet, "FY", id.toString()));
+            if (twelfthMarkSheet != null && !twelfthMarkSheet.isEmpty()) request.setTwelfthMarkSheetPath(fileStorageService.saveFile(twelfthMarkSheet, "FY", id.toString()));
+            if (leavingCertificate != null && !leavingCertificate.isEmpty()) request.setLeavingCertificatePath(fileStorageService.saveFile(leavingCertificate, "FY", id.toString()));
+            if (casteCertificate != null && !casteCertificate.isEmpty()) request.setCasteCertificatePath(fileStorageService.saveFile(casteCertificate, "FY", id.toString()));
+            if (nonCreamyLayerCertificate != null && !nonCreamyLayerCertificate.isEmpty()) request.setNonCreamyLayerCertificatePath(fileStorageService.saveFile(nonCreamyLayerCertificate, "FY", id.toString()));
+            if (incomeCertificate != null && !incomeCertificate.isEmpty()) request.setIncomeCertificatePath(fileStorageService.saveFile(incomeCertificate, "FY", id.toString()));
+            if (defenceCertificate != null && !defenceCertificate.isEmpty()) request.setDefenceCertificatePath(fileStorageService.saveFile(defenceCertificate, "FY", id.toString()));
+            if (aadhaarCard != null && !aadhaarCard.isEmpty()) request.setAadhaarCardPath(fileStorageService.saveFile(aadhaarCard, "FY", id.toString()));
+            if (anyOther != null && !anyOther.isEmpty()) request.setAnyOtherDocumentPath(fileStorageService.saveFile(anyOther, "FY", id.toString()));
+            if (studentPhoto != null && !studentPhoto.isEmpty()) request.setStudentPhotoPath(fileStorageService.saveFile(studentPhoto, "FY", id.toString()));
+            if (undertakingForm != null && !undertakingForm.isEmpty()) request.setUndertakingFormPath(fileStorageService.saveFile(undertakingForm, "FY", id.toString()));
+            return ResponseEntity.ok(fyAdmissionService.updateFYAdmission(id, request));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @DeleteMapping("/{id}")

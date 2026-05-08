@@ -20,9 +20,26 @@ const FIELD_LABELS = {
   status: 'Status',
 };
 
+const ADMISSION_FIELD_LABELS = {
+  fullName: 'Name',
+  studentEmail: 'Email',
+  mobileNo: 'Phone',
+  program: 'Program',
+  category: 'Category',
+  status: 'Status',
+  admissionType: 'Admission Type',
+  gender: 'Gender',
+  dateOfBirth: 'Date of Birth',
+  aadhaarNo: 'Aadhaar',
+  createdAt: 'Created At',
+  updatedAt: 'Updated At',
+};
+
 export default function ExportFieldChecklist({
-  open, fields, setFields, onExport, onClose
+  open, fields, setFields, onExport, onClose, mode = 'enquiries'
 }) {
+  const labels = mode === 'admissions' ? ADMISSION_FIELD_LABELS : FIELD_LABELS;
+
   return (
     <Modal
       isOpen={open}
@@ -33,7 +50,7 @@ export default function ExportFieldChecklist({
       cancelText="Cancel"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {Object.entries(FIELD_LABELS).map(([key, label]) => (
+        {Object.entries(labels).map(([key, label]) => (
           <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
             <input
               type="checkbox"

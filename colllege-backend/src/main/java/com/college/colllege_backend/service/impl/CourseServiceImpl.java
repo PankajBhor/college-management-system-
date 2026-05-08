@@ -21,7 +21,6 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public Course createCourse(CourseRequestDTO request) {
         Course course = new Course(request.getCode(), request.getName(), request.getDuration());
-        course.setDescription(request.getDescription());
         return courseRepository.save(course);
     }
 
@@ -47,7 +46,6 @@ public class CourseServiceImpl implements CourseService {
         Course course = getCourseById(id);
         course.setName(request.getName());
         course.setDuration(request.getDuration());
-        course.setDescription(request.getDescription());
         return courseRepository.save(course);
     }
 

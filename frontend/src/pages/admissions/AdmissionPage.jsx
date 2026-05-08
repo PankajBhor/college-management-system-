@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useAdmission } from '../../hooks/useAdmission';
 import { useAuth } from '../../hooks/useAuth';
+import { useAdmission } from '../../hooks/useAdmission';
 import AdmissionForm from './AdmissionForm';
+import FYAdmissionForm from './FYAdmissionForm';
+import DSYAdmissionForm from './DSYAdmissionForm';
 import AdmittedListFY from './AdmittedListFY';
 import AdmittedListDSY from './AdmittedListDSY';
+import { exportAdmissionsToExcel } from '../../utils/exportUtils';
+import ExportFieldChecklist from '../enquiry/ExportFieldChecklist';
+import { admissionService } from '../../services/admissionService';
 
 const AdmissionPage = () => {
   const { user } = useAuth();
@@ -27,7 +32,8 @@ const AdmissionPage = () => {
     loading
   } = useAdmission();
 
-  const [activeTab, setActiveTab] = useState('new'); // 'new' or 'admitted'
+  const canCreateAdmission = user && user.role === 'OFFICE_STAFF';
+  const [activeTab, setActiveTab] = useState(canCreateAdmission ? 'new' : 'admitted'); // 'new' or 'admitted'
   const [admittedTab, setAdmittedTab] = useState('fy'); // 'fy' or 'dsy'
   const [filters, setFilters] = useState({
     name: '',
@@ -35,7 +41,28 @@ const AdmissionPage = () => {
     status: '',
     documentStatus: ''
   });
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportFields, setExportFields] = useState([
+    'fullName',
+    'studentEmail',
+    'mobileNo',
+    'program',
+    'category',
+    'status',
+    'admissionType'
+  ]);
+  const [editSearchOpen, setEditSearchOpen] = useState(false);
+  const [editSearchName, setEditSearchName] = useState('');
+  const [editMatches, setEditMatches] = useState([]);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editingAdmission, setEditingAdmission] = useState(null);
 
+
+  useEffect(() => {
+    if (!canCreateAdmission && activeTab === 'new') {
+      setActiveTab('admitted');
+    }
+  }, [canCreateAdmission, activeTab]);
   useEffect(() => {
     if (activeTab === 'admitted') {
       fetchFYAdmissions();
@@ -69,7 +96,9 @@ const AdmissionPage = () => {
     { key: 'incomeCertificatePath', label: 'Income Certificate' },
     { key: 'defenceCertificatePath', label: 'Defence Certificate' },
     { key: 'aadhaarCardPath', label: 'Aadhaar Card' },
-    { key: 'anyOtherDocumentPath', label: 'Any Other Document' }
+    { key: 'anyOtherDocumentPath', label: 'Any Other Document' },
+    { key: 'studentPhotoPath', label: 'Student Signed Passport Size Photo' },
+    { key: 'undertakingFormPath', label: 'Undertaking / Anti-ragging Form' }
   ];
 
   const dsyRequiredDocuments = [
@@ -78,7 +107,9 @@ const AdmissionPage = () => {
     { key: 'hscMarkSheetPath', label: 'HSC Mark Sheet' },
     { key: 'casteCertificatePath', label: 'Caste Certificate' },
     { key: 'nonCreamyLayerCertificatePath', label: 'Non Creamy Layer Certificate' },
-    { key: 'aadhaarCardPath', label: 'Aadhaar Card' }
+    { key: 'aadhaarCardPath', label: 'Aadhaar Card' },
+    { key: 'studentPhotoPath', label: 'Student Signed Passport Size Photo' },
+    { key: 'undertakingFormPath', label: 'Undertaking / Anti-ragging Form' }
   ];
 
   // Apply filters
@@ -98,8 +129,45 @@ const AdmissionPage = () => {
 
   const admittedFY = getFilteredAdmissions(baseAdmittedFY, fyRequiredDocuments);
   const admittedDSY = getFilteredAdmissions(baseAdmittedDSY, dsyRequiredDocuments);
+  const currentAdmissions = admittedTab === 'fy' ? admittedFY : admittedDSY;
+  const getFullName = (admission) => `${admission.applicantFirstName || ''} ${admission.applicantMiddleName ? admission.applicantMiddleName + ' ' : ''}${admission.applicantLastName || ''}`.replace(/\s+/g, ' ').trim();
 
-  const canManageAdmissions = user && (user.role === 'ADMISSION_STAFF' || user.role === 'PRINCIPAL' || user.role === 'OFFICE_STAFF');
+  const searchAdmissionsForEdit = async () => {
+    setEditLoading(true);
+    try {
+      const [fyData, dsyData] = await Promise.all([
+        admissionService.getAllFYAdmissions(0, 1000),
+        admissionService.getAllDSYAdmissions(0, 1000)
+      ]);
+      const fyRows = Array.isArray(fyData?.content) ? fyData.content : (Array.isArray(fyData) ? fyData : []);
+      const dsyRows = Array.isArray(dsyData?.content) ? dsyData.content : (Array.isArray(dsyData) ? dsyData : []);
+      const query = editSearchName.trim().toLowerCase();
+      setEditMatches([
+        ...fyRows.map(item => ({ ...item, admissionKind: 'FY' })),
+        ...dsyRows.map(item => ({ ...item, admissionKind: 'DSY' }))
+      ].filter(item => getFullName(item).toLowerCase().includes(query)));
+    } catch (error) {
+      alert(error.response?.data?.error || error.message || 'Unable to search admissions');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  if (editingAdmission) {
+    return (
+      <div>
+        <button onClick={() => setEditingAdmission(null)} style={{ marginBottom: '18px', padding: '10px 14px', border: '1px solid #d0d5dd', borderRadius: '6px', background: '#fff', cursor: 'pointer' }}>
+          Back to Admissions
+        </button>
+        {editingAdmission.admissionKind === 'FY' ? (
+          <FYAdmissionForm editAdmission={editingAdmission} onSaved={async () => { await fetchFYAdmissions(); setEditingAdmission(null); }} />
+        ) : (
+          <DSYAdmissionForm editAdmission={editingAdmission} onSaved={async () => { await fetchDSYAdmissions(); setEditingAdmission(null); }} />
+        )}
+      </div>
+    );
+  }
+
 
   return (
     <div>
@@ -110,7 +178,7 @@ const AdmissionPage = () => {
         marginBottom: '35px',
         borderBottom: '2px solid #e5e7eb'
       }}>
-        <button
+        {canCreateAdmission && <button
           onClick={() => setActiveTab('new')}
           style={{
             padding: '14px 28px',
@@ -137,7 +205,24 @@ const AdmissionPage = () => {
           }}
         >
           ➕ New Admission
-        </button>
+        </button>}
+        {canCreateAdmission && <button
+          onClick={() => setEditSearchOpen(true)}
+          style={{
+            padding: '14px 28px',
+            background: 'transparent',
+            color: '#666',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '15px',
+            fontWeight: '600',
+            transition: 'all 0.2s ease',
+            position: 'relative',
+            bottom: '-2px'
+          }}
+        >
+          Edit Submitted Form
+        </button>}
         <button
           onClick={() => setActiveTab('admitted')}
           style={{
@@ -203,6 +288,21 @@ const AdmissionPage = () => {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button
+                onClick={() => setExportModalOpen(true)}
+                style={{
+                  padding: '10px 18px',
+                  background: '#e8f1ff',
+                  color: '#175cd3',
+                  border: '1px solid #b2ccff',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600'
+                }}
+              >
+                Export Excel
+              </button>
               <button
                 onClick={() => setFilters({
                   name: '',
@@ -302,6 +402,7 @@ const AdmissionPage = () => {
               totalElements={fyTotalElements}
               onPageChange={goToFYPage}
               onPageSizeChange={changeFYPageSize}
+              onRefresh={fetchFYAdmissions}
             />
           ) : (
             <AdmittedListDSY
@@ -315,8 +416,54 @@ const AdmissionPage = () => {
               totalElements={dsyTotalElements}
               onPageChange={goToDSYPage}
               onPageSizeChange={changeDSYPageSize}
+              onRefresh={fetchDSYAdmissions}
             />
           )}
+        </div>
+      )}
+      <ExportFieldChecklist
+        open={exportModalOpen}
+        fields={exportFields}
+        setFields={setExportFields}
+        mode="admissions"
+        onClose={() => setExportModalOpen(false)}
+        onExport={() => {
+          exportAdmissionsToExcel(currentAdmissions, admittedTab, exportFields);
+          setExportModalOpen(false);
+        }}
+      />
+      {editSearchOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', width: 'min(720px, 92vw)', maxHeight: '82vh', overflow: 'auto', borderRadius: '8px', padding: '22px', boxShadow: '0 18px 45px rgba(0,0,0,0.2)' }}>
+            <h2 style={{ margin: '0 0 14px' }}>Find Submitted Admission</h2>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+              <input value={editSearchName} onChange={(event) => setEditSearchName(event.target.value)} placeholder="Enter student name" style={{ flex: 1, padding: '10px', border: '1px solid #d0d5dd', borderRadius: '6px' }} />
+              <button onClick={searchAdmissionsForEdit} disabled={!editSearchName.trim() || editLoading} style={{ padding: '10px 14px', background: '#175cd3', color: '#fff', border: 0, borderRadius: '6px', cursor: 'pointer' }}>{editLoading ? 'Searching...' : 'Search'}</button>
+              <button onClick={() => { setEditSearchOpen(false); setEditMatches([]); setEditSearchName(''); }} style={{ padding: '10px 14px', background: '#f2f4f7', border: 0, borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+            </div>
+            {editMatches.length > 0 && (
+              <div style={{ border: '1px solid #e4e7ec', borderRadius: '8px', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ background: '#f8fafc' }}>
+                    <tr>{['Name', 'Type', 'Department', 'Action'].map(header => <th key={header} style={{ textAlign: 'left', padding: '12px' }}>{header}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {editMatches.map(item => (
+                      <tr key={`${item.admissionKind}-${item.id}`}>
+                        <td style={{ padding: '12px', borderTop: '1px solid #eef2f6' }}>{getFullName(item)}</td>
+                        <td style={{ padding: '12px', borderTop: '1px solid #eef2f6' }}>{item.admissionKind}</td>
+                        <td style={{ padding: '12px', borderTop: '1px solid #eef2f6' }}>{item.program || '-'}</td>
+                        <td style={{ padding: '12px', borderTop: '1px solid #eef2f6' }}>
+                          <button onClick={() => { setEditingAdmission(item); setEditSearchOpen(false); }} style={{ padding: '8px 12px', background: '#175cd3', color: '#fff', border: 0, borderRadius: '6px', cursor: 'pointer' }}>Edit</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {editSearchName && !editLoading && editMatches.length === 0 && <p style={{ color: '#667085' }}>No matching submitted forms found yet.</p>}
+          </div>
         </div>
       )}
     </div>
@@ -324,3 +471,9 @@ const AdmissionPage = () => {
 };
 
 export default AdmissionPage;
+
+
+
+
+
+

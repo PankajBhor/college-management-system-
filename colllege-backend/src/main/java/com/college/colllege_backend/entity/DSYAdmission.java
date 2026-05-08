@@ -95,6 +95,8 @@ public class DSYAdmission {
     private String casteCertificatePath;
     private String nonCreamyLayerCertificatePath;
     private String aadhaarCardPath;
+    private String studentPhotoPath;
+    private String undertakingFormPath;
 
     // Preferences in order
     private Integer preference1;
@@ -435,6 +437,11 @@ public class DSYAdmission {
         this.aadhaarCardPath = aadhaarCardPath;
     }
 
+    public String getStudentPhotoPath() { return studentPhotoPath; }
+    public void setStudentPhotoPath(String studentPhotoPath) { this.studentPhotoPath = studentPhotoPath; }
+    public String getUndertakingFormPath() { return undertakingFormPath; }
+    public void setUndertakingFormPath(String undertakingFormPath) { this.undertakingFormPath = undertakingFormPath; }
+
     public Integer getPreference1() {
         return preference1;
     }
@@ -491,3 +498,4 @@ public class DSYAdmission {
         this.status = status;
     }
 }
+

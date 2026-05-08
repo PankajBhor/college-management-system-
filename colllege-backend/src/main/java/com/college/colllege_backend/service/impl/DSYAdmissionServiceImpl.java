@@ -154,6 +154,11 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         admission.setCasteCertificatePath(request.getCasteCertificatePath());
         admission.setNonCreamyLayerCertificatePath(request.getNonCreamyLayerCertificatePath());
         admission.setAadhaarCardPath(request.getAadhaarCardPath());
+        admission.setStudentPhotoPath(request.getStudentPhotoPath());
+        admission.setUndertakingFormPath(request.getUndertakingFormPath());
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            admission.setStatus(request.getStatus());
+        }
 
         admission.setUpdatedAt(LocalDateTime.now());
 
@@ -165,3 +170,4 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         dsyAdmissionRepository.deleteById(id);
     }
 }
+

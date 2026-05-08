@@ -18,6 +18,8 @@ public class UserRequestDTO {
     @NotBlank(message = "Role cannot be blank")
     private String role;
 
+    private String departmentCode;
+
     public String getName() {
         return name;
     }
@@ -49,4 +51,12 @@ public class UserRequestDTO {
     public void setRole(String role) {
         this.role = role;
     }
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+
+    public void setDepartmentCode(String departmentCode) {
+        this.departmentCode = departmentCode;
+    }
 }
+

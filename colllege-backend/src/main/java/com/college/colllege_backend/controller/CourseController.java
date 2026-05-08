@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.college.colllege_backend.dto.CourseRequestDTO;
 import com.college.colllege_backend.entity.Course;
 import com.college.colllege_backend.repository.CourseRepository;
+import com.college.colllege_backend.service.AutoIncrementService;
 
 import jakarta.validation.Valid;
 
@@ -28,6 +29,9 @@ public class CourseController {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private AutoIncrementService autoIncrementService;
 
     @GetMapping
     public ResponseEntity<List<Course>> getAllCourses() {
@@ -48,7 +52,6 @@ public class CourseController {
     public ResponseEntity<?> createCourse(@Valid @RequestBody CourseRequestDTO request) {
         try {
             Course course = new Course(request.getCode(), request.getName(), request.getDuration());
-            course.setDescription(request.getDescription());
             Course saved = courseRepository.save(course);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (Exception e) {
@@ -63,7 +66,6 @@ public class CourseController {
             Course course = courseRepository.findById(id).get();
             course.setName(request.getName());
             course.setDuration(request.getDuration());
-            course.setDescription(request.getDescription());
             Course updated = courseRepository.save(course);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
@@ -76,9 +78,11 @@ public class CourseController {
     public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
         try {
             courseRepository.deleteById(id);
+            autoIncrementService.resetNextId("courses");
             return ResponseEntity.ok("{\"message\": \"Course deleted successfully\"}");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 }
+

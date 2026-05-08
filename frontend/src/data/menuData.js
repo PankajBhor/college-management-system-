@@ -1,34 +1,39 @@
 // Role-based menu configuration
 export const menuConfig = {
   PRINCIPAL: [
-    { icon: '📊', label: 'Dashboard', page: 'dashboard' },
-    // { icon: '👥', label: 'Students', page: 'students' },
-    // { icon: '💰', label: 'Fees', page: 'fees' },
-    // { icon: '📚', label: 'Courses', page: 'courses' },
-    { icon: '🎓', label: 'Admissions', page: 'admissions' },
-    { icon: '📞', label: 'Enquiries', page: 'enquiries' }
+    { icon: 'DB', label: 'Dashboard', page: 'dashboard' },
+    { icon: 'AD', label: 'Admissions', page: 'admissions' },
+    { icon: 'EQ', label: 'Enquiries', page: 'enquiries' },
+    { icon: 'AN', label: 'Analysis', page: 'analysis' },
+    { icon: 'ST', label: 'Staff/Department', page: 'staff' }
   ],
   OFFICE_STAFF: [
-    { icon: '📊', label: 'Dashboard', page: 'dashboard' },
-    // { icon: '👥', label: 'Students', page: 'students' },
-    // { icon: '💰', label: 'Fees', page: 'fees' },
-    { icon: '📋', label: 'Admissions', page: 'admissions' }
+    { icon: 'DB', label: 'Dashboard', page: 'dashboard' },
+    { icon: 'AD', label: 'Admissions', page: 'admissions' },
+    { icon: 'AN', label: 'Analysis', page: 'analysis' }
   ],
   ENQUIRY_STAFF: [
-    { icon: '📊', label: 'Dashboard', page: 'dashboard' },
-    { icon: '📞', label: 'Enquiries', page: 'enquiries' },
-    { icon: '📋', label: 'New Enquiry', page: 'new-enquiry' }
+    { icon: 'DB', label: 'Dashboard', page: 'dashboard' },
+    { icon: 'EQ', label: 'Enquiries', page: 'enquiries' },
+    { icon: 'NE', label: 'New Enquiry', page: 'new-enquiry' },
+    { icon: 'AN', label: 'Analysis', page: 'analysis' }
+  ],
+  ACADEMIC_COORDINATOR: [
+    { icon: 'DB', label: 'Dashboard', page: 'dashboard' },
+    { icon: 'AD', label: 'Admissions', page: 'admissions' },
+    { icon: 'EQ', label: 'Enquiries', page: 'enquiries' },
+    { icon: 'AN', label: 'Analysis', page: 'analysis' }
   ],
   FACULTY: [
-    { icon: '📊', label: 'Dashboard', page: 'dashboard' },
-    { icon: '👥', label: 'Students', page: 'students' },
-    { icon: '📚', label: 'Courses', page: 'courses' }
+    { icon: 'DB', label: 'Dashboard', page: 'dashboard' },
+    { icon: 'ST', label: 'Students', page: 'students' },
+    { icon: 'CR', label: 'Courses', page: 'courses' }
   ],
   HOD: [
-    { icon: '📊', label: 'Dashboard', page: 'dashboard' },
-    { icon: '👥', label: 'Students', page: 'students' },
-    { icon: '📚', label: 'Courses', page: 'courses' },
-    { icon: '👨‍💼', label: 'Department', page: 'department' }
+    { icon: 'DB', label: 'Dashboard', page: 'dashboard' },
+    { icon: 'AD', label: 'Admissions', page: 'hod-admissions' },
+    { icon: 'EQ', label: 'Enquiries', page: 'hod-enquiries' },
+    { icon: 'AN', label: 'Analysis', page: 'analysis' }
   ]
 };
 

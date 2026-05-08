@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -60,7 +61,9 @@ public class DSYAdmissionController {
             @RequestPart(value = "hscMarkSheet", required = false) MultipartFile hscMarkSheet,
             @RequestPart(value = "casteCertificate", required = false) MultipartFile casteCertificate,
             @RequestPart(value = "nonCreamyLayerCertificate", required = false) MultipartFile nonCreamyLayerCertificate,
-            @RequestPart(value = "aadhaarCard", required = false) MultipartFile aadhaarCard) {
+            @RequestPart(value = "aadhaarCard", required = false) MultipartFile aadhaarCard,
+            @RequestPart(value = "studentPhoto", required = false) MultipartFile studentPhoto,
+            @RequestPart(value = "undertakingForm", required = false) MultipartFile undertakingForm) {
         try {
             // Create admission first to get the ID for file storage
             DSYAdmission admission = dsyAdmissionService.createDSYAdmission(request);
@@ -89,6 +92,14 @@ public class DSYAdmissionController {
             if (aadhaarCard != null && !aadhaarCard.isEmpty()) {
                 String filePath = fileStorageService.saveFile(aadhaarCard, "DSY", admission.getId().toString());
                 request.setAadhaarCardPath(filePath);
+            }
+            if (studentPhoto != null && !studentPhoto.isEmpty()) {
+                String filePath = fileStorageService.saveFile(studentPhoto, "DSY", admission.getId().toString());
+                request.setStudentPhotoPath(filePath);
+            }
+            if (undertakingForm != null && !undertakingForm.isEmpty()) {
+                String filePath = fileStorageService.saveFile(undertakingForm, "DSY", admission.getId().toString());
+                request.setUndertakingFormPath(filePath);
             }
 
             // Update admission with document paths
@@ -225,6 +236,42 @@ public class DSYAdmissionController {
             @Valid @RequestBody DSYAdmissionRequestDTO request) {
         DSYAdmission admission = dsyAdmissionService.updateDSYAdmission(id, request);
         return ResponseEntity.ok(admission);
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DSYAdmission> updateDSYAdmissionWithDocuments(
+            @PathVariable Long id,
+            @ModelAttribute DSYAdmissionRequestDTO request,
+            @RequestPart(value = "domicileCertificate", required = false) MultipartFile domicileCertificate,
+            @RequestPart(value = "sscMarkSheet", required = false) MultipartFile sscMarkSheet,
+            @RequestPart(value = "hscMarkSheet", required = false) MultipartFile hscMarkSheet,
+            @RequestPart(value = "casteCertificate", required = false) MultipartFile casteCertificate,
+            @RequestPart(value = "nonCreamyLayerCertificate", required = false) MultipartFile nonCreamyLayerCertificate,
+            @RequestPart(value = "aadhaarCard", required = false) MultipartFile aadhaarCard,
+            @RequestPart(value = "studentPhoto", required = false) MultipartFile studentPhoto,
+            @RequestPart(value = "undertakingForm", required = false) MultipartFile undertakingForm) {
+        DSYAdmission existing = dsyAdmissionService.getDSYAdmissionById(id);
+        request.setDomicileCertificatePath(existing.getDomicileCertificatePath());
+        request.setSscMarkSheetPath(existing.getSscMarkSheetPath());
+        request.setHscMarkSheetPath(existing.getHscMarkSheetPath());
+        request.setCasteCertificatePath(existing.getCasteCertificatePath());
+        request.setNonCreamyLayerCertificatePath(existing.getNonCreamyLayerCertificatePath());
+        request.setAadhaarCardPath(existing.getAadhaarCardPath());
+        request.setStudentPhotoPath(existing.getStudentPhotoPath());
+        request.setUndertakingFormPath(existing.getUndertakingFormPath());
+        try {
+            if (domicileCertificate != null && !domicileCertificate.isEmpty()) request.setDomicileCertificatePath(fileStorageService.saveFile(domicileCertificate, "DSY", id.toString()));
+            if (sscMarkSheet != null && !sscMarkSheet.isEmpty()) request.setSscMarkSheetPath(fileStorageService.saveFile(sscMarkSheet, "DSY", id.toString()));
+            if (hscMarkSheet != null && !hscMarkSheet.isEmpty()) request.setHscMarkSheetPath(fileStorageService.saveFile(hscMarkSheet, "DSY", id.toString()));
+            if (casteCertificate != null && !casteCertificate.isEmpty()) request.setCasteCertificatePath(fileStorageService.saveFile(casteCertificate, "DSY", id.toString()));
+            if (nonCreamyLayerCertificate != null && !nonCreamyLayerCertificate.isEmpty()) request.setNonCreamyLayerCertificatePath(fileStorageService.saveFile(nonCreamyLayerCertificate, "DSY", id.toString()));
+            if (aadhaarCard != null && !aadhaarCard.isEmpty()) request.setAadhaarCardPath(fileStorageService.saveFile(aadhaarCard, "DSY", id.toString()));
+            if (studentPhoto != null && !studentPhoto.isEmpty()) request.setStudentPhotoPath(fileStorageService.saveFile(studentPhoto, "DSY", id.toString()));
+            if (undertakingForm != null && !undertakingForm.isEmpty()) request.setUndertakingFormPath(fileStorageService.saveFile(undertakingForm, "DSY", id.toString()));
+            return ResponseEntity.ok(dsyAdmissionService.updateDSYAdmission(id, request));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @DeleteMapping("/{id}")

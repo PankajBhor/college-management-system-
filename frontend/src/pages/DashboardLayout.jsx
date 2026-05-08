@@ -6,6 +6,10 @@ import EnquiryIndex from './enquiry/index';
 import NewEnquiry from './enquiry/NewEnquiry';
 import UpdateEnquiry from './enquiry/UpdateEnquiry';
 import AdmissionPage from './admissions/AdmissionPage';
+import StaffManagement from './staff/StaffManagement';
+import AnalysisPage from './analysis/AnalysisPage';
+import HodAdmissionsPage from './hod/HodAdmissionsPage';
+import HodEnquiriesPage from './hod/HodEnquiriesPage';
 import { COLORS, SPACING, SHADOWS } from '../utils/designSystem';
 
 const DashboardLayout = ({ user, onLogout }) => {
@@ -15,15 +19,19 @@ const DashboardLayout = ({ user, onLogout }) => {
   // Check if user has access to a page
   const canAccessPage = (page) => {
     const allowedPages = {
-      'enquiries': ['PRINCIPAL', 'ENQUIRY_STAFF'],
+      'enquiries': ['PRINCIPAL', 'ENQUIRY_STAFF', 'ACADEMIC_COORDINATOR'],
       'new-enquiry': ['PRINCIPAL', 'ENQUIRY_STAFF'],
       'update-enquiry': ['PRINCIPAL', 'ENQUIRY_STAFF'],
-      'dashboard': ['PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'FACULTY', 'HOD'],
+      'dashboard': ['PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'FACULTY', 'HOD', 'ACADEMIC_COORDINATOR'],
       'students': ['PRINCIPAL', 'OFFICE_STAFF', 'FACULTY', 'HOD'],
       'fees': ['PRINCIPAL', 'OFFICE_STAFF'],
       'courses': ['PRINCIPAL', 'FACULTY', 'HOD'],
-      'admissions': ['PRINCIPAL', 'OFFICE_STAFF'],
-      'department': ['HOD']
+      'admissions': ['PRINCIPAL', 'OFFICE_STAFF', 'ACADEMIC_COORDINATOR'],
+      'department': ['HOD'],
+      'hod-admissions': ['HOD'],
+      'hod-enquiries': ['HOD'],
+      'analysis': ['PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'],
+      'staff': ['PRINCIPAL']
     };
 
     const allowed = allowedPages[page] || [];
@@ -48,6 +56,14 @@ const DashboardLayout = ({ user, onLogout }) => {
         return <UpdateEnquiry />;
       case 'admissions':
         return <AdmissionPage />;
+      case 'hod-admissions':
+        return <HodAdmissionsPage />;
+      case 'hod-enquiries':
+        return <HodEnquiriesPage />;
+      case 'analysis':
+        return <AnalysisPage user={user} />;
+      case 'staff':
+        return <StaffManagement />;
       case 'students':
         return (
           <div>
@@ -145,7 +161,7 @@ const DashboardLayout = ({ user, onLogout }) => {
       position: 'relative'
     }}>
       {/* Header */}
-      <Header user={user} onLogout={onLogout} sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <Header user={user} onLogout={onLogout} />
 
       {/* Sidebar */}
       <Sidebar
@@ -176,3 +192,6 @@ const DashboardLayout = ({ user, onLogout }) => {
 };
 
 export default DashboardLayout;
+
+
+

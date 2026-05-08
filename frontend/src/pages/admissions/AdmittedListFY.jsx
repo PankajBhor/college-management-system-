@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { formatDate } from '../../utils/formatters';
 import Pagination from '../../components/Pagination';
+import { admissionService } from '../../services/admissionService';
 
 const AdmittedListFY = ({
   admissions,
@@ -12,9 +12,11 @@ const AdmittedListFY = ({
   pageSize = 10,
   totalElements = 0,
   onPageChange,
-  onPageSizeChange
+  onPageSizeChange,
+  onRefresh
 }) => {
   const [selectedAdmissionId, setSelectedAdmissionId] = useState(null);
+  const [savingStatusId, setSavingStatusId] = useState(null);
 
   // Clean program name - remove number prefix
   const cleanProgramName = (program) => {
@@ -42,7 +44,9 @@ const AdmittedListFY = ({
     { key: 'incomeCertificatePath', label: 'Income Certificate' },
     { key: 'defenceCertificatePath', label: 'Defence Certificate' },
     { key: 'aadhaarCardPath', label: 'Aadhaar Card' },
-    { key: 'anyOtherDocumentPath', label: 'Any Other Document' }
+    { key: 'anyOtherDocumentPath', label: 'Any Other Document' },
+    { key: 'studentPhotoPath', label: 'Student Signed Passport Size Photo' },
+    { key: 'undertakingFormPath', label: 'Undertaking / Anti-ragging Form' }
   ];
 
   const getPendingDocuments = (admission) => {
@@ -81,6 +85,19 @@ const AdmittedListFY = ({
     return `${admission.applicantFirstName} ${admission.applicantMiddleName ? admission.applicantMiddleName + ' ' : ''}${admission.applicantLastName}`.trim();
   };
 
+  const toggleAdmissionStatus = async (admission) => {
+    const nextStatus = admission.status === 'APPROVED' ? 'PENDING' : 'APPROVED';
+    setSavingStatusId(admission.id);
+    try {
+      await admissionService.updateFYAdmission(admission.id, { ...admission, status: nextStatus });
+      if (onRefresh) await onRefresh();
+    } catch (error) {
+      alert(error.response?.data?.error || error.message || 'Unable to update status');
+    } finally {
+      setSavingStatusId(null);
+    }
+  };
+
   return (
     <div style={{
       background: 'white',
@@ -89,8 +106,10 @@ const AdmittedListFY = ({
       overflow: 'hidden',
       border: '1px solid #f0f0f0'
     }}>
+      <div style={{ overflow: 'auto', maxHeight: '70vh', scrollbarGutter: 'stable' }}>
       <table style={{
         width: '100%',
+        minWidth: '900px',
         borderCollapse: 'collapse'
       }}>
         <thead style={{
@@ -178,7 +197,7 @@ const AdmittedListFY = ({
                   {admission.admissionType}
                 </td>
                 <td style={{ padding: '14px 15px' }}>
-                  <span style={{
+                  <button type="button" onClick={() => toggleAdmissionStatus(admission)} disabled={savingStatusId === admission.id} style={{
                     display: 'inline-block',
                     padding: '6px 12px',
                     background: getStatusColor(admission.status),
@@ -186,10 +205,12 @@ const AdmittedListFY = ({
                     borderRadius: '6px',
                     fontSize: '12px',
                     fontWeight: '500',
-                    textTransform: 'capitalize'
+                    textTransform: 'capitalize',
+                    border: 0,
+                    cursor: savingStatusId === admission.id ? 'wait' : 'pointer'
                   }}>
-                    {admission.status || 'PENDING'}
-                  </span>
+                    {savingStatusId === admission.id ? 'Saving...' : (admission.status === 'APPROVED' ? 'COMPLETED' : 'PENDING')}
+                  </button>
                 </td>
                 <td style={{ padding: '14px 15px', textAlign: 'center' }}>
                   <div
@@ -239,6 +260,7 @@ const AdmittedListFY = ({
           })}
         </tbody>
       </table>
+      </div>
 
       {admissions.length === 0 && (
         <div style={{
@@ -360,3 +382,7 @@ const AdmittedListFY = ({
 };
 
 export default AdmittedListFY;
+
+
+
+

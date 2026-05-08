@@ -86,6 +86,9 @@ public class DSYAdmissionRequestDTO {
     private String casteCertificatePath;
     private String nonCreamyLayerCertificatePath;
     private String aadhaarCardPath;
+    private String studentPhotoPath;
+    private String undertakingFormPath;
+    private String status;
 
     // Getters and Setters
     public String getApplicantFirstName() {
@@ -439,4 +442,11 @@ public class DSYAdmissionRequestDTO {
     public void setAadhaarCardPath(String aadhaarCardPath) {
         this.aadhaarCardPath = aadhaarCardPath;
     }
+    public String getStudentPhotoPath() { return studentPhotoPath; }
+    public void setStudentPhotoPath(String studentPhotoPath) { this.studentPhotoPath = studentPhotoPath; }
+    public String getUndertakingFormPath() { return undertakingFormPath; }
+    public void setUndertakingFormPath(String undertakingFormPath) { this.undertakingFormPath = undertakingFormPath; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
+

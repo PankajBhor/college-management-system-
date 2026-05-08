@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useEnquiry } from '../../hooks/useEnquiry';
 import { useAuth } from '../../hooks/useAuth';
 import EnquiryList from './EnquiryList';
-import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { exportToExcel } from '../../utils/exportUtils';
 import ExportFieldChecklist from './ExportFieldChecklist';
 import {
   getAllAdmissionTypes,
@@ -230,29 +230,6 @@ function EnquiryIndex() {
               >
                 📊 Export Excel
               </button>
-              <button
-                onClick={() => setExportModal({ open: true, type: 'pdf' })}
-                style={{
-                  padding: '10px 18px',
-                  background: '#f0f0f0',
-                  color: '#333',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.background = '#e0e0e0';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.background = '#f0f0f0';
-                }}
-                title="Download enquiries as PDF file"
-              >
-                📄 Export PDF
-              </button>
             </>
           )}
         </div>
@@ -308,12 +285,6 @@ function EnquiryIndex() {
             } catch (error) {
               alert('Error exporting to Excel: ' + error.message);
             }
-          } else if (exportModal.type === 'pdf') {
-            try {
-              exportToPDF(enquiries, exportFields);
-            } catch (error) {
-              alert('Error exporting to PDF: ' + error.message);
-            }
           }
         }}
         onClose={() => setExportModal({ open: false, type: null })}
@@ -323,5 +294,8 @@ function EnquiryIndex() {
 }
 
 export default EnquiryIndex;
+
+
+
 
 

@@ -150,6 +150,11 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         admission.setDefenceCertificatePath(request.getDefenceCertificatePath());
         admission.setAadhaarCardPath(request.getAadhaarCardPath());
         admission.setAnyOtherDocumentPath(request.getAnyOtherDocumentPath());
+        admission.setStudentPhotoPath(request.getStudentPhotoPath());
+        admission.setUndertakingFormPath(request.getUndertakingFormPath());
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            admission.setStatus(request.getStatus());
+        }
 
         admission.setUpdatedAt(LocalDateTime.now());
 
@@ -161,3 +166,4 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         fyAdmissionRepository.deleteById(id);
     }
 }
+

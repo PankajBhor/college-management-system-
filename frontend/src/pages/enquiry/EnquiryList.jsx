@@ -17,7 +17,8 @@ const EnquiryList = ({
   totalElements = 0,
   onPageChange,
   onPageSizeChange,
-  lookupOptions = {}
+  lookupOptions = {},
+  readOnly = false
 }) => {
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState('');
@@ -122,8 +123,10 @@ const EnquiryList = ({
           ⚠️ {error}
         </div>
       )}
+      <div style={{ overflow: 'auto', maxHeight: '70vh', scrollbarGutter: 'stable' }}>
       <table style={{
         width: '100%',
+        minWidth: '1150px',
         borderCollapse: 'collapse'
       }}>
         <thead style={{
@@ -205,7 +208,7 @@ const EnquiryList = ({
                 <input type="date" value={filters.date} onChange={handleFilterChange('date')} style={{ fontSize: '0.85em', padding: '4px' }} />
               </div>}
             </th>
-            <th style={{ padding: '16px 15px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Actions</th>
+            {!readOnly && <th style={{ padding: '16px 15px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -264,7 +267,7 @@ const EnquiryList = ({
               <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {formatDate(enquiry.enquiryDate)}
               </td>
-              <td style={{ padding: '15px', textAlign: 'center' }}>
+              {!readOnly && <td style={{ padding: '15px', textAlign: 'center' }}>
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
                   {enquiry.status === 'Pending' && (
                     <button
@@ -352,11 +355,12 @@ const EnquiryList = ({
                     🗑️ Delete
                   </button>
                 </div>
-              </td>
+              </td>}
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
       {(pageNumber !== undefined && totalPages > 0) && (
         <Pagination
           currentPage={pageNumber}
@@ -372,3 +376,6 @@ const EnquiryList = ({
 };
 
 export default EnquiryList;
+
+
+

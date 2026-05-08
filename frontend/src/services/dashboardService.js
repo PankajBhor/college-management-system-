@@ -154,6 +154,26 @@ export async function getDashboardMetrics(role) {
     };
   }
 
+
+  if (normalizedRole === 'ACADEMIC_COORDINATOR') {
+    const [admissions, enquiries, academics] = await Promise.all([
+      buildAdmissionStats(),
+      buildEnquiryStats(),
+      buildAcademicStats()
+    ]);
+
+    return {
+      title: 'Academic Coordinator Dashboard',
+      subtitle: 'Academic, admission, and enquiry overview from database records',
+      stats: [
+        stat('Total Admissions', admissions.totalAdmissions, 'Adm', CARD_COLORS.primary),
+        stat('Approved Admissions', admissions.approvedAdmissions, 'Ok', CARD_COLORS.success),
+        stat('Total Enquiries', enquiries.totalEnquiries, 'Inq', CARD_COLORS.soft),
+        stat('Active Branches', academics.branchCount, 'Br', CARD_COLORS.primary),
+        stat('Student Entries', academics.studentCount, 'Stu', CARD_COLORS.muted)
+      ]
+    };
+  }
   if (normalizedRole === 'HOD') {
     const academics = await buildAcademicStats();
 
@@ -193,3 +213,4 @@ const dashboardService = {
 };
 
 export default dashboardService;
+

@@ -19,6 +19,7 @@ const NewEnquiry = () => {
     guardianMobileNumber: '',
     email: '',
     merit: { class10: '', class12: '', other: '' },
+    sscSeatNo: '',
     admissionFor: 'FY',
     location: '',
     otherLocation: '',
@@ -122,6 +123,7 @@ const NewEnquiry = () => {
         guardianMobileNumber: '',
         email: '',
         merit: { class10: '', class12: '', other: '' },
+        sscSeatNo: '',
         admissionFor: 'FY',
         location: '',
         otherLocation: '',
@@ -381,6 +383,17 @@ const NewEnquiry = () => {
               />
             </div>
             <div style={styles.formGroup}>
+              <label style={styles.label}>SSC Seat No</label>
+              <input
+                type="text"
+                name="sscSeatNo"
+                value={formData.sscSeatNo}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter SSC seat number"
+              />
+            </div>
+            <div style={styles.formGroup}>
               <label style={styles.label}>Other Merit/Percentage</label>
               <input
                 type="number"
@@ -579,6 +592,7 @@ const NewEnquiry = () => {
                   guardianMobileNumber: '',
                   email: '',
                   merit: { class10: '', class12: '', other: '' },
+                  sscSeatNo: '',
                   admissionFor: 'FY',
                   location: '',
                   otherLocation: '',
@@ -614,3 +628,4 @@ const NewEnquiry = () => {
 };
 
 export default NewEnquiry;
+

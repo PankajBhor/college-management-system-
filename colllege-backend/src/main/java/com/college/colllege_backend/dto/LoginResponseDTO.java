@@ -6,6 +6,7 @@ public class LoginResponseDTO {
     private String email;
     private String role;
     private String token;
+    private String departmentCode;
 
     // Constructor
     public LoginResponseDTO() {}
@@ -57,4 +58,12 @@ public class LoginResponseDTO {
     public void setToken(String token) {
         this.token = token;
     }
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+
+    public void setDepartmentCode(String departmentCode) {
+        this.departmentCode = departmentCode;
+    }
 }
+

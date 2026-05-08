@@ -1,26 +1,44 @@
 import { formatDate } from './formatters';
-import jsPDF from 'jspdf';
 
-/**
- * Export enquiries to Excel format
- */
+const downloadCsv = (filename, headers, rows) => {
+  let csvContent = headers.join(',') + '\n';
+  rows.forEach(row => {
+    csvContent += row.map(cell => {
+      const escaped = String(cell ?? '').replace(/"/g, '""');
+      return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
+    }).join(',') + '\n';
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${filename}_${new Date().getTime()}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export const exportToExcel = (enquiries, selectedFields = null) => {
   try {
-    // If fields are selected, filter data accordingly
-    let headers, rows;
+    let headers;
+    let rows;
     if (selectedFields && Array.isArray(selectedFields) && selectedFields.length > 0) {
       headers = selectedFields;
-      rows = enquiries.map((enquiry) => headers.map(f => enquiry[f] !== undefined ? enquiry[f] : ''));
+      rows = enquiries.map((enquiry) => headers.map(field => enquiry[field] !== undefined ? enquiry[field] : ''));
     } else {
-      headers = ['S.No', 'Name', 'Email', 'Phone', 'Admission For', 'Location', 'Category', 'Status', 'Date'];
+      headers = ['S.No', 'Name', 'Email', 'Phone', 'Admission For', 'Branches Interested', 'Location', 'Category', 'Status', 'Date'];
       rows = enquiries.map((enquiry, index) => {
-        const fullName = `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
+        const fullName = `${enquiry.firstName || ''} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName || ''}`.trim();
         return [
           index + 1,
           fullName,
           enquiry.email,
           enquiry.personalMobileNumber,
           enquiry.admissionFor || '-',
+          enquiry.branchesInterested || '-',
           enquiry.location === 'Other' ? enquiry.otherLocation : enquiry.location,
           enquiry.category || '-',
           enquiry.status,
@@ -28,148 +46,46 @@ export const exportToExcel = (enquiries, selectedFields = null) => {
         ];
       });
     }
-
-    // Convert to CSV string
-    let csvContent = headers.join(',') + '\n';
-    rows.forEach(row => {
-      csvContent += row.map(cell => {
-        // Escape quotes and wrap in quotes if contains comma
-        const escaped = String(cell).replace(/"/g, '""');
-        return escaped.includes(',') ? `"${escaped}"` : escaped;
-      }).join(',') + '\n';
-    });
-
-    // Create blob and download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-
-    link.setAttribute('href', url);
-    link.setAttribute('download', `enquiries_${new Date().getTime()}.csv`);
-    link.style.visibility = 'hidden';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsv('enquiries', headers, rows);
   } catch (error) {
-    console.error('Error exporting to Excel:', error);
-    throw new Error('Failed to export to Excel');
+    console.error('Error exporting enquiries:', error);
+    throw new Error('Failed to export enquiries');
   }
 };
 
-/**
- * Export enquiries to PDF format
- */
-export const exportToPDF = (enquiries, selectedFields = null) => {
+const getAdmissionFieldValue = (admission, field, index) => {
+  if (field === 'sNo') return index + 1;
+  if (field === 'fullName') {
+    return `${admission.applicantFirstName || ''} ${admission.applicantMiddleName ? admission.applicantMiddleName + ' ' : ''}${admission.applicantLastName || ''}`.trim();
+  }
+  return admission[field] ?? '';
+};
+
+export const exportAdmissionsToExcel = (admissions, type = 'admissions', selectedFields = null) => {
   try {
-    const doc = new jsPDF();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 14;
-    let yPosition = 20;
-
-    // Add title
-    doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.text('Enquiry Report', margin, yPosition);
-
-    // Add date
-    yPosition += 10;
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, margin, yPosition);
-
-    // Add table headers
-    yPosition += 12;
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'bold');
-    doc.setTextColor(255);
-    doc.setFillColor(37, 99, 235); // Blue background
-
-    let headers, rows, colWidths;
-    if (selectedFields && Array.isArray(selectedFields) && selectedFields.length > 0) {
-      headers = selectedFields;
-      colWidths = Array(headers.length).fill(30); // Default width for custom fields
-      rows = enquiries.map((enquiry) => headers.map(f => enquiry[f] !== undefined ? String(enquiry[f]).substring(0, 20) : ''));
-    } else {
-      colWidths = [12, 30, 35, 25, 20, 25];
-      headers = ['S.No', 'Name', 'Email', 'Phone', 'Status', 'Date'];
-      rows = enquiries.map((enquiry, index) => {
-        const fullName = `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
-        return [
-          String(index + 1),
-          fullName.substring(0, 20),
-          enquiry.email.substring(0, 20),
-          enquiry.personalMobileNumber.substring(0, 15),
-          enquiry.status,
-          formatDate(enquiry.enquiryDate)
-        ];
-      });
-    }
-
-    let xPosition = margin;
-    headers.forEach((header, i) => {
-      doc.rect(xPosition, yPosition - 7, colWidths[i], 8, 'F');
-      doc.text(header, xPosition + 1, yPosition - 2);
-      xPosition += colWidths[i];
-    });
-
-    // Add table rows
-    yPosition += 8;
-    doc.setFontSize(9);
-    doc.setFont(undefined, 'normal');
-    doc.setTextColor(0);
-
-    let rowCount = 0;
-    rows.forEach((rowData) => {
-      // Check if we need a new page
-      if (yPosition > pageHeight - 20) {
-        doc.addPage();
-        yPosition = margin;
-      }
-
-      // Alternate row background
-      if (rowCount % 2 === 0) {
-        doc.setFillColor(245, 247, 250);
-        xPosition = margin;
-        headers.forEach((_, i) => {
-          doc.rect(xPosition, yPosition - 7, colWidths[i], 8, 'F');
-          xPosition += colWidths[i];
-        });
-      }
-
-      // Add row data
-      xPosition = margin;
-      rowData.forEach((cell, i) => {
-        doc.text(String(cell), xPosition + 1, yPosition - 2);
-        xPosition += colWidths[i];
-      });
-
-      yPosition += 8;
-      rowCount++;
-    });
-
-    // Add footer with page numbers
-    const totalPages = doc.internal.pages.length - 1;
-    if (totalPages > 0) {
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(
-          `Page ${i} of ${totalPages}`,
-          pageWidth / 2,
-          pageHeight - 10,
-          { align: 'center' }
-        );
-      }
-    }
-
-    // Save PDF
-    doc.save(`enquiries_${new Date().getTime()}.pdf`);
+    const fields = selectedFields && selectedFields.length
+      ? ['sNo', ...selectedFields]
+      : ['sNo', 'admissionType', 'fullName', 'studentEmail', 'mobileNo', 'program', 'category', 'status', 'gender', 'dateOfBirth', 'aadhaarNo', 'createdAt', 'updatedAt'];
+    const labelMap = {
+      sNo: 'S.No',
+      admissionType: 'Admission Type',
+      fullName: 'Name',
+      studentEmail: 'Email',
+      mobileNo: 'Phone',
+      program: 'Program',
+      category: 'Category',
+      status: 'Status',
+      gender: 'Gender',
+      dateOfBirth: 'DOB',
+      aadhaarNo: 'Aadhaar',
+      createdAt: 'Created At',
+      updatedAt: 'Updated At'
+    };
+    const headers = fields.map(field => labelMap[field] || field);
+    const rows = admissions.map((admission, index) => fields.map(field => getAdmissionFieldValue(admission, field, index)));
+    downloadCsv(`${type}_admissions`, headers, rows);
   } catch (error) {
-    console.error('Error exporting to PDF:', error);
-    throw new Error('Failed to export to PDF: ' + error.message);
+    console.error('Error exporting admissions:', error);
+    throw new Error('Failed to export admissions');
   }
 };

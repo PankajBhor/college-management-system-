@@ -41,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
         response.setName(user.getName());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole());
+        response.setDepartmentCode(user.getDepartmentCode());
         return response;
     }
 
@@ -81,3 +82,4 @@ public class AuthServiceImpl implements AuthService {
         return password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$");
     }
 }
+

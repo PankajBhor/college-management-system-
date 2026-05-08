@@ -73,11 +73,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                 // Public endpoints - NO authentication required
                 .requestMatchers("/api/users/login").permitAll()
-                .requestMatchers("/api/users/register").permitAll()
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/lookups/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/faculty/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/reference-faculty/**").permitAll()
                 // Enquiry creation - PUBLIC (students/parents can submit)
                 .requestMatchers(HttpMethod.POST, "/api/enquiries").permitAll()
                 // Enquiry search by seat number - PUBLIC (for admission form pre-fill)
@@ -85,29 +85,33 @@ public class SecurityConfig {
                 // Admission form creation - PUBLIC (students can submit admissions)
                 .requestMatchers(HttpMethod.POST, "/api/admissions/fy").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/admissions/dsy").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/hod/**").hasRole("HOD")
                 // Enquiry list/view - Staff only
+                .requestMatchers(HttpMethod.GET, "/api/enquiries/**").hasAnyRole("ENQUIRY_STAFF", "PRINCIPAL", "OFFICE_STAFF", "ACADEMIC_COORDINATOR")
                 .requestMatchers("/api/enquiries/**").hasAnyRole("ENQUIRY_STAFF", "PRINCIPAL", "OFFICE_STAFF")
                 // Admission Form endpoints - Allow staff only (list, view, update)
-                .requestMatchers(HttpMethod.GET, "/api/fy-admissions/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
+                .requestMatchers(HttpMethod.GET, "/api/fy-admissions/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL", "ACADEMIC_COORDINATOR")
                 .requestMatchers(HttpMethod.PUT, "/api/fy-admissions/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
                 .requestMatchers(HttpMethod.DELETE, "/api/fy-admissions/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
-                .requestMatchers(HttpMethod.GET, "/api/admissions/fy").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
-                .requestMatchers(HttpMethod.GET, "/api/admissions/fy/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
+                .requestMatchers(HttpMethod.GET, "/api/admissions/fy").hasAnyRole("OFFICE_STAFF", "PRINCIPAL", "ACADEMIC_COORDINATOR")
+                .requestMatchers(HttpMethod.GET, "/api/admissions/fy/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL", "ACADEMIC_COORDINATOR")
                 .requestMatchers(HttpMethod.PUT, "/api/admissions/fy/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
                 .requestMatchers(HttpMethod.DELETE, "/api/admissions/fy/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
-                .requestMatchers(HttpMethod.GET, "/api/dsy-admissions/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
+                .requestMatchers(HttpMethod.GET, "/api/dsy-admissions/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL", "ACADEMIC_COORDINATOR")
                 .requestMatchers(HttpMethod.PUT, "/api/dsy-admissions/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
                 .requestMatchers(HttpMethod.DELETE, "/api/dsy-admissions/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
-                .requestMatchers(HttpMethod.GET, "/api/admissions/dsy").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
-                .requestMatchers(HttpMethod.GET, "/api/admissions/dsy/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
+                .requestMatchers(HttpMethod.GET, "/api/admissions/dsy").hasAnyRole("OFFICE_STAFF", "PRINCIPAL", "ACADEMIC_COORDINATOR")
+                .requestMatchers(HttpMethod.GET, "/api/admissions/dsy/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL", "ACADEMIC_COORDINATOR")
                 .requestMatchers(HttpMethod.PUT, "/api/admissions/dsy/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
                 .requestMatchers(HttpMethod.DELETE, "/api/admissions/dsy/**").hasAnyRole("OFFICE_STAFF", "PRINCIPAL")
                 // Student data - Allow authenticated users
                 .requestMatchers("/api/students/**").authenticated()
                 // Management endpoints
-                .requestMatchers("/api/users/**").hasAnyRole("PRINCIPAL", "OFFICE_STAFF")
+                .requestMatchers("/api/users/**").hasRole("PRINCIPAL")
                 .requestMatchers("/api/faculty/**").hasAnyRole("PRINCIPAL", "HOD", "OFFICE_STAFF")
-                .requestMatchers("/api/courses/**").hasAnyRole("PRINCIPAL", "HOD", "OFFICE_STAFF")
+                .requestMatchers("/api/reference-faculty/**").hasAnyRole("PRINCIPAL", "HOD", "OFFICE_STAFF", "ENQUIRY_STAFF")
+                .requestMatchers(HttpMethod.GET, "/api/courses/**").hasAnyRole("PRINCIPAL", "HOD", "OFFICE_STAFF", "ACADEMIC_COORDINATOR")
+                .requestMatchers("/api/courses/**").hasRole("PRINCIPAL")
                 .requestMatchers("/api/lookups/**").hasAnyRole("PRINCIPAL", "OFFICE_STAFF")
                 // All other requests denied
                 .anyRequest().denyAll()
@@ -116,3 +120,8 @@ public class SecurityConfig {
         return http.build();
     }
 }
+
+
+
+
+

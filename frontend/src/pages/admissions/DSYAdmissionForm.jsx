@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DSYAdmissionForm.css';
 import { admissionService } from '../../services/admissionService';
+import jsPDF from 'jspdf';
 import {
   getAllAdmissionRounds,
   getAllBloodGroups,
@@ -12,7 +13,7 @@ import {
   getOptionValue
 } from '../../services/lookupService';
 
-const DSYAdmissionForm = ({ prefilledEnquiry }) => {
+const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = null }) => {
   const [branchOptions, setBranchOptions] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [genderOptions, setGenderOptions] = useState([]);
@@ -105,7 +106,10 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
     return prefilledFields.has(fieldName) && (formData[fieldName]);
   };
 
-  const [formData, setFormData] = useState(() => {
+  const initialFormData = () => {
+    if (editAdmission) {
+      return { ...editAdmission };
+    }
     if (prefilledEnquiry) {
       // Get branch preferences from enquiry
       let branches = prefilledEnquiry.branchesInterested;
@@ -224,7 +228,8 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
       preference3: '',
       preference4: ''
     };
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
 
   const [documents, setDocuments] = useState({
     domicileCertificate: null,
@@ -232,11 +237,14 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
     hscMarkSheet: null,
     casteCertificate: null,
     nonCreamyLayerCertificate: null,
-    aadhaarCard: null
+    aadhaarCard: null,
+    studentPhoto: null,
+    undertakingForm: null
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const selectedProgramName = formData.program || '_____________';
 
   const dsyDocuments = [
     { key: 'domicileCertificate', label: 'Domicile / Nationality Certificate' },
@@ -244,7 +252,9 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
     { key: 'hscMarkSheet', label: 'HSC/ITI/COE Mark sheet' },
     { key: 'casteCertificate', label: 'Caste Certificate' },
     { key: 'nonCreamyLayerCertificate', label: 'Non Creamy Layer Certificate' },
-    { key: 'aadhaarCard', label: 'Xerox copy of Aadhaar Card' }
+    { key: 'aadhaarCard', label: 'Xerox copy of Aadhaar Card' },
+    { key: 'studentPhoto', label: 'Student signed passport size photo' },
+    { key: 'undertakingForm', label: 'Undertaking / Anti-ragging undertaking form' }
   ];
 
   const handleInputChange = (e) => {
@@ -266,6 +276,18 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
 
     if (!formData.applicantFirstName.trim()) newErrors.applicantFirstName = 'First name is required';
     if (!formData.applicantLastName.trim()) newErrors.applicantLastName = 'Last name is required';
+    if (!formData.fatherFirstName.trim()) newErrors.fatherFirstName = 'Father first name is required';
+    if (!formData.motherFirstName.trim()) newErrors.motherFirstName = 'Mother first name is required';
+    if (!formData.localTal.trim()) newErrors.localTal = 'Local taluka is required';
+    if (!formData.localDist.trim()) newErrors.localDist = 'Local district is required';
+    if (!formData.localPinCode.trim()) newErrors.localPinCode = 'Local pin code is required';
+    if (!formData.permanentTal.trim()) newErrors.permanentTal = 'Permanent taluka is required';
+    if (!formData.permanentDist.trim()) newErrors.permanentDist = 'Permanent district is required';
+    if (!formData.permanentPinCode.trim()) newErrors.permanentPinCode = 'Permanent pin code is required';
+    if (!formData.aadhaarNo.trim()) newErrors.aadhaarNo = 'Aadhaar number is required';
+    if (!formData.educationalQualification) newErrors.educationalQualification = 'Qualification is required';
+    if (!formData.instituteName.trim()) newErrors.instituteName = 'Institute name is required';
+    if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.localAddress.trim()) newErrors.localAddress = 'Local address is required';
     if (!formData.permanentAddress.trim()) newErrors.permanentAddress = 'Permanent address is required';
     if (!formData.mobileNo.match(/^[0-9]{10}$/)) newErrors.mobileNo = 'Mobile number must be 10 digits';
@@ -298,6 +320,35 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
     }
   };
 
+
+  const downloadUndertaking = () => {
+    const fullName = `${formData.applicantFirstName} ${formData.applicantMiddleName || ''} ${formData.applicantLastName}`.replace(/\s+/g, ' ').trim();
+    const doc = new jsPDF();
+    const lines = [
+      'UNDERTAKING AND ANTI-RAGGING FORM',
+      '',
+      `Student Name: ${fullName}`,
+      `Program: ${selectedProgramName}`,
+      `Admission Type: ${formData.admissionType}`,
+      `Mobile: ${formData.mobileNo}`,
+      `Email: ${formData.studentEmail}`,
+      `Aadhaar: ${formData.aadhaarNo}`,
+      `Category: ${formData.category}`,
+      '',
+      `I, ${fullName}, apply for admission to Direct Second Year Diploma in ${selectedProgramName}.`,
+      'I undertake to follow all rules and regulations laid down by DTE, MSBTE and the institute.',
+      '',
+      'Anti-Ragging Undertaking:',
+      'I hereby undertake that I will not participate in ragging in any form.',
+      'If any incident by me comes to the notice of the institute authority, disciplinary action may be taken against me.',
+      '',
+      'Student Signature: ____________________',
+      'Parent/Guardian Signature: ____________________',
+      'Date: ____________________'
+    ];
+    doc.text(lines, 14, 18);
+    doc.save(`DSY_undertaking_${fullName || 'student'}.pdf`);
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -308,12 +359,19 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
 
     setLoading(true);
     try {
-      await admissionService.createDSYAdmission(formData, documents);
+      if (editAdmission?.id) {
+        await admissionService.updateDSYAdmissionWithDocuments(editAdmission.id, formData, documents);
+      } else {
+        await admissionService.createDSYAdmission(formData, documents);
+      }
       setSubmitted(true);
-      alert('DSY Admission form submitted successfully!');
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      alert(editAdmission?.id ? 'DSY Admission form updated successfully!' : 'DSY Admission form submitted successfully!');
+      if (onSaved) await onSaved();
+      if (!editAdmission?.id) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     } catch (error) {
       alert('Error submitting form: ' + (error.response?.data?.message || error.message));
     } finally {
@@ -936,12 +994,13 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
         {/* Undertaking Section */}
         <fieldset className="form-section undertaking">
           <legend>Undertakings</legend>
+          <button type="button" className="btn btn-secondary" onClick={downloadUndertaking}>Download Auto-filled Anti-ragging Form</button>
           
           <div className="undertaking-text">
             <h3>Legal Guardian Undertaking:</h3>
             <p>
               In lieu of JCEI's Jaihind Polytechnic Kuran considering the application of {formData.applicantFirstName} {formData.applicantLastName} 
-              for admission to Direct Second Year Diploma Program, I hereby agree & undertaking that at the 
+              for admission to Direct Second Year Diploma in {selectedProgramName}, I hereby agree & undertaking that at the 
               test (Tuition Fee + Development Fee) & other charges & / or Fees decide by the Maharashtra 
               State board of Technical Education, Fees Fixation Committee are more than the Interim Fees 
               for the current academic year, then I will pay the difference on the Institute on demand. 
@@ -985,7 +1044,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
           <button
             type="reset"
             className="btn btn-secondary"
-            onClick={() => setFormData({...formData})}
+            onClick={() => { setFormData(initialFormData()); setDocuments({ domicileCertificate: null, sscMarkSheet: null, hscMarkSheet: null, casteCertificate: null, nonCreamyLayerCertificate: null, aadhaarCard: null, studentPhoto: null, undertakingForm: null }); setErrors({}); }}
           >
             Reset Form
           </button>
@@ -996,3 +1055,4 @@ const DSYAdmissionForm = ({ prefilledEnquiry }) => {
 };
 
 export default DSYAdmissionForm;
+

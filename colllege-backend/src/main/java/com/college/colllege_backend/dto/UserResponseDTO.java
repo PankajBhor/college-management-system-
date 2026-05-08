@@ -5,15 +5,21 @@ public class UserResponseDTO {
     private String name;
     private String email;
     private String role;
+    private String departmentCode;
 
     // Constructor
     public UserResponseDTO() {}
 
     public UserResponseDTO(Long id, String name, String email, String role) {
+        this(id, name, email, role, null);
+    }
+
+    public UserResponseDTO(Long id, String name, String email, String role, String departmentCode) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.role = role;
+        this.departmentCode = departmentCode;
     }
 
     // Getters and Setters
@@ -48,4 +54,12 @@ public class UserResponseDTO {
     public void setRole(String role) {
         this.role = role;
     }
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+
+    public void setDepartmentCode(String departmentCode) {
+        this.departmentCode = departmentCode;
+    }
 }
+

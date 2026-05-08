@@ -86,4 +86,5 @@ class LoggerService {
   }
 }
 
-export default new LoggerService();
+const loggerService = new LoggerService();
+export default loggerService;
