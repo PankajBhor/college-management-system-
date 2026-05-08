@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import userService from '../../services/userService';
 import courseService from '../../services/courseService';
 import { getAllBranches } from '../../services/lookupService';
+import { allMenuItems, parseAccessPages } from '../../data/menuData';
 
 const inputStyle = { padding: '10px', border: '1px solid #d0d5dd', borderRadius: '6px', fontSize: '14px' };
 const DEPARTMENT_ABBREVIATIONS = {
@@ -24,11 +25,14 @@ const departmentAbbr = (code, branches) => {
   return DEPARTMENT_ABBREVIATIONS[String(code)] || abbreviationFromName(branch?.name) || code || 'Not assigned';
 };
 
-const StaffManagement = () => {
+const emptyForm = { name: '', email: '', password: 'password', role: 'FACULTY', departmentCode: '', accessPages: '' };
+
+const StaffManagement = ({ currentUser }) => {
   const [activeTab, setActiveTab] = useState('staff');
   const [users, setUsers] = useState([]);
   const [branches, setBranches] = useState([]);
-  const [form, setForm] = useState({ name: '', email: '', password: 'password', role: 'FACULTY', departmentCode: '' });
+  const [form, setForm] = useState(emptyForm);
+  const [editingUserId, setEditingUserId] = useState(null);
   const [departmentForm, setDepartmentForm] = useState({ code: '', name: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -49,6 +53,34 @@ const StaffManagement = () => {
   useEffect(() => { loadData(); }, []);
   const handleChange = (field) => (event) => setForm(prev => ({ ...prev, [field]: event.target.value }));
   const handleDepartmentChange = (field) => (event) => setDepartmentForm(prev => ({ ...prev, [field]: event.target.value }));
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const selectedAccessPages = parseAccessPages(form.accessPages) || [];
+
+  const resetForm = () => {
+    setForm(emptyForm);
+    setEditingUserId(null);
+  };
+
+  const handleAccessToggle = (page) => {
+    setForm(prev => {
+      const pages = parseAccessPages(prev.accessPages) || [];
+      const nextPages = pages.includes(page) ? pages.filter(item => item !== page) : [...pages, page];
+      return { ...prev, accessPages: nextPages.join(',') };
+    });
+  };
+
+  const handleEdit = (user) => {
+    setEditingUserId(user.id);
+    setForm({
+      name: user.name || '',
+      email: user.email || '',
+      password: '',
+      role: user.role || 'FACULTY',
+      departmentCode: user.departmentCode || '',
+      accessPages: user.accessPages || ''
+    });
+    setActiveTab('staff');
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -58,11 +90,15 @@ const StaffManagement = () => {
       return;
     }
     try {
-      await userService.createUser(form);
-      setForm({ name: '', email: '', password: 'password', role: 'FACULTY', departmentCode: '' });
+      if (editingUserId) {
+        await userService.updateUser(editingUserId, form);
+      } else {
+        await userService.createUser(form);
+      }
+      resetForm();
       await loadData();
     } catch (err) {
-      setError(err.message || 'Unable to add staff');
+      setError(err.message || 'Unable to save staff');
     }
   };
 
@@ -132,8 +168,10 @@ const StaffManagement = () => {
           <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '28px', padding: '18px', border: '1px solid #e4e7ec', borderRadius: '8px', background: '#f8fafc' }}>
             <input style={inputStyle} placeholder="Name" value={form.name} onChange={handleChange('name')} required />
             <input style={inputStyle} placeholder="College email" type="email" value={form.email} onChange={handleChange('email')} required />
-            <input style={inputStyle} placeholder="Initial password" value={form.password} onChange={handleChange('password')} required />
+            <input style={inputStyle} placeholder={editingUserId ? 'New password (leave blank)' : 'Initial password'} value={form.password} onChange={handleChange('password')} required={!editingUserId} />
             <select style={inputStyle} value={form.role} onChange={handleChange('role')} required>
+              {isAdmin && <option value="ADMIN">Admin</option>}
+              <option value="PRINCIPAL">Principal</option>
               <option value="FACULTY">Teaching Staff</option>
               <option value="HOD">HOD</option>
               <option value="ACADEMIC_COORDINATOR">Academic Coordinator</option>
@@ -144,8 +182,24 @@ const StaffManagement = () => {
               <option value="">Department</option>
               {branches.map(branch => <option key={branch.id || branch.code} value={branch.code}>{departmentAbbr(branch.code, branches)} - {branch.name}</option>)}
             </select>
-            <button type="submit" style={{ padding: '10px 14px', border: 0, borderRadius: '6px', background: '#175cd3', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Add Staff</button>
+            <button type="submit" style={{ padding: '10px 14px', border: 0, borderRadius: '6px', background: '#175cd3', color: 'white', fontWeight: 700, cursor: 'pointer' }}>{editingUserId ? 'Update Staff' : 'Add Staff'}</button>
+            {editingUserId && <button type="button" onClick={resetForm} style={{ padding: '10px 14px', border: '1px solid #d0d5dd', borderRadius: '6px', background: '#fff', color: '#344054', fontWeight: 700, cursor: 'pointer' }}>Cancel Edit</button>}
           </form>
+
+          {isAdmin && (
+            <div style={{ marginBottom: '28px', padding: '18px', border: '1px solid #e4e7ec', borderRadius: '8px', background: '#fff' }}>
+              <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>Specific Login Access</h3>
+              <p style={{ margin: '0 0 14px', color: '#667085' }}>Leave all unchecked to use the default access for the selected role.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                {allMenuItems.map(item => (
+                  <label key={item.page} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', border: '1px solid #eef2f6', borderRadius: '6px' }}>
+                    <input type="checkbox" checked={selectedAccessPages.includes(item.page)} onChange={() => handleAccessToggle(item.page)} />
+                    {item.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {loading ? <p>Loading staff...</p> : (
             <div style={{ overflowX: 'auto', border: '1px solid #e4e7ec', borderRadius: '8px' }}>
@@ -158,7 +212,12 @@ const StaffManagement = () => {
                       <td style={{ padding: '12px', borderBottom: '1px solid #eef2f6' }}>{user.email}</td>
                       <td style={{ padding: '12px', borderBottom: '1px solid #eef2f6' }}>{user.role}</td>
                       <td style={{ padding: '12px', borderBottom: '1px solid #eef2f6' }}>{departmentAbbr(user.departmentCode, branches)}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid #eef2f6' }}>{user.role !== 'PRINCIPAL' && <button onClick={() => handleDelete(user)} style={{ padding: '7px 10px', border: '1px solid #fda29b', borderRadius: '6px', background: '#fff', color: '#b42318', cursor: 'pointer' }}>Remove</button>}</td>
+                      <td style={{ padding: '12px', borderBottom: '1px solid #eef2f6' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button onClick={() => handleEdit(user)} style={{ padding: '7px 10px', border: '1px solid #84caff', borderRadius: '6px', background: '#fff', color: '#175cd3', cursor: 'pointer' }}>Edit</button>
+                          {user.role !== 'PRINCIPAL' && user.role !== 'ADMIN' && <button onClick={() => handleDelete(user)} style={{ padding: '7px 10px', border: '1px solid #fda29b', borderRadius: '6px', background: '#fff', color: '#b42318', cursor: 'pointer' }}>Remove</button>}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

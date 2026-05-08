@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,7 +44,7 @@ public class UserController {
     @GetMapping
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(u -> new UserResponseDTO(u.getId(), u.getName(), u.getEmail(), u.getRole(), u.getDepartmentCode()))
+                .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -62,6 +63,10 @@ public class UserController {
         try {
             UserRole role = UserRole.fromString(request.getRole());
 
+            if (request.getPassword() == null || request.getPassword().isBlank()) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Password cannot be blank\"}");
+            }
+
             if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                 return ResponseEntity.badRequest().body("{\"error\": \"Email already exists\"}");
             }
@@ -71,10 +76,39 @@ public class UserController {
             user.setEmail(request.getEmail());
             user.setRole(role.name());
             user.setDepartmentCode(request.getDepartmentCode());
+            user.setAccessPages(request.getAccessPages());
             user.setPassword(authService.hashPassword(request.getPassword()));
 
             User saved = userRepository.save(user);
-            return ResponseEntity.ok(new UserResponseDTO(saved.getId(), saved.getName(), saved.getEmail(), saved.getRole(), saved.getDepartmentCode()));
+            return ResponseEntity.ok(toResponse(saved));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestDTO request) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            UserRole role = UserRole.fromString(request.getRole());
+            userRepository.findByEmail(request.getEmail())
+                    .filter(existing -> !existing.getId().equals(id))
+                    .ifPresent(existing -> {
+                        throw new IllegalArgumentException("Email already exists");
+                    });
+
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
+            user.setRole(role.name());
+            user.setDepartmentCode(request.getDepartmentCode());
+            user.setAccessPages(request.getAccessPages());
+            if (request.getPassword() != null && !request.getPassword().isBlank()) {
+                user.setPassword(authService.hashPassword(request.getPassword()));
+            }
+
+            User saved = userRepository.save(user);
+            return ResponseEntity.ok(toResponse(saved));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
         }
@@ -88,6 +122,10 @@ public class UserController {
         userRepository.deleteById(id);
         autoIncrementService.resetNextId("users");
         return ResponseEntity.noContent().build();
+    }
+
+    private UserResponseDTO toResponse(User user) {
+        return new UserResponseDTO(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getDepartmentCode(), user.getAccessPages());
     }
 }
 

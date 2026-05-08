@@ -42,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
         response.setEmail(user.getEmail());
         response.setRole(user.getRole());
         response.setDepartmentCode(user.getDepartmentCode());
+        response.setAccessPages(user.getAccessPages());
         return response;
     }
 

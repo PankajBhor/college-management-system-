@@ -12,13 +12,13 @@ public class UserRequestDTO {
     @NotBlank(message = "Email cannot be blank")
     private String email;
 
-    @NotBlank(message = "Password cannot be blank")
     private String password;
 
     @NotBlank(message = "Role cannot be blank")
     private String role;
 
     private String departmentCode;
+    private String accessPages;
 
     public String getName() {
         return name;
@@ -57,6 +57,14 @@ public class UserRequestDTO {
 
     public void setDepartmentCode(String departmentCode) {
         this.departmentCode = departmentCode;
+    }
+
+    public String getAccessPages() {
+        return accessPages;
+    }
+
+    public void setAccessPages(String accessPages) {
+        this.accessPages = accessPages;
     }
 }
 

@@ -8,31 +8,15 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize auth on mount
   useEffect(() => {
-    // Check localStorage for saved user
-    const savedUser = localStorage.getItem('authUser');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem('authUser');
-      }
-    }
+    localStorage.removeItem('authUser');
+    localStorage.removeItem('authToken');
     setLoading(false);
   }, []);
 
-  // Update localStorage when user changes
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('authUser', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('authUser');
-    }
-  }, [user]);
-
   const logout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
     setUser(null);
   };
 

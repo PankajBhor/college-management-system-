@@ -7,6 +7,7 @@ public class LoginResponseDTO {
     private String role;
     private String token;
     private String departmentCode;
+    private String accessPages;
 
     // Constructor
     public LoginResponseDTO() {}
@@ -64,6 +65,14 @@ public class LoginResponseDTO {
 
     public void setDepartmentCode(String departmentCode) {
         this.departmentCode = departmentCode;
+    }
+
+    public String getAccessPages() {
+        return accessPages;
+    }
+
+    public void setAccessPages(String accessPages) {
+        this.accessPages = accessPages;
     }
 }
 

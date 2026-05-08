@@ -29,6 +29,7 @@ public class DataInitializer {
         return args -> {
             migrateLegacyPlainTextPasswords(userRepository, passwordEncoder);
 
+            seedUser(userRepository, passwordEncoder, "System Admin", "admin@college.com", "ADMIN", null, defaultUserPassword);
             seedUser(userRepository, passwordEncoder, "Dr. Pankaj Sharma", "principal@college.com", "PRINCIPAL", null, defaultUserPassword);
             seedUser(userRepository, passwordEncoder, "Priya Office", "office@college.com", "OFFICE_STAFF", null, defaultUserPassword);
             seedUser(userRepository, passwordEncoder, "Rahul Enquiry", "enquiry@college.com", "ENQUIRY_STAFF", null, defaultUserPassword);

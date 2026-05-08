@@ -244,7 +244,8 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const selectedProgramName = formData.program || '_____________';
+  const cleanProgramName = (program) => String(program || '').replace(/^\s*\d+\.\s*/, '');
+  const selectedProgramName = cleanProgramName(formData.program) || '_____________';
 
   const dsyDocuments = [
     { key: 'domicileCertificate', label: 'Domicile / Nationality Certificate' },

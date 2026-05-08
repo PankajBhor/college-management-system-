@@ -10,38 +10,17 @@ import StaffManagement from './staff/StaffManagement';
 import AnalysisPage from './analysis/AnalysisPage';
 import HodAdmissionsPage from './hod/HodAdmissionsPage';
 import HodEnquiriesPage from './hod/HodEnquiriesPage';
+import { canAccessPage } from '../data/menuData';
 import { COLORS, SPACING, SHADOWS } from '../utils/designSystem';
 
 const DashboardLayout = ({ user, onLogout }) => {
   const [activePage, setActivePage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Check if user has access to a page
-  const canAccessPage = (page) => {
-    const allowedPages = {
-      'enquiries': ['PRINCIPAL', 'ENQUIRY_STAFF', 'ACADEMIC_COORDINATOR'],
-      'new-enquiry': ['PRINCIPAL', 'ENQUIRY_STAFF'],
-      'update-enquiry': ['PRINCIPAL', 'ENQUIRY_STAFF'],
-      'dashboard': ['PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'FACULTY', 'HOD', 'ACADEMIC_COORDINATOR'],
-      'students': ['PRINCIPAL', 'OFFICE_STAFF', 'FACULTY', 'HOD'],
-      'fees': ['PRINCIPAL', 'OFFICE_STAFF'],
-      'courses': ['PRINCIPAL', 'FACULTY', 'HOD'],
-      'admissions': ['PRINCIPAL', 'OFFICE_STAFF', 'ACADEMIC_COORDINATOR'],
-      'department': ['HOD'],
-      'hod-admissions': ['HOD'],
-      'hod-enquiries': ['HOD'],
-      'analysis': ['PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'],
-      'staff': ['PRINCIPAL']
-    };
-
-    const allowed = allowedPages[page] || [];
-    return allowed.includes(user?.role);
-  };
-
   // Render the appropriate page based on activePage
   const renderPage = () => {
     // Security: Check if user has access
-    if (!canAccessPage(activePage)) {
+    if (!canAccessPage(user, activePage)) {
       return <Dashboard user={user} />;
     }
 
@@ -63,7 +42,7 @@ const DashboardLayout = ({ user, onLogout }) => {
       case 'analysis':
         return <AnalysisPage user={user} />;
       case 'staff':
-        return <StaffManagement />;
+        return <StaffManagement currentUser={user} />;
       case 'students':
         return (
           <div>
@@ -168,6 +147,7 @@ const DashboardLayout = ({ user, onLogout }) => {
         onNavigate={setActivePage}
         currentPage={activePage}
         userRole={user?.role}
+        user={user}
         isOpen={sidebarOpen}
         onOpenChange={setSidebarOpen}
       />

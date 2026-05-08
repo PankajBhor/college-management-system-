@@ -144,7 +144,7 @@ function EnquiryIndex() {
   };
 
   // Check if user is enquiry staff or principal
-  const canAddEnquiry = user && (user.role === 'ENQUIRY_STAFF' || user.role === 'PRINCIPAL');
+  const canAddEnquiry = user && ['ADMIN', 'ENQUIRY_STAFF', 'PRINCIPAL'].includes(user.role);
 
   return (
     <div>

@@ -203,7 +203,8 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const selectedProgramName = formData.program || '_____________';
+  const cleanProgramName = (program) => String(program || '').replace(/^\s*\d+\.\s*/, '');
+  const selectedProgramName = cleanProgramName(formData.program) || '_____________';
 
   const fyDocuments = [
     { key: 'domicileCertificate', label: 'Domicile / Nationality Certificate' },

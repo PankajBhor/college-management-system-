@@ -4,6 +4,7 @@ package com.college.colllege_backend.enums;
  * User role enumeration
  */
 public enum UserRole {
+    ADMIN("Admin"),
     PRINCIPAL("Principal"),
     OFFICE_STAFF("Office Staff"),
     HOD("Head of Department"),

@@ -22,9 +22,14 @@ export async function createUser(user) {
   return response.data;
 }
 
+export async function updateUser(id, user) {
+  const response = await API_INSTANCE.put(`/users/${id}`, user);
+  return response.data;
+}
+
 export async function deleteUser(id) {
   await API_INSTANCE.delete(`/users/${id}`);
 }
 
-const userService = { getUsers, createUser, deleteUser };
+const userService = { getUsers, createUser, updateUser, deleteUser };
 export default userService;

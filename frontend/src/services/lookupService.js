@@ -60,16 +60,19 @@ export async function getAllEducationalQualifications() {
 
 export async function getAllBranches() {
   const response = await API_INSTANCE.get('/courses');
-  return (response.data || []).map(course => ({
-    id: course.id,
-    code: course.code,
-    name: course.name,
-    branchCode: course.code,
-    branchName: course.name,
-    duration: course.duration,
-    value: course.name,
-    label: `${course.code}. ${course.name}`
-  }));
+  return (response.data || [])
+    .slice()
+    .sort((a, b) => Number(a.code) - Number(b.code) || String(a.code).localeCompare(String(b.code)))
+    .map(course => ({
+      id: course.id,
+      code: course.code,
+      name: course.name,
+      branchCode: course.code,
+      branchName: course.name,
+      duration: course.duration,
+      value: course.name,
+      label: `${course.code}. ${course.name}`
+    }));
 }
 
 export function getOptionValue(option) {

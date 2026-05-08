@@ -133,7 +133,7 @@ export async function getDashboardMetrics(role) {
     };
   }
 
-  if (normalizedRole === 'PRINCIPAL') {
+  if (normalizedRole === 'ADMIN' || normalizedRole === 'PRINCIPAL') {
     const [admissions, enquiries, academics] = await Promise.all([
       buildAdmissionStats(),
       buildEnquiryStats(),
@@ -141,7 +141,7 @@ export async function getDashboardMetrics(role) {
     ]);
 
     return {
-      title: 'Principal Dashboard',
+      title: normalizedRole === 'ADMIN' ? 'Admin Dashboard' : 'Principal Dashboard',
       subtitle: 'Institution overview from database records',
       stats: [
         stat('Total Admissions', admissions.totalAdmissions, 'Adm', CARD_COLORS.primary),

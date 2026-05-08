@@ -88,7 +88,7 @@ const ChartCard = ({ title, rows }) => {
 };
 
 const AnalysisPage = ({ user }) => {
-  const [tab, setTab] = useState('admissions');
+  const [tab, setTab] = useState(user?.role === 'ENQUIRY_STAFF' ? 'enquiries' : 'admissions');
   const [data, setData] = useState({ admissions: [], enquiries: [], department: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -106,8 +106,8 @@ const AnalysisPage = ({ user }) => {
           if (mounted) setData({ admissions: [...(overview.fyAdmissions || []), ...(overview.dsyAdmissions || [])], enquiries: overview.enquiries || [], department: overview.department });
           return;
         }
-        const canAdmissions = ['PRINCIPAL', 'OFFICE_STAFF', 'ACADEMIC_COORDINATOR'].includes(user?.role);
-        const canEnquiries = ['PRINCIPAL', 'ENQUIRY_STAFF', 'ACADEMIC_COORDINATOR'].includes(user?.role);
+        const canAdmissions = ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'ACADEMIC_COORDINATOR'].includes(user?.role);
+        const canEnquiries = ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF', 'ACADEMIC_COORDINATOR'].includes(user?.role);
         const admissionRequest = canAdmissions ? Promise.all([admissionService.getAllFYAdmissions(0, 500), admissionService.getAllDSYAdmissions(0, 500)]) : Promise.resolve([[], []]);
         const enquiryRequest = canEnquiries ? getAllEnquiries(0, 500) : Promise.resolve([]);
         const [[fy, dsy], enquiries] = await Promise.all([admissionRequest, enquiryRequest]);
@@ -122,6 +122,10 @@ const AnalysisPage = ({ user }) => {
     return () => { mounted = false; };
   }, [user?.role]);
 
+  useEffect(() => {
+    if (user?.role === 'ENQUIRY_STAFF') setTab('enquiries');
+  }, [user?.role]);
+
   const admissionRows = {
     status: rowsFrom(countBy(data.admissions, item => item.status)),
     category: rowsFrom(countBy(data.admissions, item => item.category)),
@@ -134,8 +138,8 @@ const AnalysisPage = ({ user }) => {
     admissionFor: rowsFrom(countBy(data.enquiries, item => item.admissionFor)),
     location: rowsFrom(countBy(data.enquiries, item => item.location))
   };
-  const canSeeAdmissions = data.admissions.length > 0 || ['PRINCIPAL', 'OFFICE_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'].includes(user?.role);
-  const canSeeEnquiries = data.enquiries.length > 0 || ['PRINCIPAL', 'ENQUIRY_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'].includes(user?.role);
+  const canSeeAdmissions = data.admissions.length > 0 || ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'].includes(user?.role);
+  const canSeeEnquiries = data.enquiries.length > 0 || ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'].includes(user?.role);
   const admissionFields = chartableFields(data.admissions);
   const enquiryFields = chartableFields(data.enquiries);
   const customRows = tab === 'admissions'

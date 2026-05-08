@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { menuConfig } from '../data/menuData';
+import { allMenuItems, canAccessPage, menuConfig, parseAccessPages } from '../data/menuData';
 import { COLORS, TYPOGRAPHY, SPACING, SHADOWS, BORDER_RADIUS } from '../utils/designSystem';
 
-const Sidebar = ({ onNavigate, currentPage, userRole, isOpen, onOpenChange }) => {
+const Sidebar = ({ onNavigate, currentPage, userRole, user, isOpen, onOpenChange }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const menus = menuConfig[userRole] || [];
+  const sourceMenus = parseAccessPages(user?.accessPages) ? allMenuItems : (menuConfig[userRole] || []);
+  const menus = sourceMenus.filter(menu => canAccessPage(user || { role: userRole }, menu.page));
   const showSidebar = isOpen || isHovered;
 
   return (

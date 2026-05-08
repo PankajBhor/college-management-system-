@@ -42,6 +42,9 @@ public class User {
     @Column(name = "department_code")
     private String departmentCode;
 
+    @Column(name = "access_pages", length = 1000)
+    private String accessPages;
+
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
@@ -106,6 +109,14 @@ public class User {
 
     public void setDepartmentCode(String departmentCode) {
         this.departmentCode = departmentCode;
+    }
+
+    public String getAccessPages() {
+        return accessPages;
+    }
+
+    public void setAccessPages(String accessPages) {
+        this.accessPages = accessPages;
     }
 
     public LocalDateTime getCreatedAt() {
