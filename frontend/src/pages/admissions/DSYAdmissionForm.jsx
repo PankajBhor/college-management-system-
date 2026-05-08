@@ -23,6 +23,55 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
   const [qualificationOptions, setQualificationOptions] = useState([]);
   const [branchToCodeMap, setBranchToCodeMap] = useState({});
   const [codeToDisplayMap, setCodeToDisplayMap] = useState({});
+  const dsyFieldDefaults = {
+    applicantFirstName: '',
+    applicantMiddleName: '',
+    applicantLastName: '',
+    fatherFirstName: '',
+    fatherMiddleName: '',
+    fatherLastName: '',
+    motherFirstName: '',
+    motherMiddleName: '',
+    motherLastName: '',
+    localAddress: '',
+    localTal: '',
+    localDist: '',
+    localPinCode: '',
+    permanentAddress: '',
+    permanentTal: '',
+    permanentDist: '',
+    permanentPinCode: '',
+    annualIncome: '',
+    mobileNo: '',
+    studentEmail: '',
+    gender: '',
+    dateOfBirth: '',
+    bloodGroup: '',
+    aadhaarNo: '',
+    educationalQualification: '',
+    instituteName: '',
+    previousProgramCode: '',
+    previousCGPA: '',
+    scienceMarks: '',
+    program: '',
+    category: '',
+    caste: '',
+    physicallyHandicapped: 'No',
+    admissionType: 'CAP-1',
+    preference1: '',
+    preference2: '',
+    preference3: '',
+    preference4: '',
+    status: ''
+  };
+
+  const normalizeFormData = (data = {}) => {
+    const normalized = { ...dsyFieldDefaults };
+    Object.keys(normalized).forEach(key => {
+      normalized[key] = data[key] ?? normalized[key];
+    });
+    return normalized;
+  };
 
   // Fetch branches from database on component mount
   useEffect(() => {
@@ -108,7 +157,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
 
   const initialFormData = () => {
     if (editAdmission) {
-      return { ...editAdmission };
+      return normalizeFormData(editAdmission);
     }
     if (prefilledEnquiry) {
       // Get branch preferences from enquiry
@@ -187,47 +236,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
       };
     }
 
-    return {
-      applicantFirstName: '',
-      applicantMiddleName: '',
-      applicantLastName: '',
-      fatherFirstName: '',
-      fatherMiddleName: '',
-      fatherLastName: '',
-      motherFirstName: '',
-      motherMiddleName: '',
-      motherLastName: '',
-      localAddress: '',
-      localTal: '',
-      localDist: '',
-      localPinCode: '',
-      permanentAddress: '',
-      permanentTal: '',
-      permanentDist: '',
-      permanentPinCode: '',
-      occupation: '',
-      annualIncome: '',
-      mobileNo: '',
-      studentEmail: '',
-      gender: '',
-      dateOfBirth: '',
-      bloodGroup: '',
-      aadhaarNo: '',
-      educationalQualification: '',
-      instituteName: '',
-      previousProgramCode: '',
-      previousCGPA: '',
-      scienceMarks: '',
-      program: '',
-      category: '',
-      caste: '',
-      physicallyHandicapped: 'No',
-      admissionType: 'CAP-1',
-      preference1: '',
-      preference2: '',
-      preference3: '',
-      preference4: ''
-    };
+    return normalizeFormData();
   };
   const [formData, setFormData] = useState(initialFormData);
 
@@ -274,25 +283,26 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
 
   const validateForm = () => {
     const newErrors = {};
+    const text = (field) => String(formData[field] ?? '').trim();
 
-    if (!formData.applicantFirstName.trim()) newErrors.applicantFirstName = 'First name is required';
-    if (!formData.applicantLastName.trim()) newErrors.applicantLastName = 'Last name is required';
-    if (!formData.fatherFirstName.trim()) newErrors.fatherFirstName = 'Father first name is required';
-    if (!formData.motherFirstName.trim()) newErrors.motherFirstName = 'Mother first name is required';
-    if (!formData.localTal.trim()) newErrors.localTal = 'Local taluka is required';
-    if (!formData.localDist.trim()) newErrors.localDist = 'Local district is required';
-    if (!formData.localPinCode.trim()) newErrors.localPinCode = 'Local pin code is required';
-    if (!formData.permanentTal.trim()) newErrors.permanentTal = 'Permanent taluka is required';
-    if (!formData.permanentDist.trim()) newErrors.permanentDist = 'Permanent district is required';
-    if (!formData.permanentPinCode.trim()) newErrors.permanentPinCode = 'Permanent pin code is required';
-    if (!formData.aadhaarNo.trim()) newErrors.aadhaarNo = 'Aadhaar number is required';
+    if (!text('applicantFirstName')) newErrors.applicantFirstName = 'First name is required';
+    if (!text('applicantLastName')) newErrors.applicantLastName = 'Last name is required';
+    if (!text('fatherFirstName')) newErrors.fatherFirstName = 'Father first name is required';
+    if (!text('motherFirstName')) newErrors.motherFirstName = 'Mother first name is required';
+    if (!text('localTal')) newErrors.localTal = 'Local taluka is required';
+    if (!text('localDist')) newErrors.localDist = 'Local district is required';
+    if (!text('localPinCode')) newErrors.localPinCode = 'Local pin code is required';
+    if (!text('permanentTal')) newErrors.permanentTal = 'Permanent taluka is required';
+    if (!text('permanentDist')) newErrors.permanentDist = 'Permanent district is required';
+    if (!text('permanentPinCode')) newErrors.permanentPinCode = 'Permanent pin code is required';
+    if (!text('aadhaarNo')) newErrors.aadhaarNo = 'Aadhaar number is required';
     if (!formData.educationalQualification) newErrors.educationalQualification = 'Qualification is required';
-    if (!formData.instituteName.trim()) newErrors.instituteName = 'Institute name is required';
+    if (!text('instituteName')) newErrors.instituteName = 'Institute name is required';
     if (!formData.category) newErrors.category = 'Category is required';
-    if (!formData.localAddress.trim()) newErrors.localAddress = 'Local address is required';
-    if (!formData.permanentAddress.trim()) newErrors.permanentAddress = 'Permanent address is required';
-    if (!formData.mobileNo.match(/^[0-9]{10}$/)) newErrors.mobileNo = 'Mobile number must be 10 digits';
-    if (!formData.studentEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newErrors.studentEmail = 'Invalid email';
+    if (!text('localAddress')) newErrors.localAddress = 'Local address is required';
+    if (!text('permanentAddress')) newErrors.permanentAddress = 'Permanent address is required';
+    if (!text('mobileNo').match(/^[0-9]{10}$/)) newErrors.mobileNo = 'Mobile number must be 10 digits';
+    if (!text('studentEmail').match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newErrors.studentEmail = 'Invalid email';
     if (!formData.gender) newErrors.gender = 'Gender is required';
     if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
     if (!formData.program) newErrors.program = 'Program selection is required';
@@ -301,6 +311,8 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const getSubmissionData = () => normalizeFormData(formData);
 
   const handleDocumentUpload = (e, documentKey) => {
     const file = e.target.files[0];
@@ -361,9 +373,9 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
     setLoading(true);
     try {
       if (editAdmission?.id) {
-        await admissionService.updateDSYAdmissionWithDocuments(editAdmission.id, formData, documents);
+        await admissionService.updateDSYAdmissionWithDocuments(editAdmission.id, getSubmissionData(), documents);
       } else {
-        await admissionService.createDSYAdmission(formData, documents);
+        await admissionService.createDSYAdmission(getSubmissionData(), documents);
       }
       setSubmitted(true);
       alert(editAdmission?.id ? 'DSY Admission form updated successfully!' : 'DSY Admission form submitted successfully!');

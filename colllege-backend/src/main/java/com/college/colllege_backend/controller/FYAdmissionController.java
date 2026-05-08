@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.college.colllege_backend.dto.FYAdmissionRequestDTO;
 import com.college.colllege_backend.entity.FYAdmission;
+import com.college.colllege_backend.service.AdmissionPdfService;
 import com.college.colllege_backend.service.FYAdmissionService;
 import com.college.colllege_backend.service.FileStorageService;
 import com.college.colllege_backend.service.impl.FYAdmissionServiceImpl;
@@ -49,6 +51,9 @@ public class FYAdmissionController {
 
     @Autowired
     private FileStorageService fileStorageService;
+
+    @Autowired
+    private AdmissionPdfService admissionPdfService;
 
     @Autowired
     private com.college.colllege_backend.service.EmailService emailService;
@@ -186,6 +191,17 @@ public class FYAdmissionController {
     public ResponseEntity<FYAdmission> getFYAdmissionById(@PathVariable Long id) {
         FYAdmission admission = fyAdmissionService.getFYAdmissionById(id);
         return ResponseEntity.ok(admission);
+    }
+
+    @GetMapping(value = "/{id}/admission-form.pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> downloadAdmissionFormPdf(@PathVariable Long id) {
+        FYAdmission admission = fyAdmissionService.getFYAdmissionById(id);
+        byte[] pdf = admissionPdfService.generateFYAdmissionForm(admission);
+        String fileName = "FY_Admission_Form_" + id + ".pdf";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     @GetMapping

@@ -20,6 +20,51 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
   const [yesNoOptions, setYesNoOptions] = useState([]);
   const [admissionRoundOptions, setAdmissionRoundOptions] = useState([]);
   const [branchMap, setBranchMap] = useState({});
+  const fyFieldDefaults = {
+    applicantFirstName: '',
+    applicantMiddleName: '',
+    applicantLastName: '',
+    fatherFirstName: '',
+    fatherMiddleName: '',
+    fatherLastName: '',
+    motherFirstName: '',
+    motherMiddleName: '',
+    motherLastName: '',
+    villageCity: '',
+    tal: '',
+    dist: '',
+    pinCode: '',
+    occupation: '',
+    mobileNo: '',
+    studentEmail: '',
+    gender: '',
+    dateOfBirth: '',
+    bloodGroup: '',
+    aadhaarNo: '',
+    schoolName: '',
+    yop: '',
+    marksObtained: '',
+    totalMarks: '',
+    englishMarks: '',
+    mathMarks: '',
+    scienceMarks: '',
+    bestOfFiveMarks: '',
+    program: '',
+    category: '',
+    caste: '',
+    annualIncome: '',
+    physicallyHandicapped: 'No',
+    admissionType: 'CAP-1',
+    status: ''
+  };
+
+  const normalizeFormData = (data = {}) => {
+    const normalized = { ...fyFieldDefaults };
+    Object.keys(normalized).forEach(key => {
+      normalized[key] = data[key] ?? normalized[key];
+    });
+    return normalized;
+  };
 
   // Fetch branches from database on component mount
   useEffect(() => {
@@ -92,7 +137,7 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
 
   const initialFormData = () => {
     if (editAdmission) {
-      return { ...editAdmission };
+      return normalizeFormData(editAdmission);
     }
     if (prefilledEnquiry) {
       // Get first branch preference if available
@@ -147,42 +192,7 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
       };
     }
 
-    return {
-      applicantFirstName: '',
-      applicantMiddleName: '',
-      applicantLastName: '',
-      fatherFirstName: '',
-      fatherMiddleName: '',
-      fatherLastName: '',
-      motherFirstName: '',
-      motherMiddleName: '',
-      motherLastName: '',
-      villageCity: '',
-      tal: '',
-      dist: '',
-      pinCode: '',
-      occupation: '',
-      mobileNo: '',
-      studentEmail: '',
-      gender: '',
-      dateOfBirth: '',
-      bloodGroup: '',
-      aadhaarNo: '',
-      schoolName: '',
-      yop: '',
-      marksObtained: '',
-      totalMarks: '',
-      englishMarks: '',
-      mathMarks: '',
-      scienceMarks: '',
-      bestOfFiveMarks: '',
-      program: '',
-      category: '',
-      caste: '',
-      annualIncome: '',
-      physicallyHandicapped: 'No',
-      admissionType: 'CAP-1'
-    };
+    return normalizeFormData();
   };
   const [formData, setFormData] = useState(initialFormData);
 
@@ -257,24 +267,25 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
 
   const validateForm = () => {
     const newErrors = {};
+    const text = (field) => String(formData[field] ?? '').trim();
     
-    if (!formData.applicantFirstName.trim()) newErrors.applicantFirstName = 'First name is required';
-    if (!formData.applicantLastName.trim()) newErrors.applicantLastName = 'Last name is required';
-    if (!formData.fatherFirstName.trim()) newErrors.fatherFirstName = 'Father first name is required';
-    if (!formData.motherFirstName.trim()) newErrors.motherFirstName = 'Mother first name is required';
-    if (!formData.tal.trim()) newErrors.tal = 'Taluka is required';
-    if (!formData.dist.trim()) newErrors.dist = 'District is required';
-    if (!formData.pinCode.trim()) newErrors.pinCode = 'Pin code is required';
-    if (!formData.occupation.trim()) newErrors.occupation = 'Occupation is required';
-    if (!formData.aadhaarNo.trim()) newErrors.aadhaarNo = 'Aadhaar number is required';
-    if (!formData.schoolName.trim()) newErrors.schoolName = 'School name is required';
+    if (!text('applicantFirstName')) newErrors.applicantFirstName = 'First name is required';
+    if (!text('applicantLastName')) newErrors.applicantLastName = 'Last name is required';
+    if (!text('fatherFirstName')) newErrors.fatherFirstName = 'Father first name is required';
+    if (!text('motherFirstName')) newErrors.motherFirstName = 'Mother first name is required';
+    if (!text('tal')) newErrors.tal = 'Taluka is required';
+    if (!text('dist')) newErrors.dist = 'District is required';
+    if (!text('pinCode')) newErrors.pinCode = 'Pin code is required';
+    if (!text('occupation')) newErrors.occupation = 'Occupation is required';
+    if (!text('aadhaarNo')) newErrors.aadhaarNo = 'Aadhaar number is required';
+    if (!text('schoolName')) newErrors.schoolName = 'School name is required';
     if (!formData.yop) newErrors.yop = 'Year of passing is required';
     if (!formData.totalMarks) newErrors.totalMarks = 'Total marks is required';
     if (!formData.marksObtained) newErrors.marksObtained = 'Marks obtained is required';
     if (!formData.category) newErrors.category = 'Category is required';
-    if (!formData.villageCity.trim()) newErrors.villageCity = 'Village/City is required';
-    if (!formData.mobileNo.match(/^[0-9]{10}$/)) newErrors.mobileNo = 'Mobile number must be 10 digits';
-    if (!formData.studentEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newErrors.studentEmail = 'Invalid email';
+    if (!text('villageCity')) newErrors.villageCity = 'Village/City is required';
+    if (!text('mobileNo').match(/^[0-9]{10}$/)) newErrors.mobileNo = 'Mobile number must be 10 digits';
+    if (!text('studentEmail').match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newErrors.studentEmail = 'Invalid email';
     if (!formData.gender) newErrors.gender = 'Gender is required';
     if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
     if (!formData.program) newErrors.program = 'Program selection is required';
@@ -283,6 +294,8 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const getSubmissionData = () => normalizeFormData(formData);
 
 
   const downloadUndertaking = () => {
@@ -325,9 +338,9 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
     setLoading(true);
     try {
       if (editAdmission?.id) {
-        await admissionService.updateFYAdmissionWithDocuments(editAdmission.id, formData, documents);
+        await admissionService.updateFYAdmissionWithDocuments(editAdmission.id, getSubmissionData(), documents);
       } else {
-        await admissionService.createFYAdmission(formData, documents);
+        await admissionService.createFYAdmission(getSubmissionData(), documents);
       }
       setSubmitted(true);
       alert(editAdmission?.id ? 'FY Admission form updated successfully!' : 'FY Admission form submitted successfully!');

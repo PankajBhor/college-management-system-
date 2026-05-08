@@ -109,6 +109,8 @@ public class SecurityConfig {
                 // Admission form creation - PUBLIC (students can submit admissions)
                 .requestMatchers(HttpMethod.POST, "/api/admissions/fy").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/admissions/dsy").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/admissions/fy/*/admission-form.pdf").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/admissions/dsy/*/admission-form.pdf").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/hod/**").hasAnyRole("HOD", "ADMIN")
                 // Enquiry list/view - Staff only
                 .requestMatchers(HttpMethod.GET, "/api/enquiries/**").access(hasRoleOrPage("enquiries", "ADMIN", "ENQUIRY_STAFF", "PRINCIPAL", "OFFICE_STAFF", "ACADEMIC_COORDINATOR"))

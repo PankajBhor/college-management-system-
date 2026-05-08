@@ -188,6 +188,17 @@ export async function deleteFYAdmission(id) {
   }
 }
 
+export async function downloadFYAdmissionFormPdf(id) {
+  try {
+    const response = await API_INSTANCE.get(`/admissions/fy/${id}/admission-form.pdf`, {
+      responseType: 'blob'
+    });
+    downloadBlob(response.data, `FY_Admission_Form_${id}.pdf`);
+  } catch (error) {
+    throw await normalizePdfDownloadError(error);
+  }
+}
+
 // ========== DSY ADMISSION ENDPOINTS ==========
 
 /**
@@ -333,6 +344,42 @@ export async function deleteDSYAdmission(id) {
   }
 }
 
+export async function downloadDSYAdmissionFormPdf(id) {
+  try {
+    const response = await API_INSTANCE.get(`/admissions/dsy/${id}/admission-form.pdf`, {
+      responseType: 'blob'
+    });
+    downloadBlob(response.data, `DSY_Admission_Form_${id}.pdf`);
+  } catch (error) {
+    throw await normalizePdfDownloadError(error);
+  }
+}
+
+const downloadBlob = (blob, fileName) => {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+const normalizePdfDownloadError = async (error) => {
+  const data = error.response?.data;
+  if (data instanceof Blob) {
+    try {
+      const text = await data.text();
+      const parsed = JSON.parse(text);
+      return new Error(parsed.message || parsed.error || 'Unable to download admission form PDF');
+    } catch {
+      return new Error('Unable to download admission form PDF');
+    }
+  }
+  return error;
+};
+
 // ========== DOCUMENT CHECKLIST ENDPOINTS ==========
 
 /**
@@ -372,6 +419,7 @@ export const admissionService = {
   updateFYAdmission,
   updateFYAdmissionWithDocuments,
   deleteFYAdmission,
+  downloadFYAdmissionFormPdf,
   
   // DSY Admissions
   createDSYAdmission,
@@ -382,6 +430,7 @@ export const admissionService = {
   updateDSYAdmission,
   updateDSYAdmissionWithDocuments,
   deleteDSYAdmission,
+  downloadDSYAdmissionFormPdf,
   
   // Documents
   getDocuments,

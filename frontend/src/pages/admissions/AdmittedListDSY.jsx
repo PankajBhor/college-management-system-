@@ -17,6 +17,7 @@ const AdmittedListDSY = ({
 }) => {
   const [selectedAdmissionId, setSelectedAdmissionId] = useState(null);
   const [savingStatusId, setSavingStatusId] = useState(null);
+  const [downloadingPdfId, setDownloadingPdfId] = useState(null);
 
   // Clean program name - remove number prefix
   const cleanProgramName = (program) => {
@@ -94,6 +95,22 @@ const AdmittedListDSY = ({
     }
   };
 
+  const downloadAdmissionPdf = async (admission) => {
+    const docStatus = getDocumentStatus(admission);
+    if (!docStatus.isComplete) {
+      setSelectedAdmissionId(admission.id);
+      return;
+    }
+    setDownloadingPdfId(admission.id);
+    try {
+      await admissionService.downloadDSYAdmissionFormPdf(admission.id);
+    } catch (error) {
+      alert(error.message || error.response?.data?.message || 'Unable to download admission form PDF');
+    } finally {
+      setDownloadingPdfId(null);
+    }
+  };
+
   return (
     <div style={{
       background: 'white',
@@ -105,7 +122,7 @@ const AdmittedListDSY = ({
       <div style={{ overflow: 'auto', maxHeight: '70vh', scrollbarGutter: 'stable' }}>
       <table style={{
         width: '100%',
-        minWidth: '900px',
+        minWidth: '1040px',
         borderCollapse: 'collapse'
       }}>
         <thead style={{
@@ -153,6 +170,7 @@ const AdmittedListDSY = ({
                 </select>
               </div>}
             </th>
+            <th style={{ padding: '16px 15px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>PDF</th>
           </tr>
         </thead>
         <tbody>
@@ -250,6 +268,27 @@ const AdmittedListDSY = ({
                       {docStatus.submitted}/{docStatus.total}
                     </span>
                   </div>
+                </td>
+                <td style={{ padding: '14px 15px', textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => downloadAdmissionPdf(admission)}
+                    disabled={downloadingPdfId === admission.id}
+                    title={docStatus.isComplete ? 'Download admission form PDF' : 'Complete all documents before downloading'}
+                    style={{
+                      padding: '7px 12px',
+                      background: docStatus.isComplete ? '#175cd3' : '#e5e7eb',
+                      color: docStatus.isComplete ? '#ffffff' : '#6b7280',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: downloadingPdfId === admission.id ? 'wait' : 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {downloadingPdfId === admission.id ? 'Preparing...' : 'Download PDF'}
+                  </button>
                 </td>
               </tr>
             );
