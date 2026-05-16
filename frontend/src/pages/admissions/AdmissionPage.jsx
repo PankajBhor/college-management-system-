@@ -45,7 +45,9 @@ const AdmissionPage = () => {
     documentStatus: '',
     admissionType: '',
     phone: '',
-    sortPercentage: ''
+    sortPercentage: '',
+    percentageMin: '',
+    percentageMax: ''
   });
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportFields, setExportFields] = useState([
@@ -134,16 +136,21 @@ const AdmissionPage = () => {
         if (filters.documentStatus === 'complete' && !docStatus.isComplete) return false;
         if (filters.documentStatus === 'pending' && docStatus.isComplete) return false;
       }
+      if (filters.sortPercentage === 'range') {
+        const percent = Number(a.bestOfFiveMarks || a.marksObtained || a.scienceMarks || a.previousCGPA || 0);
+        if (filters.percentageMin !== '' && percent < Number(filters.percentageMin)) return false;
+        if (filters.percentageMax !== '' && percent > Number(filters.percentageMax)) return false;
+      }
       return true;
     });
   };
 
   const sortByPercentage = (rows) => {
     const sorted = [...rows];
-    if (!filters.sortPercentage) return sorted;
+    if (!filters.sortPercentage || filters.sortPercentage === 'range') return sorted;
     sorted.sort((a, b) => {
-      const aPercent = Number(a.bestOfFiveMarks || a.marksObtained || a.scienceMarks || 0);
-      const bPercent = Number(b.bestOfFiveMarks || b.marksObtained || b.scienceMarks || 0);
+      const aPercent = Number(a.bestOfFiveMarks || a.marksObtained || a.scienceMarks || a.previousCGPA || 0);
+      const bPercent = Number(b.bestOfFiveMarks || b.marksObtained || b.scienceMarks || b.previousCGPA || 0);
       return filters.sortPercentage === 'asc' ? aPercent - bPercent : bPercent - aPercent;
     });
     return sorted;
@@ -332,7 +339,9 @@ const AdmissionPage = () => {
                   documentStatus: '',
                   admissionType: '',
                   phone: '',
-                  sortPercentage: ''
+                  sortPercentage: '',
+                  percentageMin: '',
+                  percentageMax: ''
                 })}
                 style={{
                   padding: '10px 18px',

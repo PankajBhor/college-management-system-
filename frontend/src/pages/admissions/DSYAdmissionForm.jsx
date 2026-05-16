@@ -253,6 +253,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [submittedAdmissionId, setSubmittedAdmissionId] = useState(null);
   const cleanProgramName = (program) => String(program || '').replace(/^\s*\d+\.\s*/, '');
   const selectedProgramName = cleanProgramName(formData.program) || '_____________';
 
@@ -347,7 +348,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
   };
 
 
-  const downloadUndertaking = () => {
+  const buildUndertakingPdf = () => {
     const fullName = `${formData.applicantFirstName} ${formData.applicantMiddleName || ''} ${formData.applicantLastName}`.replace(/\s+/g, ' ').trim();
     const doc = new jsPDF();
     const lines = [
@@ -373,7 +374,12 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
       'Date: ____________________'
     ];
     doc.text(lines, 14, 18);
-    doc.save(`DSY_undertaking_${fullName || 'student'}.pdf`);
+    return { doc, fullName };
+  };
+
+  const buildUndertakingFile = () => {
+    const { doc, fullName } = buildUndertakingPdf();
+    return new File([doc.output('blob')], `DSY_undertaking_${fullName || 'student'}.pdf`, { type: 'application/pdf' });
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -385,19 +391,18 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
 
     setLoading(true);
     try {
+      const submissionDocuments = { ...documents, undertakingForm: documents.undertakingForm || buildUndertakingFile() };
       if (editAdmission?.id) {
-        await admissionService.updateDSYAdmissionWithDocuments(editAdmission.id, getSubmissionData(), documents);
+        await admissionService.updateDSYAdmissionWithDocuments(editAdmission.id, getSubmissionData(), submissionDocuments);
+        setSubmittedAdmissionId(editAdmission.id);
       } else {
-        await admissionService.createDSYAdmission(getSubmissionData(), documents);
+        const savedAdmission = await admissionService.createDSYAdmission(getSubmissionData(), submissionDocuments);
+        setSubmittedAdmissionId(savedAdmission.id);
+        await admissionService.downloadDSYAdmissionFormPdf(savedAdmission.id);
       }
       setSubmitted(true);
       alert(editAdmission?.id ? 'DSY Admission form updated successfully!' : 'DSY Admission form submitted successfully!');
       if (onSaved) await onSaved();
-      if (!editAdmission?.id) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
     } catch (error) {
       alert('Error submitting form: ' + (error.response?.data?.message || error.message));
     } finally {
@@ -411,7 +416,11 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
         <div className="success-card">
           <h2>✓ Form Submitted Successfully</h2>
           <p>Your DSY Admission application has been received.</p>
-          <p>Redirecting...</p>
+          {submittedAdmissionId && (
+            <button type="button" className="btn btn-success" onClick={() => admissionService.downloadDSYAdmissionFormPdf(submittedAdmissionId)}>
+              Download Admission + Anti-ragging PDF
+            </button>
+          )}
         </div>
       </div>
     );
@@ -1022,8 +1031,6 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
         {/* Undertaking Section */}
         <fieldset className="form-section undertaking">
           <legend>Undertakings</legend>
-          <button type="button" className="btn btn-secondary" onClick={downloadUndertaking}>Download Auto-filled Anti-ragging Form</button>
-          
           <div className="undertaking-text">
             <h3>Legal Guardian Undertaking:</h3>
             <p>

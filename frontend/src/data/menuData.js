@@ -101,7 +101,11 @@ export const parseAccessPages = (accessPages) => {
 export const canAccessPage = (user, page) => {
   if (!user) return false;
   const explicitAccess = parseAccessPages(user.accessPages);
-  if (explicitAccess) return explicitAccess.includes(page);
+  if (explicitAccess) {
+    if (explicitAccess.includes(page)) return true;
+    if (explicitAccess.includes('email') && (page === 'email-enquiry' || page === 'email-admission')) return true;
+    return false;
+  }
   return (pageAccess[page] || []).includes(user.role);
 };
 

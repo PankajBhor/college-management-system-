@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Pagination from '../../components/Pagination';
+import ColumnVisibilityMenu from '../../components/ColumnVisibilityMenu';
 import { admissionService } from '../../services/admissionService';
 
 const AdmittedListFY = ({
@@ -18,6 +19,20 @@ const AdmittedListFY = ({
   const [selectedAdmissionId, setSelectedAdmissionId] = useState(null);
   const [savingStatusId, setSavingStatusId] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+  const columns = [
+    { key: 'sNo', label: 'S.No' },
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'program', label: 'Program' },
+    { key: 'admissionType', label: 'Admission Type' },
+    { key: 'percentage', label: '10th %' },
+    { key: 'status', label: 'Status' },
+    { key: 'documents', label: 'Documents' },
+    { key: 'pdf', label: 'PDF' }
+  ];
+  const [visibleColumns, setVisibleColumns] = useState(columns.map(column => column.key));
+  const hiddenColumnCss = columns.map((column, index) => visibleColumns.includes(column.key) ? '' : `.fy-admissions-table th:nth-child(${index + 1}), .fy-admissions-table td:nth-child(${index + 1}) { display: none; }`).filter(Boolean).join('\n');
 
   // Clean program name - remove number prefix
   const cleanProgramName = (program) => {
@@ -76,8 +91,6 @@ const AdmittedListFY = ({
         return '#10b981';
       case 'PENDING':
         return '#f59e0b';
-      case 'REJECTED':
-        return '#ef4444';
       default:
         return '#6b7280';
     }
@@ -124,8 +137,10 @@ const AdmittedListFY = ({
       overflow: 'hidden',
       border: '1px solid #f0f0f0'
     }}>
+      <style>{hiddenColumnCss}</style>
+      <ColumnVisibilityMenu columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} />
       <div style={{ overflow: 'auto', maxHeight: '70vh', scrollbarGutter: 'stable' }}>
-      <table style={{
+      <table className="fy-admissions-table" style={{
         width: '100%',
         minWidth: '1040px',
         borderCollapse: 'collapse'
@@ -174,7 +189,14 @@ const AdmittedListFY = ({
                   <option value="">Original</option>
                   <option value="asc">Low to High</option>
                   <option value="desc">High to Low</option>
+                  <option value="range">Range</option>
                 </select>
+                {filters.sortPercentage === 'range' && (
+                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                    <input type="number" step="0.01" min="0" max="100" placeholder="Min" value={filters.percentageMin || ''} onChange={handleFilterChange('percentageMin')} style={{ fontSize: '0.85em', padding: '4px', width: '64px' }} />
+                    <input type="number" step="0.01" min="0" max="100" placeholder="Max" value={filters.percentageMax || ''} onChange={handleFilterChange('percentageMax')} style={{ fontSize: '0.85em', padding: '4px', width: '64px' }} />
+                  </div>
+                )}
               </div>}
             </th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>
@@ -183,8 +205,7 @@ const AdmittedListFY = ({
                 <select value={filters.status} onChange={handleFilterChange('status')} style={{ fontSize: '0.85em', padding: '4px' }}>
                   <option value="">All</option>
                   <option value="PENDING">Pending</option>
-                  <option value="APPROVED">Approved</option>
-                  <option value="REJECTED">Rejected</option>
+                  <option value="APPROVED">Success</option>
                 </select>
               </div>}
             </th>
@@ -254,7 +275,7 @@ const AdmittedListFY = ({
                     border: 0,
                     cursor: savingStatusId === admission.id ? 'wait' : 'pointer'
                   }}>
-                    {savingStatusId === admission.id ? 'Saving...' : (admission.status === 'APPROVED' ? 'COMPLETED' : 'PENDING')}
+                    {savingStatusId === admission.id ? 'Saving...' : (admission.status === 'APPROVED' ? 'SUCCESS' : 'PENDING')}
                   </button>
                 </td>
                 <td style={{ padding: '14px 15px', textAlign: 'center' }}>

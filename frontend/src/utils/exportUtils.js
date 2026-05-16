@@ -127,6 +127,39 @@ export const exportToExcel = (enquiries, selectedFields = null) => {
   }
 };
 
+export const exportProvisionalAdmissionsToExcel = (rows, selectedFields = null) => {
+  try {
+    const fields = selectedFields?.length
+      ? selectedFields
+      : ['sscSeatNo', 'fullName', 'email', 'personalMobileNumber', 'admissionFor', 'category', 'location', 'status'];
+    const labelMap = {
+      sscSeatNo: 'Seat No',
+      fullName: 'Name',
+      email: 'Email',
+      personalMobileNumber: 'Mobile',
+      admissionFor: 'Admission For',
+      category: 'Category',
+      location: 'Location',
+      status: 'Status',
+      referenceFaculty: 'Reference Faculty',
+      branchPriority1: 'Priority 1',
+      branchPriority2: 'Priority 2',
+      branchPriority3: 'Priority 3',
+      branchPriority4: 'Priority 4'
+    };
+    const headers = fields.map(field => labelMap[field] || field);
+    const data = rows.map(row => fields.map(field => {
+      if (field === 'fullName') return `${row.firstName || ''} ${row.middleName ? row.middleName + ' ' : ''}${row.lastName || ''}`.trim();
+      if (field === 'location') return row.location === 'Other' ? row.otherLocation : row.location;
+      return row[field] ?? '';
+    }));
+    downloadCsv('provisional_admissions', headers, data);
+  } catch (error) {
+    console.error('Error exporting provisional admissions:', error);
+    throw new Error('Failed to export provisional admissions');
+  }
+};
+
 const getAdmissionFieldValue = (admission, field, index) => {
   if (field === 'sNo') return index + 1;
   if (field === 'fullName') {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { formatDate } from '../../utils/formatters';
 import enquiryService from '../../services/enquiryService';
 import Pagination from '../../components/Pagination';
+import ColumnVisibilityMenu from '../../components/ColumnVisibilityMenu';
 import { getOptionValue } from '../../services/lookupService';
 
 const EnquiryList = ({
@@ -22,6 +23,19 @@ const EnquiryList = ({
 }) => {
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState('');
+  const columns = [
+    { key: 'sNo', label: 'S.No' },
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'admissionFor', label: 'Admission For' },
+    { key: 'branches', label: 'Branches Interested' },
+    { key: 'location', label: 'Location' },
+    { key: 'category', label: 'Category' },
+    { key: 'status', label: 'Status' },
+    { key: 'date', label: 'Date' }
+  ];
+  const [visibleColumns, setVisibleColumns] = useState(columns.map(column => column.key));
   const locationOptions = lookupOptions.locations || [];
   const categoryOptions = lookupOptions.categories || [];
   const branchOptions = lookupOptions.branches || [];
@@ -35,6 +49,11 @@ const EnquiryList = ({
     };
     return colors[status] || '#f0f0f0';
   };
+
+  const hiddenColumnCss = columns
+    .map((column, index) => visibleColumns.includes(column.key) ? '' : `.enquiry-data-table th:nth-child(${index + 1}), .enquiry-data-table td:nth-child(${index + 1}) { display: none; }`)
+    .filter(Boolean)
+    .join('\n');
 
   const getFullName = (enquiry) => {
     return `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
@@ -123,8 +142,10 @@ const EnquiryList = ({
           ⚠️ {error}
         </div>
       )}
+      <style>{hiddenColumnCss}</style>
+      <ColumnVisibilityMenu columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} />
       <div style={{ overflow: 'auto', maxHeight: '70vh', scrollbarGutter: 'stable' }}>
-      <table style={{
+      <table className="enquiry-data-table" style={{
         width: '100%',
         minWidth: '1150px',
         borderCollapse: 'collapse'

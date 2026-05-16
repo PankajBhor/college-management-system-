@@ -42,6 +42,8 @@ const NewEnquiry = () => {
   const [admissionForOptions, setAdmissionForOptions] = useState([]);
   const [emailPresets, setEmailPresets] = useState([]);
   const [dropdownError, setDropdownError] = useState('');
+  const [facultySearch, setFacultySearch] = useState('');
+  const [locationSearch, setLocationSearch] = useState('');
 
   useEffect(() => {
     async function fetchDropdownData() {
@@ -74,6 +76,8 @@ const NewEnquiry = () => {
   const [showOtherMeritDetails, setShowOtherMeritDetails] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const filteredFacultyOptions = facultyOptions.filter(faculty => (faculty.name || faculty.email || '').toLowerCase().includes(facultySearch.toLowerCase()));
+  const filteredLocationOptions = locationOptions.filter(option => getOptionValue(option).toLowerCase().includes(locationSearch.toLowerCase()));
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -383,6 +387,7 @@ const NewEnquiry = () => {
                 placeholder="0-100"
                 min="0"
                 max="100"
+                step="0.01"
               />
             </div>
             <div style={styles.formGroup}>
@@ -395,6 +400,7 @@ const NewEnquiry = () => {
                 placeholder="0-100"
                 min="0"
                 max="100"
+                step="0.01"
               />
             </div>
             <div style={styles.formGroup}>
@@ -407,6 +413,7 @@ const NewEnquiry = () => {
                 placeholder="0-100"
                 min="0"
                 max="100"
+                step="0.01"
               />
             </div>
             <div style={styles.formGroup}>
@@ -431,6 +438,7 @@ const NewEnquiry = () => {
                 placeholder="0-100"
                 min="0"
                 max="100"
+                step="0.01"
               />
             </div>
             {(showOtherMeritDetails || formData.merit.other || formData.merit.otherDescription) && (
@@ -489,6 +497,13 @@ const NewEnquiry = () => {
           <div style={styles.formGroupRow}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Location *</label>
+              <input
+                type="search"
+                value={locationSearch}
+                onChange={(e) => setLocationSearch(e.target.value)}
+                style={{ ...styles.input, marginBottom: '8px' }}
+                placeholder="Search location"
+              />
               <select
                 name="location"
                 value={formData.location}
@@ -497,7 +512,7 @@ const NewEnquiry = () => {
                 required
               >
                 <option value="">Select location</option>
-                {locationOptions.map(option => (
+                {filteredLocationOptions.map(option => (
                   <option key={option.id || option.code} value={getOptionValue(option)}>{getOptionValue(option)}</option>
                 ))}
               </select>
@@ -605,6 +620,13 @@ const NewEnquiry = () => {
           <h3 style={styles.sectionTitle}>👨‍🏫 Reference Faculty</h3>
           <div style={styles.formGroup}>
             <label style={styles.label}>Reference Faculty</label>
+            <input
+              type="search"
+              value={facultySearch}
+              onChange={(e) => setFacultySearch(e.target.value)}
+              style={{ ...styles.input, marginBottom: '8px' }}
+              placeholder="Search faculty"
+            />
             <select
               name="referenceFaculty"
               value={formData.referenceFaculty}
@@ -612,7 +634,7 @@ const NewEnquiry = () => {
               style={styles.select}
             >
               <option value="">Select faculty</option>
-              {facultyOptions.map(faculty => (
+              {filteredFacultyOptions.map(faculty => (
                 <option key={faculty.id || faculty.employeeId || faculty.email} value={faculty.name || faculty.email}>
                   {faculty.name || faculty.email}
                 </option>
