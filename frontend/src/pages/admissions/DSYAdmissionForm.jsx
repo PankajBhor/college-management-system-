@@ -267,6 +267,19 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
     { key: 'undertakingForm', label: 'Undertaking / Anti-ragging undertaking form' }
   ];
 
+  const dsyDocumentPathMap = {
+    domicileCertificate: 'domicileCertificatePath',
+    sscMarkSheet: 'sscMarkSheetPath',
+    hscMarkSheet: 'hscMarkSheetPath',
+    casteCertificate: 'casteCertificatePath',
+    nonCreamyLayerCertificate: 'nonCreamyLayerCertificatePath',
+    aadhaarCard: 'aadhaarCardPath',
+    studentPhoto: 'studentPhotoPath',
+    undertakingForm: 'undertakingFormPath'
+  };
+
+  const hasExistingDocument = (documentKey) => Boolean(editAdmission?.[dsyDocumentPathMap[documentKey]]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -990,6 +1003,8 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
                   <label htmlFor={`dsy-${doc.key}`} className="file-label">
                     {documents[doc.key] ? (
                       <span className="file-selected">✓ {documents[doc.key].name}</span>
+                    ) : hasExistingDocument(doc.key) ? (
+                      <span className="file-selected">✓ Already submitted</span>
                     ) : (
                       <span className="file-placeholder">Choose PDF File</span>
                     )}

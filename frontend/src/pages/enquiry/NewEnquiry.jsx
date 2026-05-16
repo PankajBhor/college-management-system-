@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import {
   getAllAdmissionTypes,
   getAllBranches,
-  getAllCategories,
+  getAllEnquiryCategories,
   getAllLocations,
   getOptionValue
 } from '../../services/lookupService';
 import enquiryService from '../../services/enquiryService';
+import { getEmailPresets } from '../../services/emailPresetService';
 import { getAllFaculty } from '../../services/facultyService';
 import logger from '../../services/loggerService';
+
+const emptyMerit = { class10: '', class12: '', iti: '', other: '', otherDescription: '' };
 
 const NewEnquiry = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +21,7 @@ const NewEnquiry = () => {
     personalMobileNumber: '',
     guardianMobileNumber: '',
     email: '',
-    merit: { class10: '', class12: '', other: '' },
+    merit: { ...emptyMerit },
     sscSeatNo: '',
     admissionFor: 'FY',
     location: '',
@@ -26,7 +29,10 @@ const NewEnquiry = () => {
     category: '',
     branchesInterested: [],
     referenceFaculty: '',
-    dteRegistrationDone: false
+    dteRegistrationDone: false,
+    emailEnabled: false,
+    selectedEmailPresetId: '',
+    provisionalAdmission: false
   });
 
   const [facultyOptions, setFacultyOptions] = useState([]);
@@ -34,17 +40,19 @@ const NewEnquiry = () => {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
   const [admissionForOptions, setAdmissionForOptions] = useState([]);
+  const [emailPresets, setEmailPresets] = useState([]);
   const [dropdownError, setDropdownError] = useState('');
 
   useEffect(() => {
     async function fetchDropdownData() {
       try {
-        const [locations, categories, branches, admissionTypes, faculties] = await Promise.all([
+        const [locations, categories, branches, admissionTypes, faculties, presets] = await Promise.all([
           getAllLocations(),
-          getAllCategories(),
+          getAllEnquiryCategories(),
           getAllBranches(),
           getAllAdmissionTypes(),
-          getAllFaculty()
+          getAllFaculty(),
+          getEmailPresets('ENQUIRY').catch(() => [])
         ]);
 
         setLocationOptions(locations || []);
@@ -52,6 +60,7 @@ const NewEnquiry = () => {
         setBranchOptions(branches || []);
         setAdmissionForOptions(admissionTypes || []);
         setFacultyOptions(faculties || []);
+        setEmailPresets(presets || []);
         setDropdownError('');
       } catch (error) {
         console.error('Error fetching form dropdown data:', error);
@@ -62,6 +71,7 @@ const NewEnquiry = () => {
   }, []);
 
   const [selectedBranches, setSelectedBranches] = useState([]);
+  const [showOtherMeritDetails, setShowOtherMeritDetails] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -122,16 +132,21 @@ const NewEnquiry = () => {
         personalMobileNumber: '',
         guardianMobileNumber: '',
         email: '',
-        merit: { class10: '', class12: '', other: '' },
+        merit: { ...emptyMerit },
         sscSeatNo: '',
         admissionFor: 'FY',
         location: '',
         otherLocation: '',
         category: '',
         branchesInterested: [],
-        referenceFaculty: ''
+        referenceFaculty: '',
+        dteRegistrationDone: false,
+        emailEnabled: false,
+        selectedEmailPresetId: '',
+        provisionalAdmission: false
       });
       setSelectedBranches([]);
+      setShowOtherMeritDetails(false);
     } catch (err) {
       console.error('Error submitting enquiry:', err);
       setError(err.response?.data?.error || err.message || 'Failed to submit enquiry');
@@ -383,6 +398,18 @@ const NewEnquiry = () => {
               />
             </div>
             <div style={styles.formGroup}>
+              <label style={styles.label}>ITI Marks/Percentage</label>
+              <input
+                type="number"
+                value={formData.merit.iti}
+                onChange={(e) => handleMeritChange('iti', e.target.value)}
+                style={styles.input}
+                placeholder="0-100"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div style={styles.formGroup}>
               <label style={styles.label}>SSC Seat No</label>
               <input
                 type="text"
@@ -399,12 +426,26 @@ const NewEnquiry = () => {
                 type="number"
                 value={formData.merit.other}
                 onChange={(e) => handleMeritChange('other', e.target.value)}
+                onFocus={() => setShowOtherMeritDetails(true)}
                 style={styles.input}
                 placeholder="0-100"
                 min="0"
                 max="100"
               />
             </div>
+            {(showOtherMeritDetails || formData.merit.other || formData.merit.otherDescription) && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Other Marks Of</label>
+                <input
+                  type="text"
+                  value={formData.merit.otherDescription}
+                  onChange={(e) => handleMeritChange('otherDescription', e.target.value)}
+                  style={styles.input}
+                  placeholder="E.g. Diploma, COE, entrance test"
+                  required={Boolean(formData.merit.other)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Admission Section */}
@@ -579,6 +620,51 @@ const NewEnquiry = () => {
             </select>
           </div>
 
+          <h3 style={styles.sectionTitle}>Email and Provisional Admission</h3>
+          <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Send email after enquiry</label>
+              <select
+                name="emailEnabled"
+                value={formData.emailEnabled ? 'yes' : 'no'}
+                onChange={(e) => setFormData(prev => ({ ...prev, emailEnabled: e.target.value === 'yes' }))}
+                style={styles.select}
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+            {formData.emailEnabled && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Email Preset</label>
+                <select
+                  name="selectedEmailPresetId"
+                  value={formData.selectedEmailPresetId}
+                  onChange={handleInputChange}
+                  style={styles.select}
+                  required={formData.emailEnabled}
+                >
+                  <option value="">Select preset</option>
+                  {emailPresets.map(preset => (
+                    <option key={preset.id} value={preset.id}>{preset.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Provisional Admission</label>
+              <select
+                name="provisionalAdmission"
+                value={formData.provisionalAdmission ? 'yes' : 'no'}
+                onChange={(e) => setFormData(prev => ({ ...prev, provisionalAdmission: e.target.value === 'yes' }))}
+                style={styles.select}
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+          </div>
+
           {/* Button Group */}
           <div style={styles.buttonGroup}>
             <button
@@ -591,7 +677,7 @@ const NewEnquiry = () => {
                   personalMobileNumber: '',
                   guardianMobileNumber: '',
                   email: '',
-                  merit: { class10: '', class12: '', other: '' },
+                  merit: { ...emptyMerit },
                   sscSeatNo: '',
                   admissionFor: 'FY',
                   location: '',
@@ -599,9 +685,13 @@ const NewEnquiry = () => {
                   category: '',
                   branchesInterested: [],
                   referenceFaculty: '',
-                  dteRegistrationDone: false
+                  dteRegistrationDone: false,
+                  emailEnabled: false,
+                  selectedEmailPresetId: '',
+                  provisionalAdmission: false
                 });
                 setSelectedBranches([]);
+                setShowOtherMeritDetails(false);
                 setError('');
               }}
               style={styles.resetBtn}

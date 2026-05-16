@@ -7,6 +7,65 @@ const API_INSTANCE = axios.create({
   headers: {}
 });
 
+const defaultMerit = {
+  class10: '',
+  class12: '',
+  iti: '',
+  other: '',
+  otherDescription: ''
+};
+
+export const normalizeMerit = (meritDetails, merit = null) => {
+  if (merit && typeof merit === 'object') {
+    return { ...defaultMerit, ...merit };
+  }
+
+  if (!meritDetails) {
+    return { ...defaultMerit };
+  }
+
+  if (typeof meritDetails === 'object') {
+    return { ...defaultMerit, ...meritDetails };
+  }
+
+  try {
+    return { ...defaultMerit, ...JSON.parse(meritDetails) };
+  } catch {
+    return { ...defaultMerit };
+  }
+};
+
+export const normalizeEnquiry = (enquiry) => {
+  if (!enquiry) return enquiry;
+  return {
+    ...enquiry,
+    merit: normalizeMerit(enquiry.meritDetails, enquiry.merit)
+  };
+};
+
+const normalizeEnquiryPayload = (enquiryData) => ({
+  firstName: enquiryData.firstName,
+  middleName: enquiryData.middleName,
+  lastName: enquiryData.lastName,
+  personalMobileNumber: enquiryData.personalMobileNumber,
+  guardianMobileNumber: enquiryData.guardianMobileNumber,
+  email: enquiryData.email,
+  meritDetails: JSON.stringify(normalizeMerit(enquiryData.meritDetails, enquiryData.merit)),
+  admissionFor: enquiryData.admissionFor,
+  location: enquiryData.location,
+  otherLocation: enquiryData.otherLocation,
+  category: enquiryData.category,
+  branchesInterested: JSON.stringify(enquiryData.branchesInterested),
+  referenceFaculty: enquiryData.referenceFaculty,
+  sscSeatNo: enquiryData.sscSeatNo,
+  dteRegistrationDone: enquiryData.dteRegistrationDone,
+  emailEnabled: Boolean(enquiryData.emailEnabled),
+  selectedEmailPresetId: enquiryData.selectedEmailPresetId || null,
+  provisionalAdmission: Boolean(enquiryData.provisionalAdmission),
+  status: enquiryData.status || 'Pending',
+  enquiryDate: enquiryData.enquiryDate
+});
+
 API_INSTANCE.interceptors.request.use((config) => {
   const authHeader = getAuthHeader();
   if (authHeader) {
@@ -28,7 +87,14 @@ export async function getAllEnquiries(page = 0, size = 10, sortBy = 'id', direct
         direction
       }
     });
-    return response.data;
+    const data = response.data;
+    if (data?.content) {
+      return { ...data, content: data.content.map(normalizeEnquiry) };
+    }
+    if (Array.isArray(data)) {
+      return data.map(normalizeEnquiry);
+    }
+    return data;
   } catch (error) {
     console.error('Error fetching enquiries:', error.message);
     throw error;
@@ -41,7 +107,7 @@ export async function getAllEnquiries(page = 0, size = 10, sortBy = 'id', direct
 export async function getEnquiryById(id) {
   try {
     const response = await API_INSTANCE.get(`/enquiries/${id}`);
-    return response.data;
+    return normalizeEnquiry(response.data);
   } catch (error) {
     console.error('Error fetching enquiry:', error.message);
     throw error;
@@ -53,29 +119,10 @@ export async function getEnquiryById(id) {
  */
 export async function createEnquiry(enquiryData) {
   try {
-    // Convert form data to API format
-    const apiData = {
-      firstName: enquiryData.firstName,
-      middleName: enquiryData.middleName,
-      lastName: enquiryData.lastName,
-      personalMobileNumber: enquiryData.personalMobileNumber,
-      guardianMobileNumber: enquiryData.guardianMobileNumber,
-      email: enquiryData.email,
-      meritDetails: JSON.stringify(enquiryData.merit),
-      admissionFor: enquiryData.admissionFor,
-      location: enquiryData.location,
-      otherLocation: enquiryData.otherLocation,
-      category: enquiryData.category,
-      branchesInterested: JSON.stringify(enquiryData.branchesInterested),
-      referenceFaculty: enquiryData.referenceFaculty,
-      sscSeatNo: enquiryData.sscSeatNo,
-      dteRegistrationDone: enquiryData.dteRegistrationDone,
-      status: enquiryData.status || 'Pending',
-      enquiryDate: enquiryData.enquiryDate
-    };
+    const apiData = normalizeEnquiryPayload(enquiryData);
 
     const response = await API_INSTANCE.post('/enquiries', apiData);
-    return response.data;
+    return normalizeEnquiry(response.data);
   } catch (error) {
     console.error('Error creating enquiry:', error.message);
     throw error;
@@ -87,29 +134,10 @@ export async function createEnquiry(enquiryData) {
  */
 export async function updateEnquiry(id, enquiryData) {
   try {
-    // Convert form data to API format
-    const apiData = {
-      firstName: enquiryData.firstName,
-      middleName: enquiryData.middleName,
-      lastName: enquiryData.lastName,
-      personalMobileNumber: enquiryData.personalMobileNumber,
-      guardianMobileNumber: enquiryData.guardianMobileNumber,
-      email: enquiryData.email,
-      meritDetails: JSON.stringify(enquiryData.merit),
-      admissionFor: enquiryData.admissionFor,
-      location: enquiryData.location,
-      otherLocation: enquiryData.otherLocation,
-      category: enquiryData.category,
-      branchesInterested: JSON.stringify(enquiryData.branchesInterested),
-      referenceFaculty: enquiryData.referenceFaculty,
-      sscSeatNo: enquiryData.sscSeatNo,
-      dteRegistrationDone: enquiryData.dteRegistrationDone,
-      status: enquiryData.status,
-      enquiryDate: enquiryData.enquiryDate
-    };
+    const apiData = normalizeEnquiryPayload(enquiryData);
 
     const response = await API_INSTANCE.put(`/enquiries/${id}`, apiData);
-    return response.data;
+    return normalizeEnquiry(response.data);
   } catch (error) {
     console.error('Error updating enquiry:', error.message);
     throw error;
@@ -135,7 +163,7 @@ export async function deleteEnquiry(id) {
 export async function updateStatus(id, status) {
   try {
     const response = await API_INSTANCE.patch(`/enquiries/${id}/status`, { status });
-    return response.data;
+    return normalizeEnquiry(response.data);
   } catch (error) {
     console.error('Error updating enquiry status:', error.message);
     throw error;
@@ -155,7 +183,14 @@ export async function searchEnquiries(status, page = 0, size = 10) {
         direction: 'DESC'
       }
     });
-    return response.data;
+    const data = response.data;
+    if (data?.content) {
+      return { ...data, content: data.content.map(normalizeEnquiry) };
+    }
+    if (Array.isArray(data)) {
+      return data.map(normalizeEnquiry);
+    }
+    return data;
   } catch (error) {
     console.error('Error searching enquiries by status:', error.message);
     throw error;
@@ -175,7 +210,14 @@ export async function getEnquiriesByCategory(category, page = 0, size = 10) {
         direction: 'DESC'
       }
     });
-    return response.data;
+    const data = response.data;
+    if (data?.content) {
+      return { ...data, content: data.content.map(normalizeEnquiry) };
+    }
+    if (Array.isArray(data)) {
+      return data.map(normalizeEnquiry);
+    }
+    return data;
   } catch (error) {
     console.error('Error fetching enquiries by category:', error.message);
     throw error;
@@ -195,7 +237,14 @@ export async function getEnquiriesByAdmission(admissionFor, page = 0, size = 10)
         direction: 'DESC'
       }
     });
-    return response.data;
+    const data = response.data;
+    if (data?.content) {
+      return { ...data, content: data.content.map(normalizeEnquiry) };
+    }
+    if (Array.isArray(data)) {
+      return data.map(normalizeEnquiry);
+    }
+    return data;
   } catch (error) {
     console.error('Error fetching enquiries by admission:', error.message);
     throw error;
@@ -215,7 +264,14 @@ export async function getEnquiriesByLocation(location, page = 0, size = 10) {
         direction: 'DESC'
       }
     });
-    return response.data;
+    const data = response.data;
+    if (data?.content) {
+      return { ...data, content: data.content.map(normalizeEnquiry) };
+    }
+    if (Array.isArray(data)) {
+      return data.map(normalizeEnquiry);
+    }
+    return data;
   } catch (error) {
     console.error('Error fetching enquiries by location:', error.message);
     throw error;
@@ -228,9 +284,19 @@ export async function getEnquiriesByLocation(location, page = 0, size = 10) {
 export async function getEnquiryBySscSeatNo(sscSeatNo) {
   try {
     const response = await API_INSTANCE.get(`/enquiries/by-seat/${sscSeatNo}`);
-    return response.data;
+    return normalizeEnquiry(response.data);
   } catch (error) {
     console.error('Error fetching enquiry by SSC seat number:', error.message);
+    throw error;
+  }
+}
+
+export async function getProvisionalEnquiries() {
+  try {
+    const response = await API_INSTANCE.get('/enquiries/provisional');
+    return Array.isArray(response.data) ? response.data.map(normalizeEnquiry) : response.data;
+  } catch (error) {
+    console.error('Error fetching provisional enquiries:', error.message);
     throw error;
   }
 }
@@ -246,7 +312,8 @@ const enquiryServiceExports = {
   getEnquiriesByCategory,
   getEnquiriesByAdmission,
   getEnquiriesByLocation,
-  getEnquiryBySscSeatNo
+  getEnquiryBySscSeatNo,
+  getProvisionalEnquiries
 };
 
 export default enquiryServiceExports;

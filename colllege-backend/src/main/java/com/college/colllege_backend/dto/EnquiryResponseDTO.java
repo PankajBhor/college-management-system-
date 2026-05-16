@@ -24,6 +24,9 @@ public class EnquiryResponseDTO {
     private LocalDateTime updatedAt;
     private boolean dteRegistrationDone;
     private String sscSeatNo;
+    private boolean emailEnabled;
+    private Long selectedEmailPresetId;
+    private boolean provisionalAdmission;
 
     // Constructors
     public EnquiryResponseDTO() {
@@ -270,5 +273,29 @@ public class EnquiryResponseDTO {
 
     public void setSscSeatNo(String sscSeatNo) {
         this.sscSeatNo = sscSeatNo;
+    }
+
+    public boolean isEmailEnabled() {
+        return emailEnabled;
+    }
+
+    public void setEmailEnabled(boolean emailEnabled) {
+        this.emailEnabled = emailEnabled;
+    }
+
+    public Long getSelectedEmailPresetId() {
+        return selectedEmailPresetId;
+    }
+
+    public void setSelectedEmailPresetId(Long selectedEmailPresetId) {
+        this.selectedEmailPresetId = selectedEmailPresetId;
+    }
+
+    public boolean isProvisionalAdmission() {
+        return provisionalAdmission;
+    }
+
+    public void setProvisionalAdmission(boolean provisionalAdmission) {
+        this.provisionalAdmission = provisionalAdmission;
     }
 }

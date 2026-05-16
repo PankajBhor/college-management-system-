@@ -31,4 +31,6 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, Long> {
     Page<Enquiry> findByEmail(String email, Pageable pageable);
 
     Enquiry findBySscSeatNoIgnoreCase(String sscSeatNo);
+
+    List<Enquiry> findByProvisionalAdmissionTrue();
 }

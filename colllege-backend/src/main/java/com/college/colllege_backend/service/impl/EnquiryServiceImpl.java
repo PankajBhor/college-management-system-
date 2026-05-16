@@ -40,6 +40,9 @@ public class EnquiryServiceImpl implements EnquiryService {
         enquiry.setReferenceFaculty(request.getReferenceFaculty());
         enquiry.setSscSeatNo(request.getSscSeatNo());
         enquiry.setDteRegistrationDone(request.isDteRegistrationDone());
+        enquiry.setEmailEnabled(request.isEmailEnabled());
+        enquiry.setSelectedEmailPresetId(request.getSelectedEmailPresetId());
+        enquiry.setProvisionalAdmission(request.isProvisionalAdmission());
         enquiry.setStatus("Pending");
         enquiry.setEnquiryDate(request.getEnquiryDate());
 
@@ -147,6 +150,9 @@ public class EnquiryServiceImpl implements EnquiryService {
             enquiry.setSscSeatNo(request.getSscSeatNo());
         }
         enquiry.setDteRegistrationDone(request.isDteRegistrationDone());
+        enquiry.setEmailEnabled(request.isEmailEnabled());
+        enquiry.setSelectedEmailPresetId(request.getSelectedEmailPresetId());
+        enquiry.setProvisionalAdmission(request.isProvisionalAdmission());
         if (request.getStatus() != null) {
             enquiry.setStatus(request.getStatus());
         }
@@ -164,7 +170,7 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     private EnquiryResponseDTO mapToDTO(Enquiry enquiry) {
-        return new EnquiryResponseDTO(
+        EnquiryResponseDTO dto = new EnquiryResponseDTO(
                 enquiry.getId(),
                 enquiry.getFirstName(),
                 enquiry.getMiddleName(),
@@ -186,5 +192,9 @@ public class EnquiryServiceImpl implements EnquiryService {
                 enquiry.isDteRegistrationDone(),
                 enquiry.getSscSeatNo()
         );
+        dto.setEmailEnabled(enquiry.isEmailEnabled());
+        dto.setSelectedEmailPresetId(enquiry.getSelectedEmailPresetId());
+        dto.setProvisionalAdmission(enquiry.isProvisionalAdmission());
+        return dto;
     }
 }

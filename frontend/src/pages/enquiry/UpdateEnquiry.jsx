@@ -1,34 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import enquiryService from '../../services/enquiryService';
+import enquiryService, { normalizeEnquiry } from '../../services/enquiryService';
+import { getEmailPresets } from '../../services/emailPresetService';
 import {
   getAllAdmissionTypes,
   getAllBranches,
-  getAllCategories,
+  getAllEnquiryCategories,
   getAllEnquiryStatuses,
   getAllLocations,
   getOptionValue
 } from '../../services/lookupService';
 import { getAllFaculty } from '../../services/facultyService';
 
+const emptyMerit = { class10: '', class12: '', iti: '', other: '', otherDescription: '' };
+
 const UpdateEnquiry = ({ enquiry, onUpdate }) => {
+  const normalizedEnquiry = normalizeEnquiry(enquiry);
   const [locationOptions, setLocationOptions] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
   const [admissionTypeOptions, setAdmissionTypeOptions] = useState([]);
   const [statusOptions, setStatusOptions] = useState([]);
   const [facultyOptions, setFacultyOptions] = useState([]);
+  const [emailPresets, setEmailPresets] = useState([]);
+  const [nameSearch, setNameSearch] = useState('');
+  const [searchMatches, setSearchMatches] = useState([]);
+  const [searching, setSearching] = useState(false);
 
   // Fetch all dropdown data from database
   useEffect(() => {
     async function fetchDropdownData() {
       try {
-        const [locations, categories, branches, admissionTypes, statuses, faculties] = await Promise.all([
+        const [locations, categories, branches, admissionTypes, statuses, faculties, presets] = await Promise.all([
           getAllLocations(),
-          getAllCategories(),
+          getAllEnquiryCategories(),
           getAllBranches(),
           getAllAdmissionTypes(),
           getAllEnquiryStatuses(),
-          getAllFaculty()
+          getAllFaculty(),
+          getEmailPresets('ENQUIRY').catch(() => [])
         ]);
 
         setLocationOptions(locations || []);
@@ -37,28 +46,37 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
         setAdmissionTypeOptions(admissionTypes || []);
         setStatusOptions(statuses || []);
         setFacultyOptions(faculties || []);
+        setEmailPresets(presets || []);
       } catch (error) {
         console.error('Error fetching dropdown data:', error);
       }
     }
     fetchDropdownData();
   }, []);
-  const [formData, setFormData] = useState(enquiry || {
+  const [formData, setFormData] = useState(normalizedEnquiry || {
     firstName: '',
     middleName: '',
     lastName: '',
     personalMobileNumber: '',
     guardianMobileNumber: '',
     email: '',
-    merit: { class10: '', class12: '', other: '' },
+    merit: { ...emptyMerit },
     admissionFor: 'FY',
     location: '',
     otherLocation: '',
     category: '',
     branchesInterested: [],
     referenceFaculty: '',
+    sscSeatNo: '',
+    dteRegistrationDone: false,
+    emailEnabled: false,
+    selectedEmailPresetId: '',
+    provisionalAdmission: false,
     status: 'Pending'
   });
+  const [showOtherMeritDetails, setShowOtherMeritDetails] = useState(
+    Boolean(normalizedEnquiry?.merit?.other || normalizedEnquiry?.merit?.otherDescription)
+  );
 
   const [selectedBranches, setSelectedBranches] = useState(() => {
     try {
@@ -75,6 +93,45 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const applyFetchedEnquiry = (fetched) => {
+    const normalized = normalizeEnquiry(fetched);
+    setFormData({
+      ...normalized,
+      selectedEmailPresetId: normalized.selectedEmailPresetId || ''
+    });
+    let branches = normalized.branchesInterested || [];
+    if (typeof branches === 'string') {
+      try {
+        branches = JSON.parse(branches);
+      } catch {
+        branches = [];
+      }
+    }
+    setSelectedBranches(Array.isArray(branches) ? branches.map(b => b.branch) : []);
+    setShowOtherMeritDetails(Boolean(normalized?.merit?.other || normalized?.merit?.otherDescription));
+  };
+
+  const getFullName = (item) => [item.firstName, item.middleName, item.lastName].filter(Boolean).join(' ');
+
+  const handleNameSearch = async () => {
+    if (!nameSearch.trim()) {
+      setError('Enter student name to search enquiries');
+      return;
+    }
+    setSearching(true);
+    setError('');
+    try {
+      const data = await enquiryService.getAllEnquiries(0, 1000);
+      const rows = Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : []);
+      const query = nameSearch.trim().toLowerCase();
+      setSearchMatches(rows.filter(item => getFullName(item).toLowerCase().includes(query)));
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Unable to search enquiries');
+    } finally {
+      setSearching(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -119,8 +176,9 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
         branchesInterested: branchesData
       };
 
-      if (enquiry?.id) {
-        const response = await enquiryService.updateEnquiry(enquiry.id, updatedData);
+      const enquiryId = formData.id || enquiry?.id;
+      if (enquiryId) {
+        const response = await enquiryService.updateEnquiry(enquiryId, updatedData);
         alert('Enquiry updated successfully!');
         if (onUpdate) {
           onUpdate(response);
@@ -262,6 +320,50 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
       <h2 style={styles.title}>✏️ Update Enquiry</h2>
 
       <div style={styles.container}>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'flex-end' }}>
+          <div style={{ flex: 1 }}>
+            <label style={styles.label}>Search Enquiry by Name</label>
+            <input
+              type="text"
+              value={nameSearch}
+              onChange={(e) => setNameSearch(e.target.value)}
+              style={styles.input}
+              placeholder="Enter student name"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleNameSearch}
+            disabled={searching}
+            style={styles.submitBtn}
+          >
+            {searching ? 'Searching...' : 'Search'}
+          </button>
+        </div>
+        {searchMatches.length > 0 && (
+          <div style={{ marginBottom: '20px', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: '#f8fafc' }}>
+                <tr>{['Name', 'Seat No', 'Email', 'Mobile', 'Action'].map(header => <th key={header} style={{ textAlign: 'left', padding: '10px' }}>{header}</th>)}</tr>
+              </thead>
+              <tbody>
+                {searchMatches.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ padding: '10px', borderTop: '1px solid #eef2f7' }}>{getFullName(item)}</td>
+                    <td style={{ padding: '10px', borderTop: '1px solid #eef2f7' }}>{item.sscSeatNo || '-'}</td>
+                    <td style={{ padding: '10px', borderTop: '1px solid #eef2f7' }}>{item.email}</td>
+                    <td style={{ padding: '10px', borderTop: '1px solid #eef2f7' }}>{item.personalMobileNumber}</td>
+                    <td style={{ padding: '10px', borderTop: '1px solid #eef2f7' }}>
+                      <button type="button" style={styles.submitBtn} onClick={() => { applyFetchedEnquiry(item); setSearchMatches([]); }}>
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         {error && (
           <div style={{
             padding: '15px',
@@ -386,17 +488,54 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
               />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>Other Merit/Percentage</label>
+              <label style={styles.label}>ITI Marks/Percentage</label>
               <input
                 type="number"
-                value={formData.merit.other}
-                onChange={(e) => handleMeritChange('other', e.target.value)}
+                value={formData.merit.iti}
+                onChange={(e) => handleMeritChange('iti', e.target.value)}
                 style={styles.input}
                 placeholder="0-100"
                 min="0"
                 max="100"
               />
             </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>SSC Seat No</label>
+              <input
+                type="text"
+                name="sscSeatNo"
+                value={formData.sscSeatNo || ''}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter SSC seat number"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Other Merit/Percentage</label>
+              <input
+                type="number"
+                value={formData.merit.other}
+                onChange={(e) => handleMeritChange('other', e.target.value)}
+                onFocus={() => setShowOtherMeritDetails(true)}
+                style={styles.input}
+                placeholder="0-100"
+                min="0"
+                max="100"
+              />
+            </div>
+            {(showOtherMeritDetails || formData.merit.other || formData.merit.otherDescription) && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Other Marks Of</label>
+                <input
+                  type="text"
+                  value={formData.merit.otherDescription}
+                  onChange={(e) => handleMeritChange('otherDescription', e.target.value)}
+                  style={styles.input}
+                  placeholder="E.g. Diploma, COE, entrance test"
+                  required={Boolean(formData.merit.other)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Admission Section */}
@@ -524,6 +663,51 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
                 </div>
               );
             })}
+          </div>
+
+          <h3 style={styles.sectionTitle}>Email and Provisional Admission</h3>
+          <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Send email after enquiry</label>
+              <select
+                name="emailEnabled"
+                value={formData.emailEnabled ? 'yes' : 'no'}
+                onChange={(e) => setFormData(prev => ({ ...prev, emailEnabled: e.target.value === 'yes' }))}
+                style={styles.select}
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+            {formData.emailEnabled && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Email Preset</label>
+                <select
+                  name="selectedEmailPresetId"
+                  value={formData.selectedEmailPresetId || ''}
+                  onChange={handleInputChange}
+                  style={styles.select}
+                  required={formData.emailEnabled}
+                >
+                  <option value="">Select preset</option>
+                  {emailPresets.map(preset => (
+                    <option key={preset.id} value={preset.id}>{preset.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Provisional Admission</label>
+              <select
+                name="provisionalAdmission"
+                value={formData.provisionalAdmission ? 'yes' : 'no'}
+                onChange={(e) => setFormData(prev => ({ ...prev, provisionalAdmission: e.target.value === 'yes' }))}
+                style={styles.select}
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
           </div>
 
           {/* Reference Faculty Section */}

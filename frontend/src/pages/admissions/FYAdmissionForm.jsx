@@ -231,6 +231,23 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
     { key: 'undertakingForm', label: 'Undertaking / Anti-ragging undertaking form' }
   ];
 
+  const fyDocumentPathMap = {
+    domicileCertificate: 'domicileCertificatePath',
+    tenthMarkSheet: 'tenthMarkSheetPath',
+    twelfthMarkSheet: 'twelfthMarkSheetPath',
+    leavingCertificate: 'leavingCertificatePath',
+    casteCertificate: 'casteCertificatePath',
+    nonCreamyLayerCertificate: 'nonCreamyLayerCertificatePath',
+    incomeCertificate: 'incomeCertificatePath',
+    defenceCertificate: 'defenceCertificatePath',
+    aadhaarCard: 'aadhaarCardPath',
+    anyOther: 'anyOtherDocumentPath',
+    studentPhoto: 'studentPhotoPath',
+    undertakingForm: 'undertakingFormPath'
+  };
+
+  const hasExistingDocument = (documentKey) => Boolean(editAdmission?.[fyDocumentPathMap[documentKey]]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -882,6 +899,8 @@ const FYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nul
                   <label htmlFor={`fy-${doc.key}`} className="file-label">
                     {documents[doc.key] ? (
                       <span className="file-selected">✓ {documents[doc.key].name}</span>
+                    ) : hasExistingDocument(doc.key) ? (
+                      <span className="file-selected">✓ Already submitted</span>
                     ) : (
                       <span className="file-placeholder">Choose PDF File</span>
                     )}

@@ -9,6 +9,7 @@ const FIELD_LABELS = {
   guardianMobileNumber: 'Guardian Mobile',
   email: 'Email',
   merit: 'Merit',
+  meritDetails: 'Academic Merit Details',
   admissionFor: 'Admission For',
   location: 'Location',
   otherLocation: 'Other Location',

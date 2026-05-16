@@ -54,10 +54,6 @@ public class DSYAdmissionController {
 
     @Autowired
     private AdmissionPdfService admissionPdfService;
-
-    @Autowired
-    private com.college.colllege_backend.service.EmailService emailService;
-
     @PostMapping
     public ResponseEntity<DSYAdmission> createDSYAdmission(
             @ModelAttribute DSYAdmissionRequestDTO request,
@@ -109,58 +105,6 @@ public class DSYAdmissionController {
 
             // Update admission with document paths
             DSYAdmission updatedAdmission = dsyAdmissionService.updateDSYAdmission(admission.getId(), request);
-
-            // Send seat confirmation email
-            String to = updatedAdmission.getStudentEmail();
-            if (to != null && !to.isBlank()) {
-                try {
-                    logger.info(">>> DSY ADMISSION: ABOUT TO SEND SEAT CONFIRMATION EMAIL TO: {}", to);
-                    String subject = "🎉 Seat Confirmation - Jaihind College - Direct Second Year (DSY) Admission";
-                    String body = "🎉 Congratulations! Seat Confirmation - Jaihind College\n\n"
-                            + "Dear " + updatedAdmission.getApplicantFirstName() + " " + updatedAdmission.getApplicantLastName() + ",\n\n"
-                            + "We are delighted to inform you that your seat has been confirmed for Direct Second Year (DSY) Diploma Engineering Program at Jaihind College.\n\n"
-                            + "📋 Your Admission Details:\n"
-                            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                            + "Name: " + updatedAdmission.getApplicantFirstName() + " " + updatedAdmission.getApplicantLastName() + "\n"
-                            + "Email: " + updatedAdmission.getStudentEmail() + "\n"
-                            + "Mobile: " + updatedAdmission.getMobileNo() + "\n"
-                            + "Program: " + updatedAdmission.getProgram() + "\n"
-                            + "Admission Type: " + updatedAdmission.getAdmissionType() + "\n"
-                            + "Category: " + updatedAdmission.getCategory() + "\n"
-                            + "Admission Status: " + updatedAdmission.getStatus() + "\n"
-                            + "Admission Date: " + updatedAdmission.getCreatedAt() + "\n"
-                            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                            + "📌 Next Steps:\n"
-                            + "1. Complete all pending document submissions\n"
-                            + "2. Report to the college on the specified date\n"
-                            + "3. Complete fee payment as per the fee structure\n"
-                            + "4. Collect your ID card and admission documents\n\n"
-                            + "⏰ Important Dates:\n"
-                            + "• Admission Deadline: As per college notification\n"
-                            + "• Classes Start: As per college calendar\n"
-                            + "• Fee Payment: Within 7 days of admission confirmation\n\n"
-                            + "📞 Contact Information:\n"
-                            + "Admission Office, Jaihind College\n"
-                            + "Phone: [College Contact Number]\n"
-                            + "Email: admissions@jaihind.edu.in\n"
-                            + "Office Hours: Monday to Friday, 9:00 AM - 5:00 PM\n\n"
-                            + "Thank you for choosing Jaihind College. We look forward to welcoming you to our institution.\n\n"
-                            + "Best Regards,\n"
-                            + "Admissions Team\n"
-                            + "Jaihind College";
-
-                    emailService.sendEmail(to, subject, body);
-                    logger.info(">>> DSY ADMISSION: SEAT CONFIRMATION EMAIL SENT SUCCESSFULLY <<<");
-                } catch (Exception emailError) {
-                    logger.error(">>> DSY ADMISSION: EMAIL SEND FAILED <<<");
-                    logger.error("Email Error Type: {}", emailError.getClass().getName());
-                    logger.error("Email Error Message: {}", emailError.getMessage());
-                    logger.warn("DSY Admission created successfully, but email notification failed");
-                }
-            } else {
-                logger.warn("No email address provided for DSY admission, skipping email notification");
-            }
-
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedAdmission);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

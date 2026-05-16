@@ -33,6 +33,7 @@ const AdmittedListFY = ({
 
   // Get unique programs for filter
   const uniquePrograms = [...new Set((allAdmissions || admissions).map(a => a.program))].filter(Boolean);
+  const uniqueAdmissionTypes = [...new Set((allAdmissions || admissions).map(a => a.admissionType))].filter(Boolean);
 
   // FY required documents
   const fyRequiredDocuments = [
@@ -142,7 +143,12 @@ const AdmittedListFY = ({
               </div>}
             </th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Email</th>
-            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Phone</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>
+              Phone
+              {filters && <div style={{ marginTop: '8px' }}>
+                <input type="text" placeholder="Search phone..." value={filters.phone || ''} onChange={handleFilterChange('phone')} style={{ fontSize: '0.85em', padding: '4px', width: '100%' }} />
+              </div>}
+            </th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>
               Program
               {filters && <div style={{ marginTop: '8px' }}>
@@ -152,7 +158,25 @@ const AdmittedListFY = ({
                 </select>
               </div>}
             </th>
-            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Admission Type</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>
+              Admission Type
+              {filters && <div style={{ marginTop: '8px' }}>
+                <select value={filters.admissionType || ''} onChange={handleFilterChange('admissionType')} style={{ fontSize: '0.85em', padding: '4px' }}>
+                  <option value="">All</option>
+                  {uniqueAdmissionTypes.map(type => (<option key={type} value={type}>{type}</option>))}
+                </select>
+              </div>}
+            </th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>
+              10th %
+              {filters && <div style={{ marginTop: '8px' }}>
+                <select value={filters.sortPercentage || ''} onChange={handleFilterChange('sortPercentage')} style={{ fontSize: '0.85em', padding: '4px' }}>
+                  <option value="">Original</option>
+                  <option value="asc">Low to High</option>
+                  <option value="desc">High to Low</option>
+                </select>
+              </div>}
+            </th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>
               Status
               {filters && <div style={{ marginTop: '8px' }}>
@@ -213,6 +237,9 @@ const AdmittedListFY = ({
                 </td>
                 <td style={{ padding: '14px 15px', fontSize: '13px', color: '#666' }}>
                   {admission.admissionType}
+                </td>
+                <td style={{ padding: '14px 15px', fontSize: '13px', color: '#666' }}>
+                  {admission.bestOfFiveMarks || admission.marksObtained || '-'}
                 </td>
                 <td style={{ padding: '14px 15px' }}>
                   <button type="button" onClick={() => toggleAdmissionStatus(admission)} disabled={savingStatusId === admission.id} style={{

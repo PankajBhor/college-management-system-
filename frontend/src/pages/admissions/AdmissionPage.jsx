@@ -9,6 +9,7 @@ import AdmittedListDSY from './AdmittedListDSY';
 import { exportAdmissionsToExcel } from '../../utils/exportUtils';
 import ExportFieldChecklist from '../enquiry/ExportFieldChecklist';
 import { admissionService } from '../../services/admissionService';
+import { canAccessPage, parseAccessPages } from '../../data/menuData';
 
 const AdmissionPage = () => {
   const { user } = useAuth();
@@ -32,14 +33,19 @@ const AdmissionPage = () => {
     loading
   } = useAdmission();
 
-  const canCreateAdmission = user && user.role === 'OFFICE_STAFF';
+  const explicitPages = parseAccessPages(user?.accessPages);
+  const hasExplicitAdmissionAccess = explicitPages?.includes('admissions');
+  const canCreateAdmission = Boolean(user && (['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF'].includes(user.role) || hasExplicitAdmissionAccess || canAccessPage(user, 'admissions')));
   const [activeTab, setActiveTab] = useState(canCreateAdmission ? 'new' : 'admitted'); // 'new' or 'admitted'
   const [admittedTab, setAdmittedTab] = useState('fy'); // 'fy' or 'dsy'
   const [filters, setFilters] = useState({
     name: '',
     program: '',
     status: '',
-    documentStatus: ''
+    documentStatus: '',
+    admissionType: '',
+    phone: '',
+    sortPercentage: ''
   });
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportFields, setExportFields] = useState([
@@ -112,12 +118,17 @@ const AdmissionPage = () => {
     { key: 'undertakingFormPath', label: 'Undertaking / Anti-ragging Form' }
   ];
 
+  const getFullName = (admission) => `${admission.applicantFirstName || ''} ${admission.applicantMiddleName ? admission.applicantMiddleName + ' ' : ''}${admission.applicantLastName || ''}`.replace(/\s+/g, ' ').trim();
+
   // Apply filters
   const getFilteredAdmissions = (admissions, requiredDocs) => {
     return admissions.filter((a) => {
-      if (filters.name && a.name && !a.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
+      const fullName = getFullName(a).toLowerCase();
+      if (filters.name && !fullName.includes(filters.name.toLowerCase())) return false;
+      if (filters.phone && !(a.mobileNo || '').includes(filters.phone)) return false;
       if (filters.program && a.program !== filters.program) return false;
       if (filters.status && a.status !== filters.status) return false;
+      if (filters.admissionType && a.admissionType !== filters.admissionType) return false;
       if (filters.documentStatus) {
         const docStatus = getDocumentStatus(a, requiredDocs);
         if (filters.documentStatus === 'complete' && !docStatus.isComplete) return false;
@@ -127,10 +138,20 @@ const AdmissionPage = () => {
     });
   };
 
-  const admittedFY = getFilteredAdmissions(baseAdmittedFY, fyRequiredDocuments);
-  const admittedDSY = getFilteredAdmissions(baseAdmittedDSY, dsyRequiredDocuments);
+  const sortByPercentage = (rows) => {
+    const sorted = [...rows];
+    if (!filters.sortPercentage) return sorted;
+    sorted.sort((a, b) => {
+      const aPercent = Number(a.bestOfFiveMarks || a.marksObtained || a.scienceMarks || 0);
+      const bPercent = Number(b.bestOfFiveMarks || b.marksObtained || b.scienceMarks || 0);
+      return filters.sortPercentage === 'asc' ? aPercent - bPercent : bPercent - aPercent;
+    });
+    return sorted;
+  };
+
+  const admittedFY = sortByPercentage(getFilteredAdmissions(baseAdmittedFY, fyRequiredDocuments));
+  const admittedDSY = sortByPercentage(getFilteredAdmissions(baseAdmittedDSY, dsyRequiredDocuments));
   const currentAdmissions = admittedTab === 'fy' ? admittedFY : admittedDSY;
-  const getFullName = (admission) => `${admission.applicantFirstName || ''} ${admission.applicantMiddleName ? admission.applicantMiddleName + ' ' : ''}${admission.applicantLastName || ''}`.replace(/\s+/g, ' ').trim();
 
   const searchAdmissionsForEdit = async () => {
     setEditLoading(true);
@@ -308,7 +329,10 @@ const AdmissionPage = () => {
                   name: '',
                   program: '',
                   status: '',
-                  documentStatus: ''
+                  documentStatus: '',
+                  admissionType: '',
+                  phone: '',
+                  sortPercentage: ''
                 })}
                 style={{
                   padding: '10px 18px',

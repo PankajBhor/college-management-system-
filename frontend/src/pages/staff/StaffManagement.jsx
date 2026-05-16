@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import userService from '../../services/userService';
 import courseService from '../../services/courseService';
 import { getAllBranches } from '../../services/lookupService';
-import { allMenuItems, parseAccessPages } from '../../data/menuData';
+import { pageAccess, parseAccessPages, permissionMenuItems } from '../../data/menuData';
 
 const inputStyle = { padding: '10px', border: '1px solid #d0d5dd', borderRadius: '6px', fontSize: '14px' };
 const DEPARTMENT_ABBREVIATIONS = {
@@ -54,7 +54,7 @@ const StaffManagement = ({ currentUser }) => {
   const handleChange = (field) => (event) => setForm(prev => ({ ...prev, [field]: event.target.value }));
   const handleDepartmentChange = (field) => (event) => setDepartmentForm(prev => ({ ...prev, [field]: event.target.value }));
   const isAdmin = currentUser?.role === 'ADMIN';
-  const selectedAccessPages = parseAccessPages(form.accessPages) || [];
+  const selectedAccessPages = parseAccessPages(form.accessPages) || pageAccess[form.role] || [];
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -63,7 +63,7 @@ const StaffManagement = ({ currentUser }) => {
 
   const handleAccessToggle = (page) => {
     setForm(prev => {
-      const pages = parseAccessPages(prev.accessPages) || [];
+      const pages = parseAccessPages(prev.accessPages) || pageAccess[prev.role] || [];
       const nextPages = pages.includes(page) ? pages.filter(item => item !== page) : [...pages, page];
       return { ...prev, accessPages: nextPages.join(',') };
     });
@@ -191,7 +191,7 @@ const StaffManagement = ({ currentUser }) => {
               <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>Specific Login Access</h3>
               <p style={{ margin: '0 0 14px', color: '#667085' }}>Leave all unchecked to use the default access for the selected role.</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
-                {allMenuItems.map(item => (
+                {permissionMenuItems.map(item => (
                   <label key={item.page} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', border: '1px solid #eef2f6', borderRadius: '6px' }}>
                     <input type="checkbox" checked={selectedAccessPages.includes(item.page)} onChange={() => handleAccessToggle(item.page)} />
                     {item.label}

@@ -16,6 +16,7 @@ API_INSTANCE.interceptors.request.use((config) => {
 });
 
 const toOptionValue = (option) => option?.label || option?.code || '';
+const nonCasteCategoryCodes = new Set(['EWS', 'TFWS']);
 
 export async function getLookupOptions(type) {
   const response = await API_INSTANCE.get(`/lookups/${type}`);
@@ -28,6 +29,14 @@ export async function getAllLocations() {
 
 export async function getAllCategories() {
   return getLookupOptions('categories');
+}
+
+export async function getAllEnquiryCategories() {
+  const categories = await getAllCategories();
+  return categories.filter(option => {
+    const code = String(option?.code || option?.label || '').toUpperCase();
+    return !nonCasteCategoryCodes.has(code);
+  });
 }
 
 export async function getAllAdmissionTypes() {
@@ -83,6 +92,7 @@ const lookupService = {
   getLookupOptions,
   getAllLocations,
   getAllCategories,
+  getAllEnquiryCategories,
   getAllAdmissionTypes,
   getAllEnquiryStatuses,
   getAllAdmissionRounds,

@@ -6,6 +6,8 @@ export const menuConfig = {
     { icon: 'EQ', label: 'Enquiries', page: 'enquiries' },
     { icon: 'NE', label: 'New Enquiry', page: 'new-enquiry' },
     { icon: 'UE', label: 'Update Enquiry', page: 'update-enquiry' },
+    { icon: 'PA', label: 'Provisional Admission', page: 'provisional-admission' },
+    { icon: 'EM', label: 'Email', page: 'email-enquiry' },
     { icon: 'AN', label: 'Analysis', page: 'analysis' },
     { icon: 'ST', label: 'Staff/Department', page: 'staff' },
     { icon: 'SU', label: 'Students', page: 'students' },
@@ -22,12 +24,17 @@ export const menuConfig = {
   OFFICE_STAFF: [
     { icon: 'DB', label: 'Dashboard', page: 'dashboard' },
     { icon: 'AD', label: 'Admissions', page: 'admissions' },
+    { icon: 'PA', label: 'Provisional Admission', page: 'provisional-admission' },
+    { icon: 'EM', label: 'Email', page: 'email-admission' },
     { icon: 'AN', label: 'Analysis', page: 'analysis' }
   ],
   ENQUIRY_STAFF: [
     { icon: 'DB', label: 'Dashboard', page: 'dashboard' },
     { icon: 'EQ', label: 'Enquiries', page: 'enquiries' },
     { icon: 'NE', label: 'New Enquiry', page: 'new-enquiry' },
+    { icon: 'UE', label: 'Update Enquiry', page: 'update-enquiry' },
+    { icon: 'PA', label: 'Provisional Admission', page: 'provisional-admission' },
+    { icon: 'EM', label: 'Email', page: 'email-enquiry' },
     { icon: 'AN', label: 'Analysis', page: 'analysis' }
   ],
   ACADEMIC_COORDINATOR: [
@@ -53,6 +60,9 @@ export const pageAccess = Object.freeze({
   enquiries: ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF', 'ACADEMIC_COORDINATOR'],
   'new-enquiry': ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF'],
   'update-enquiry': ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF'],
+  'provisional-admission': ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF', 'OFFICE_STAFF'],
+  'email-enquiry': ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF'],
+  'email-admission': ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF'],
   dashboard: ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'FACULTY', 'HOD', 'ACADEMIC_COORDINATOR'],
   students: ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'FACULTY', 'HOD'],
   fees: ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF'],
@@ -68,6 +78,19 @@ export const pageAccess = Object.freeze({
 export const allMenuItems = Object.values(menuConfig)
   .flat()
   .filter((item, index, items) => items.findIndex(candidate => candidate.page === item.page) === index);
+
+export const permissionMenuItems = allMenuItems.map(item => {
+  const labelOverrides = {
+    admissions: 'Admissions (new, edit, admitted list)',
+    enquiries: 'Enquiries List',
+    'new-enquiry': 'New Enquiry',
+    'update-enquiry': 'Update Enquiry',
+    'email-enquiry': 'Email - Enquiry Students',
+    'email-admission': 'Email - Admitted Students',
+    'provisional-admission': 'Provisional Admission'
+  };
+  return { ...item, label: labelOverrides[item.page] || item.label };
+});
 
 export const parseAccessPages = (accessPages) => {
   if (!accessPages) return null;

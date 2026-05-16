@@ -54,6 +54,12 @@ public class SecurityConfig {
                         if ("update-enquiry".equals(page)) {
                             authorities.add(new SimpleGrantedAuthority("PAGE_enquiries"));
                         }
+                        if ("email-enquiry".equals(page)) {
+                            authorities.add(new SimpleGrantedAuthority("PAGE_enquiries"));
+                        }
+                        if ("email-admission".equals(page)) {
+                            authorities.add(new SimpleGrantedAuthority("PAGE_admissions"));
+                        }
                     });
                     return org.springframework.security.core.userdetails.User
                             .withUsername(user.getEmail())
@@ -106,6 +112,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/enquiries").permitAll()
                 // Enquiry search by seat number - PUBLIC (for admission form pre-fill)
                 .requestMatchers(HttpMethod.GET, "/api/enquiries/by-seat/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/email-presets").authenticated()
                 // Admission form creation - PUBLIC (students can submit admissions)
                 .requestMatchers(HttpMethod.POST, "/api/admissions/fy").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/admissions/dsy").permitAll()
@@ -115,6 +122,7 @@ public class SecurityConfig {
                 // Enquiry list/view - Staff only
                 .requestMatchers(HttpMethod.GET, "/api/enquiries/**").access(hasRoleOrPage("enquiries", "ADMIN", "ENQUIRY_STAFF", "PRINCIPAL", "OFFICE_STAFF", "ACADEMIC_COORDINATOR"))
                 .requestMatchers("/api/enquiries/**").access(hasRoleOrPage("enquiries", "ADMIN", "ENQUIRY_STAFF", "PRINCIPAL", "OFFICE_STAFF"))
+                .requestMatchers("/api/email-presets/**").authenticated()
                 // Admission Form endpoints - Allow staff only (list, view, update)
                 .requestMatchers(HttpMethod.GET, "/api/fy-admissions/**").access(hasRoleOrPage("admissions", "ADMIN", "OFFICE_STAFF", "PRINCIPAL", "ACADEMIC_COORDINATOR"))
                 .requestMatchers(HttpMethod.PUT, "/api/fy-admissions/**").access(hasRoleOrPage("admissions", "ADMIN", "OFFICE_STAFF", "PRINCIPAL"))

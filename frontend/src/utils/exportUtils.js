@@ -1,5 +1,53 @@
 import { formatDate } from './formatters';
 
+const parseMerit = (enquiry = {}) => {
+  if (enquiry.merit && typeof enquiry.merit === 'object') return enquiry.merit;
+  if (!enquiry.meritDetails) return {};
+  if (typeof enquiry.meritDetails === 'object') return enquiry.meritDetails;
+  try {
+    return JSON.parse(enquiry.meritDetails);
+  } catch {
+    return {};
+  }
+};
+
+const formatMerit = (enquiry) => {
+  const merit = parseMerit(enquiry);
+  const parts = [
+    merit.class10 && `Class 10: ${merit.class10}`,
+    merit.class12 && `Class 12: ${merit.class12}`,
+    merit.iti && `ITI: ${merit.iti}`,
+    merit.other && `Other${merit.otherDescription ? ` (${merit.otherDescription})` : ''}: ${merit.other}`
+  ].filter(Boolean);
+  return parts.join('; ');
+};
+
+const parseBranches = (enquiry = {}) => {
+  let branches = enquiry.branchesInterested;
+  if (!branches) return [];
+  if (typeof branches === 'string') {
+    try {
+      branches = JSON.parse(branches);
+    } catch {
+      return [];
+    }
+  }
+  return Array.isArray(branches)
+    ? branches.slice().sort((a, b) => Number(a.priority || 0) - Number(b.priority || 0))
+    : [];
+};
+
+const getMaxBranchPriority = (enquiries) => {
+  return Math.max(
+    0,
+    ...enquiries.flatMap(enquiry => parseBranches(enquiry).map(branch => Number(branch.priority || 0)))
+  );
+};
+
+const getBranchByPriority = (enquiry, priority) => {
+  return parseBranches(enquiry).find(branch => Number(branch.priority) === priority)?.branch || '';
+};
+
 const downloadCsv = (filename, headers, rows) => {
   let csvContent = headers.join(',') + '\n';
   rows.forEach(row => {
@@ -25,11 +73,37 @@ export const exportToExcel = (enquiries, selectedFields = null) => {
   try {
     let headers;
     let rows;
+    const maxBranchPriority = getMaxBranchPriority(enquiries);
+    const branchPriorityFields = Array.from({ length: maxBranchPriority }, (_, index) => ({
+      key: `branchPriority${index + 1}`,
+      label: `Branch Priority ${index + 1}`,
+      priority: index + 1
+    }));
+
     if (selectedFields && Array.isArray(selectedFields) && selectedFields.length > 0) {
-      headers = selectedFields;
-      rows = enquiries.map((enquiry) => headers.map(field => enquiry[field] !== undefined ? enquiry[field] : ''));
+      const expandedFields = selectedFields.flatMap(field => (
+        field === 'branchesInterested' ? branchPriorityFields : [{ key: field, label: field }]
+      ));
+      headers = expandedFields.map(field => field.label);
+      rows = enquiries.map((enquiry) => expandedFields.map(field => {
+        if (field.priority) return getBranchByPriority(enquiry, field.priority);
+        const fieldKey = field.key;
+        if (fieldKey === 'merit' || fieldKey === 'meritDetails') return formatMerit(enquiry);
+        return enquiry[fieldKey] !== undefined ? enquiry[fieldKey] : '';
+      }));
     } else {
-      headers = ['S.No', 'Name', 'Email', 'Phone', 'Admission For', 'Branches Interested', 'Location', 'Category', 'Status', 'Date'];
+      headers = [
+        'S.No',
+        'Name',
+        'Email',
+        'Phone',
+        'Admission For',
+        ...branchPriorityFields.map(field => field.label),
+        'Location',
+        'Category',
+        'Status',
+        'Date'
+      ];
       rows = enquiries.map((enquiry, index) => {
         const fullName = `${enquiry.firstName || ''} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName || ''}`.trim();
         return [
@@ -38,7 +112,7 @@ export const exportToExcel = (enquiries, selectedFields = null) => {
           enquiry.email,
           enquiry.personalMobileNumber,
           enquiry.admissionFor || '-',
-          enquiry.branchesInterested || '-',
+          ...branchPriorityFields.map(field => getBranchByPriority(enquiry, field.priority)),
           enquiry.location === 'Other' ? enquiry.otherLocation : enquiry.location,
           enquiry.category || '-',
           enquiry.status,

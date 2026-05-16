@@ -27,6 +27,16 @@ const EnquirySelector = ({ admissionType, onSelectEnquiry, onSkip, onBack }) => 
     return `${enquiry.firstName} ${enquiry.middleName ? enquiry.middleName + ' ' : ''}${enquiry.lastName}`.trim();
   };
 
+  const getMeritSummary = (enquiry) => {
+    const merit = enquiry?.merit || {};
+    return [
+      merit.class10 && `Class 10: ${merit.class10}`,
+      merit.class12 && `Class 12: ${merit.class12}`,
+      merit.iti && `ITI: ${merit.iti}`,
+      merit.other && `Other${merit.otherDescription ? ` (${merit.otherDescription})` : ''}: ${merit.other}`
+    ].filter(Boolean).join(', ');
+  };
+
   return (
     <div style={{
       background: 'white',
@@ -171,6 +181,12 @@ const EnquirySelector = ({ admissionType, onSelectEnquiry, onSkip, onBack }) => 
                     {selectedEnquiry.location === 'Other' ? selectedEnquiry.otherLocation : selectedEnquiry.location}
                   </div>
                 </div>
+                {getMeritSummary(selectedEnquiry) && (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <span style={{ color: '#999' }}>Academic Merit:</span>
+                    <div style={{ fontWeight: '500', color: '#1a1a1a' }}>{getMeritSummary(selectedEnquiry)}</div>
+                  </div>
+                )}
                 {selectedEnquiry.branchesInterested && selectedEnquiry.branchesInterested.length > 0 && (
                   <div style={{ gridColumn: '1 / -1' }}>
                     <span style={{ color: '#999' }}>Preferred Branches:</span>

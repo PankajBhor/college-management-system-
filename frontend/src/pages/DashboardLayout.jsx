@@ -5,6 +5,8 @@ import Dashboard from './Dashboard';
 import EnquiryIndex from './enquiry/index';
 import NewEnquiry from './enquiry/NewEnquiry';
 import UpdateEnquiry from './enquiry/UpdateEnquiry';
+import ProvisionalAdmission from './enquiry/ProvisionalAdmission';
+import EmailPage from './email/EmailPage';
 import AdmissionPage from './admissions/AdmissionPage';
 import StaffManagement from './staff/StaffManagement';
 import AnalysisPage from './analysis/AnalysisPage';
@@ -33,6 +35,12 @@ const DashboardLayout = ({ user, onLogout }) => {
         return <NewEnquiry />;
       case 'update-enquiry':
         return <UpdateEnquiry />;
+      case 'provisional-admission':
+        return <ProvisionalAdmission />;
+      case 'email-enquiry':
+        return <EmailPage scope="ENQUIRY" />;
+      case 'email-admission':
+        return <EmailPage scope="ADMISSION" />;
       case 'admissions':
         return <AdmissionPage />;
       case 'hod-admissions':

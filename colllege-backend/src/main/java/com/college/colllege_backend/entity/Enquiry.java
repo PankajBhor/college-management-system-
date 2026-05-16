@@ -36,12 +36,45 @@ public class Enquiry {
     @Column(name = "dte_registration_done", nullable = false)
     private boolean dteRegistrationDone = false;
 
+    @Column(name = "email_enabled", nullable = false)
+    private boolean emailEnabled = false;
+
+    @Column(name = "selected_email_preset_id")
+    private Long selectedEmailPresetId;
+
+    @Column(name = "provisional_admission", nullable = false)
+    private boolean provisionalAdmission = false;
+
     public boolean isDteRegistrationDone() {
         return dteRegistrationDone;
     }
 
     public void setDteRegistrationDone(boolean dteRegistrationDone) {
         this.dteRegistrationDone = dteRegistrationDone;
+    }
+
+    public boolean isEmailEnabled() {
+        return emailEnabled;
+    }
+
+    public void setEmailEnabled(boolean emailEnabled) {
+        this.emailEnabled = emailEnabled;
+    }
+
+    public Long getSelectedEmailPresetId() {
+        return selectedEmailPresetId;
+    }
+
+    public void setSelectedEmailPresetId(Long selectedEmailPresetId) {
+        this.selectedEmailPresetId = selectedEmailPresetId;
+    }
+
+    public boolean isProvisionalAdmission() {
+        return provisionalAdmission;
+    }
+
+    public void setProvisionalAdmission(boolean provisionalAdmission) {
+        this.provisionalAdmission = provisionalAdmission;
     }
     @NotBlank(message = "Last name cannot be blank")
     private String lastName;

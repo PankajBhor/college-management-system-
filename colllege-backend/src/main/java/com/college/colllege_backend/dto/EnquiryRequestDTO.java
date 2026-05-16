@@ -50,6 +50,9 @@ public class EnquiryRequestDTO {
     private String sscSeatNo;
 
     private boolean dteRegistrationDone;
+    private boolean emailEnabled;
+    private Long selectedEmailPresetId;
+    private boolean provisionalAdmission;
 
     // Getters and Setters
     public String getFirstName() {
@@ -186,5 +189,29 @@ public class EnquiryRequestDTO {
 
     public void setDteRegistrationDone(boolean dteRegistrationDone) {
         this.dteRegistrationDone = dteRegistrationDone;
+    }
+
+    public boolean isEmailEnabled() {
+        return emailEnabled;
+    }
+
+    public void setEmailEnabled(boolean emailEnabled) {
+        this.emailEnabled = emailEnabled;
+    }
+
+    public Long getSelectedEmailPresetId() {
+        return selectedEmailPresetId;
+    }
+
+    public void setSelectedEmailPresetId(Long selectedEmailPresetId) {
+        this.selectedEmailPresetId = selectedEmailPresetId;
+    }
+
+    public boolean isProvisionalAdmission() {
+        return provisionalAdmission;
+    }
+
+    public void setProvisionalAdmission(boolean provisionalAdmission) {
+        this.provisionalAdmission = provisionalAdmission;
     }
 }

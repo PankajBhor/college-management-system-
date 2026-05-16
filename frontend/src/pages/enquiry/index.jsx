@@ -7,7 +7,7 @@ import ExportFieldChecklist from './ExportFieldChecklist';
 import {
   getAllAdmissionTypes,
   getAllBranches,
-  getAllCategories,
+  getAllEnquiryCategories,
   getAllEnquiryStatuses,
   getAllLocations
 } from '../../services/lookupService';
@@ -57,7 +57,7 @@ function EnquiryIndex() {
       try {
         const [locations, categories, branches, admissionTypes, statuses] = await Promise.all([
           getAllLocations(),
-          getAllCategories(),
+          getAllEnquiryCategories(),
           getAllBranches(),
           getAllAdmissionTypes(),
           getAllEnquiryStatuses()

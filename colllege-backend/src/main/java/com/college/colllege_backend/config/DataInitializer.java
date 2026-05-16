@@ -58,10 +58,10 @@ public class DataInitializer {
             seedLookup(lookupOptionRepository, "categories", "OBC", "OBC", 2);
             seedLookup(lookupOptionRepository, "categories", "SC", "SC", 3);
             seedLookup(lookupOptionRepository, "categories", "ST", "ST", 4);
-            seedLookup(lookupOptionRepository, "categories", "EWS", "EWS", 5);
             seedLookup(lookupOptionRepository, "categories", "NT", "NT", 6);
             seedLookup(lookupOptionRepository, "categories", "SBC", "SBC", 7);
-            seedLookup(lookupOptionRepository, "categories", "TFWS", "TFWS", 8);
+            deactivateLookup(lookupOptionRepository, "categories", "EWS");
+            deactivateLookup(lookupOptionRepository, "categories", "TFWS");
 
             seedLookup(lookupOptionRepository, "locations", "AHMEDNAGAR", "Ahmednagar", 1);
             seedLookup(lookupOptionRepository, "locations", "PUNE", "Pune", 2);
@@ -78,8 +78,10 @@ public class DataInitializer {
             seedLookup(lookupOptionRepository, "admission_rounds", "CAP-1", "CAP-1", 1);
             seedLookup(lookupOptionRepository, "admission_rounds", "CAP-2", "CAP-2", 2);
             seedLookup(lookupOptionRepository, "admission_rounds", "CAP-3", "CAP-3", 3);
-            seedLookup(lookupOptionRepository, "admission_rounds", "INSTITUTE_LEVEL", "Institute Level", 4);
-            seedLookup(lookupOptionRepository, "admission_rounds", "AGAINST_CAP", "Against CAP", 5);
+            seedLookup(lookupOptionRepository, "admission_rounds", "EWS", "EWS", 4);
+            seedLookup(lookupOptionRepository, "admission_rounds", "TFWS", "TFWS", 5);
+            seedLookup(lookupOptionRepository, "admission_rounds", "INSTITUTE_LEVEL", "Institute Level", 6);
+            seedLookup(lookupOptionRepository, "admission_rounds", "AGAINST_CAP", "Against CAP", 7);
 
             seedLookup(lookupOptionRepository, "genders", "Male", "Male", 1);
             seedLookup(lookupOptionRepository, "genders", "Female", "Female", 2);
@@ -126,10 +128,37 @@ public class DataInitializer {
             String code,
             String label,
             Integer displayOrder) {
-        if (repository.existsByTypeAndCode(type, code)) {
+        var existing = repository.findByTypeAndCode(type, code);
+        if (existing.isPresent()) {
+            LookupOption option = existing.get();
+            boolean changed = false;
+            if (!label.equals(option.getLabel())) {
+                option.setLabel(label);
+                changed = true;
+            }
+            if (!displayOrder.equals(option.getDisplayOrder())) {
+                option.setDisplayOrder(displayOrder);
+                changed = true;
+            }
+            if (!Boolean.TRUE.equals(option.getActive())) {
+                option.setActive(true);
+                changed = true;
+            }
+            if (changed) {
+                repository.save(option);
+            }
             return;
         }
         repository.save(new LookupOption(type, code, label, displayOrder));
+    }
+
+    private void deactivateLookup(LookupOptionRepository repository, String type, String code) {
+        repository.findByTypeAndCode(type, code).ifPresent(option -> {
+            if (Boolean.TRUE.equals(option.getActive())) {
+                option.setActive(false);
+                repository.save(option);
+            }
+        });
     }
 
     private void seedUser(
