@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import ColumnVisibilityMenu from '../../components/ColumnVisibilityMenu';
 import { getProvisionalEnquiries } from '../../services/enquiryService';
 import { exportProvisionalAdmissionsToExcel } from '../../utils/exportUtils';
+import { buildBranchPriorityFields, getBranchByPriority } from '../../utils/branchPreferences';
 
-const columns = [
+const getColumns = (rows = []) => [
   { key: 'sscSeatNo', label: 'Seat No', render: row => row.sscSeatNo || '-' },
   { key: 'fullName', label: 'Name', render: row => [row.firstName, row.middleName, row.lastName].filter(Boolean).join(' ') },
   { key: 'email', label: 'Email', render: row => row.email },
@@ -11,10 +12,10 @@ const columns = [
   { key: 'admissionFor', label: 'Admission For', render: row => row.admissionFor },
   { key: 'category', label: 'Category', render: row => row.category },
   { key: 'location', label: 'Location', render: row => row.location === 'Other' ? row.otherLocation : row.location },
-  { key: 'branchPriority1', label: 'Priority 1', render: row => row.branchPriority1 || '-' },
-  { key: 'branchPriority2', label: 'Priority 2', render: row => row.branchPriority2 || '-' },
-  { key: 'branchPriority3', label: 'Priority 3', render: row => row.branchPriority3 || '-' },
-  { key: 'branchPriority4', label: 'Priority 4', render: row => row.branchPriority4 || '-' },
+  ...buildBranchPriorityFields(rows).map(field => ({
+    ...field,
+    render: row => getBranchByPriority(row, field.priority) || '-'
+  })),
   { key: 'referenceFaculty', label: 'Reference Faculty', render: row => row.referenceFaculty || '-' },
   { key: 'status', label: 'Status', render: row => row.status }
 ];
@@ -23,7 +24,18 @@ const ProvisionalAdmission = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [visibleColumns, setVisibleColumns] = useState(columns.map(column => column.key));
+  const columns = getColumns(rows);
+  const columnKeys = columns.map(column => column.key).join('|');
+  const [visibleColumns, setVisibleColumns] = useState(getColumns().map(column => column.key));
+
+  useEffect(() => {
+    setVisibleColumns(prev => {
+      const nextKeys = columnKeys.split('|').filter(Boolean);
+      const keptKeys = prev.filter(key => nextKeys.includes(key));
+      const addedKeys = nextKeys.filter(key => !prev.includes(key));
+      return [...keptKeys, ...addedKeys];
+    });
+  }, [columnKeys]);
 
   useEffect(() => {
     async function load() {

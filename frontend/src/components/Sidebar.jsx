@@ -5,7 +5,20 @@ import { COLORS, TYPOGRAPHY, SPACING, SHADOWS, BORDER_RADIUS } from '../utils/de
 const Sidebar = ({ onNavigate, currentPage, userRole, user, isOpen, onOpenChange }) => {
   const [isHovered, setIsHovered] = useState(false);
   const sourceMenus = parseAccessPages(user?.accessPages) ? allMenuItems : (menuConfig[userRole] || []);
-  const menus = sourceMenus.filter(menu => canAccessPage(user || { role: userRole }, menu.page));
+  const accessibleMenus = sourceMenus.filter(menu => canAccessPage(user || { role: userRole }, menu.page));
+  const hasBothEmailPages = canAccessPage(user || { role: userRole }, 'email-enquiry') && canAccessPage(user || { role: userRole }, 'email-admission');
+  const menus = accessibleMenus.reduce((items, menu) => {
+    if (hasBothEmailPages && (menu.page === 'email-enquiry' || menu.page === 'email-admission')) {
+      if (!items.some(item => item.page === 'email-enquiry')) {
+        items.push({ ...menu, label: 'Email', page: 'email-enquiry' });
+      }
+      return items;
+    }
+    if (!items.some(item => item.page === menu.page)) {
+      items.push(menu);
+    }
+    return items;
+  }, []);
   const showSidebar = isOpen || isHovered;
 
   return (

@@ -1,4 +1,5 @@
 import { formatDate } from './formatters';
+import { buildBranchPriorityFields, getBranchByPriority } from './branchPreferences';
 
 const parseMerit = (enquiry = {}) => {
   if (enquiry.merit && typeof enquiry.merit === 'object') return enquiry.merit;
@@ -20,32 +21,6 @@ const formatMerit = (enquiry) => {
     merit.other && `Other${merit.otherDescription ? ` (${merit.otherDescription})` : ''}: ${merit.other}`
   ].filter(Boolean);
   return parts.join('; ');
-};
-
-const parseBranches = (enquiry = {}) => {
-  let branches = enquiry.branchesInterested;
-  if (!branches) return [];
-  if (typeof branches === 'string') {
-    try {
-      branches = JSON.parse(branches);
-    } catch {
-      return [];
-    }
-  }
-  return Array.isArray(branches)
-    ? branches.slice().sort((a, b) => Number(a.priority || 0) - Number(b.priority || 0))
-    : [];
-};
-
-const getMaxBranchPriority = (enquiries) => {
-  return Math.max(
-    0,
-    ...enquiries.flatMap(enquiry => parseBranches(enquiry).map(branch => Number(branch.priority || 0)))
-  );
-};
-
-const getBranchByPriority = (enquiry, priority) => {
-  return parseBranches(enquiry).find(branch => Number(branch.priority) === priority)?.branch || '';
 };
 
 const downloadCsv = (filename, headers, rows) => {
@@ -73,11 +48,9 @@ export const exportToExcel = (enquiries, selectedFields = null) => {
   try {
     let headers;
     let rows;
-    const maxBranchPriority = getMaxBranchPriority(enquiries);
-    const branchPriorityFields = Array.from({ length: maxBranchPriority }, (_, index) => ({
-      key: `branchPriority${index + 1}`,
-      label: `Branch Priority ${index + 1}`,
-      priority: index + 1
+    const branchPriorityFields = buildBranchPriorityFields(enquiries).map(field => ({
+      ...field,
+      label: `Branch ${field.label}`
     }));
 
     if (selectedFields && Array.isArray(selectedFields) && selectedFields.length > 0) {
@@ -141,16 +114,14 @@ export const exportProvisionalAdmissionsToExcel = (rows, selectedFields = null) 
       category: 'Category',
       location: 'Location',
       status: 'Status',
-      referenceFaculty: 'Reference Faculty',
-      branchPriority1: 'Priority 1',
-      branchPriority2: 'Priority 2',
-      branchPriority3: 'Priority 3',
-      branchPriority4: 'Priority 4'
+      referenceFaculty: 'Reference Faculty'
     };
-    const headers = fields.map(field => labelMap[field] || field);
+    const headers = fields.map(field => labelMap[field] || field.replace(/^branchPriority(\d+)$/, 'Priority $1'));
     const data = rows.map(row => fields.map(field => {
       if (field === 'fullName') return `${row.firstName || ''} ${row.middleName ? row.middleName + ' ' : ''}${row.lastName || ''}`.trim();
       if (field === 'location') return row.location === 'Other' ? row.otherLocation : row.location;
+      const priorityMatch = field.match(/^branchPriority(\d+)$/);
+      if (priorityMatch) return getBranchByPriority(row, Number(priorityMatch[1]));
       return row[field] ?? '';
     }));
     downloadCsv('provisional_admissions', headers, data);

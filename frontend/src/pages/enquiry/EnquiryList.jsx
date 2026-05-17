@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatDate } from '../../utils/formatters';
 import enquiryService from '../../services/enquiryService';
 import Pagination from '../../components/Pagination';
 import ColumnVisibilityMenu from '../../components/ColumnVisibilityMenu';
 import { getOptionValue } from '../../services/lookupService';
+import { buildBranchPriorityFields, getBranchByPriority } from '../../utils/branchPreferences';
 
 const EnquiryList = ({
   enquiries,
@@ -23,24 +24,35 @@ const EnquiryList = ({
 }) => {
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState('');
+  const branchOptions = lookupOptions.branches || [];
+  const branchPriorityColumns = buildBranchPriorityFields(allEnquiries || enquiries, branchOptions);
   const columns = [
     { key: 'sNo', label: 'S.No' },
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
     { key: 'phone', label: 'Phone' },
     { key: 'admissionFor', label: 'Admission For' },
-    { key: 'branches', label: 'Branches Interested' },
+    ...branchPriorityColumns,
     { key: 'location', label: 'Location' },
     { key: 'category', label: 'Category' },
     { key: 'status', label: 'Status' },
     { key: 'date', label: 'Date' }
   ];
   const [visibleColumns, setVisibleColumns] = useState(columns.map(column => column.key));
+  const columnKeys = columns.map(column => column.key).join('|');
   const locationOptions = lookupOptions.locations || [];
   const categoryOptions = lookupOptions.categories || [];
-  const branchOptions = lookupOptions.branches || [];
   const admissionForOptions = lookupOptions.admissionTypes || [];
   const statusOptions = lookupOptions.statuses || [];
+
+  useEffect(() => {
+    setVisibleColumns(prev => {
+      const nextKeys = columnKeys.split('|').filter(Boolean);
+      const keptKeys = prev.filter(key => nextKeys.includes(key));
+      const addedKeys = nextKeys.filter(key => !prev.includes(key));
+      return [...keptKeys, ...addedKeys];
+    });
+  }, [columnKeys]);
 
   const getStatusColor = (status) => {
     const colors = {
@@ -79,7 +91,6 @@ const EnquiryList = ({
       return '—';
     }
   };
-
   const handleStatusUpdate = async (enquiryId, newStatus) => {
     setUpdatingId(enquiryId);
     setError('');
@@ -97,7 +108,7 @@ const EnquiryList = ({
   };
 
   // compute branch priority options dynamically
-  const maxPriority = (allEnquiries || enquiries).reduce((max, e) => {
+  const maxPriority = branchPriorityColumns.length || (allEnquiries || enquiries).reduce((max, e) => {
     let branches = e.branchesInterested;
     if (typeof branches === 'string') {
       try { branches = JSON.parse(branches); } catch { branches = []; }
@@ -171,9 +182,10 @@ const EnquiryList = ({
                 </select>
               </div>}
             </th>
-            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
-              Branches Interested
-              {filters && <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+            {branchPriorityColumns.map((column, index) => (
+            <th key={column.key} style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
+              {column.label}
+              {filters && index === 0 && <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                 <select value={filters.branch} onChange={handleFilterChange('branch')} style={{ fontSize: '0.8em', padding: '4px' }}>
                   <option value="">Branch</option>
                   {branchOptions.map(opt => {
@@ -187,6 +199,7 @@ const EnquiryList = ({
                 </select>
               </div>}
             </th>
+            ))}
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Location
               {filters && <div style={{ marginTop: '8px' }}>
@@ -263,9 +276,11 @@ const EnquiryList = ({
               <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {enquiry.admissionFor || '—'}
               </td>
-              <td style={{ padding: '15px', color: '#666', fontSize: '0.85em' }}>
-                {getBranches(enquiry)}
-              </td>
+              {branchPriorityColumns.map(column => (
+                <td key={column.key} title={getBranches(enquiry)} style={{ padding: '15px', color: '#666', fontSize: '0.85em' }}>
+                  {getBranchByPriority(enquiry, column.priority) || '-'}
+                </td>
+              ))}
               <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {enquiry.location === 'Other' ? enquiry.otherLocation : enquiry.location}
               </td>

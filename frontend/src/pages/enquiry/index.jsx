@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import EnquiryList from './EnquiryList';
 import { exportToExcel } from '../../utils/exportUtils';
 import ExportFieldChecklist from './ExportFieldChecklist';
+import { enquiryMatchesBranchFilters } from '../../utils/branchPreferences';
 import {
   getAllAdmissionTypes,
   getAllBranches,
@@ -96,28 +97,8 @@ function EnquiryIndex() {
         return false;
       }
 
-      // Filter by branch if selected
       if (filters.branch || filters.branchPriority) {
-        let branches = enquiry.branchesInterested;
-        if (typeof branches === 'string') {
-          try {
-            branches = JSON.parse(branches);
-          } catch {
-            branches = [];
-          }
-        }
-
-        if (filters.branch && !branches.some((b) => b.branch === filters.branch)) {
-          return false;
-        }
-
-        if (filters.branchPriority) {
-          if (!branches.some((b) => String(b.priority) === filters.branchPriority)) {
-            return false;
-          }
-          return true;
-        }
-        return true;
+        return enquiryMatchesBranchFilters(enquiry, filters.branch, filters.branchPriority);
       }
       return true;
     });

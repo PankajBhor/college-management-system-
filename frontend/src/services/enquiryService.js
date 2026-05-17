@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getAuthHeader } from './authHeader';
+import { parseBranchPreferences } from '../utils/branchPreferences';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 const API_INSTANCE = axios.create({
@@ -37,8 +38,14 @@ export const normalizeMerit = (meritDetails, merit = null) => {
 
 export const normalizeEnquiry = (enquiry) => {
   if (!enquiry) return enquiry;
+  const branches = parseBranchPreferences(enquiry);
+  const priorityFields = branches.reduce((fields, item) => {
+    if (item.priority > 0) fields[`branchPriority${item.priority}`] = item.branch;
+    return fields;
+  }, {});
   return {
     ...enquiry,
+    ...priorityFields,
     merit: normalizeMerit(enquiry.meritDetails, enquiry.merit)
   };
 };
@@ -56,10 +63,6 @@ const normalizeEnquiryPayload = (enquiryData) => ({
   otherLocation: enquiryData.otherLocation,
   category: enquiryData.category,
   branchesInterested: JSON.stringify(enquiryData.branchesInterested),
-  branchPriority1: enquiryData.branchPriority1 || enquiryData.branchesInterested?.find?.(item => Number(item.priority) === 1)?.branch || '',
-  branchPriority2: enquiryData.branchPriority2 || enquiryData.branchesInterested?.find?.(item => Number(item.priority) === 2)?.branch || '',
-  branchPriority3: enquiryData.branchPriority3 || enquiryData.branchesInterested?.find?.(item => Number(item.priority) === 3)?.branch || '',
-  branchPriority4: enquiryData.branchPriority4 || enquiryData.branchesInterested?.find?.(item => Number(item.priority) === 4)?.branch || '',
   referenceFaculty: enquiryData.referenceFaculty,
   sscSeatNo: enquiryData.sscSeatNo,
   dteRegistrationDone: enquiryData.dteRegistrationDone,

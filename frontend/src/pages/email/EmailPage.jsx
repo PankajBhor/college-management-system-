@@ -11,6 +11,7 @@ import enquiryService from '../../services/enquiryService';
 import { admissionService } from '../../services/admissionService';
 import { useAuth } from '../../hooks/useAuth';
 import { canAccessPage } from '../../data/menuData';
+import { enquiryMatchesBranchFilters } from '../../utils/branchPreferences';
 
 const emptyPreset = { name: '', subject: '', body: '', targetScope: 'ENQUIRY' };
 const emptyFilters = { admissionFor: '', branch: '', category: '', location: '', status: '' };
@@ -129,7 +130,7 @@ const EmailPage = ({ scope: initialScope }) => {
   const branchMatches = (filter, row) => {
     if (!filter) return true;
     if (scope === 'ADMISSION') return String(row.program || '').toLowerCase() === filter.toLowerCase();
-    return String(row.branchesInterested || '').toLowerCase().includes(filter.toLowerCase());
+    return enquiryMatchesBranchFilters(row, filter, '');
   };
   const getRecipientName = (row) => scope === 'ADMISSION'
     ? [row.applicantFirstName, row.applicantMiddleName, row.applicantLastName].filter(Boolean).join(' ')

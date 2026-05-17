@@ -14,7 +14,7 @@ const FIELD_LABELS = {
   location: 'Location',
   otherLocation: 'Other Location',
   category: 'Category',
-  branchesInterested: 'Branches Interested',
+  branchesInterested: 'Branch Priority Columns',
   referenceFaculty: 'Reference Faculty',
   dteRegistrationDone: 'DTE Registration Done',
   enquiryDate: 'Enquiry Date',

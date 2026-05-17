@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import hodService from '../../services/hodService';
 import EnquiryList from '../enquiry/EnquiryList';
 import { exportToExcel } from '../../utils/exportUtils';
+import { enquiryMatchesBranchFilters } from '../../utils/branchPreferences';
 
 const HodEnquiriesPage = () => {
   const [overview, setOverview] = useState(null);
@@ -22,6 +23,7 @@ const HodEnquiriesPage = () => {
     if (filters.category && enquiry.category !== filters.category) return false;
     if (filters.status && enquiry.status !== filters.status) return false;
     if (filters.date && enquiry.enquiryDate !== filters.date) return false;
+    if (!enquiryMatchesBranchFilters(enquiry, filters.branch, filters.branchPriority)) return false;
     return true;
   });
 
