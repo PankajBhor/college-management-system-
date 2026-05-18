@@ -26,7 +26,7 @@ const Header = ({ user, onLogout }) => {
           fontWeight: TYPOGRAPHY.fontWeight.bold,
           color: COLORS.text
         }}>
-          🏫 College Management System
+          🏫 Jaihind Polytechnic, Kuran
         </h1>
       </div>
 

@@ -49,7 +49,7 @@ const LoginPage = ({ onLoginSuccess }) => {
             margin: `0 0 ${SPACING.sm} 0`,
             color: COLORS.text
           }}>
-            Jaihind College
+            Jaihind Polytechnic, Kuran
           </h1>
           <p style={{
             fontSize: TYPOGRAPHY.fontSize.sm,
