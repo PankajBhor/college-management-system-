@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { getAuthHeader } from './authHeader';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 /**
  * Centralized API client with request/response interceptors
  * Handles authentication, errors, and retries
