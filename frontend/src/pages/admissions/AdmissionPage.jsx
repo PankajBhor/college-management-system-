@@ -36,6 +36,8 @@ const AdmissionPage = () => {
   const explicitPages = parseAccessPages(user?.accessPages);
   const hasExplicitAdmissionAccess = explicitPages?.includes('admissions');
   const canCreateAdmission = Boolean(user && (['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF'].includes(user.role) || hasExplicitAdmissionAccess || canAccessPage(user, 'admissions')));
+  const canUploadFYAdmissions = canAccessPage(user, 'bulk-fy-admission-upload');
+  const canUploadDSYAdmissions = canAccessPage(user, 'bulk-dsy-admission-upload');
   const [activeTab, setActiveTab] = useState(canCreateAdmission ? 'new' : 'admitted'); // 'new' or 'admitted'
   const [admittedTab, setAdmittedTab] = useState('fy'); // 'fy' or 'dsy'
   const [filters, setFilters] = useState({
@@ -64,6 +66,8 @@ const AdmissionPage = () => {
   const [editMatches, setEditMatches] = useState([]);
   const [editLoading, setEditLoading] = useState(false);
   const [editingAdmission, setEditingAdmission] = useState(null);
+  const [uploadingAdmission, setUploadingAdmission] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
 
 
   useEffect(() => {
@@ -159,6 +163,41 @@ const AdmissionPage = () => {
   const admittedFY = sortByPercentage(getFilteredAdmissions(baseAdmittedFY, fyRequiredDocuments));
   const admittedDSY = sortByPercentage(getFilteredAdmissions(baseAdmittedDSY, dsyRequiredDocuments));
   const currentAdmissions = admittedTab === 'fy' ? admittedFY : admittedDSY;
+  const canUploadCurrentAdmission = admittedTab === 'fy' ? canUploadFYAdmissions : canUploadDSYAdmissions;
+
+  const handleAdmissionBulkUpload = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setUploadingAdmission(true);
+    try {
+      const result = admittedTab === 'fy'
+        ? await admissionService.bulkUploadFYAdmissions(file)
+        : await admissionService.bulkUploadDSYAdmissions(file);
+      setUploadResult({ ...result, type: admittedTab.toUpperCase() });
+      if (admittedTab === 'fy') {
+        await fetchFYAdmissions(fyPageNumber, fyPageSize);
+      } else {
+        await fetchDSYAdmissions(dsyPageNumber, dsyPageSize);
+      }
+    } catch (error) {
+      alert(error.response?.data?.error || error.response?.data?.message || error.message || 'Unable to upload admissions');
+    } finally {
+      setUploadingAdmission(false);
+    }
+  };
+
+  const handleDownloadAdmissionTemplate = async () => {
+    try {
+      if (admittedTab === 'fy') {
+        await admissionService.downloadFYAdmissionBulkUploadTemplate();
+      } else {
+        await admissionService.downloadDSYAdmissionBulkUploadTemplate();
+      }
+    } catch (error) {
+      alert(error.response?.data?.error || error.response?.data?.message || error.message || 'Unable to download admission template');
+    }
+  };
 
   const searchAdmissionsForEdit = async () => {
     setEditLoading(true);
@@ -316,6 +355,48 @@ const AdmissionPage = () => {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              {canUploadCurrentAdmission && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleDownloadAdmissionTemplate}
+                    style={{
+                      padding: '10px 18px',
+                      background: '#fff',
+                      color: '#344054',
+                      border: '1px solid #d0d5dd',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Download {admittedTab.toUpperCase()} Format
+                  </button>
+                  <label
+                    style={{
+                      padding: '10px 18px',
+                      background: uploadingAdmission ? '#e5e7eb' : '#ecfdf3',
+                      color: uploadingAdmission ? '#667085' : '#067647',
+                      border: '1px solid #abefc6',
+                      borderRadius: '8px',
+                      cursor: uploadingAdmission ? 'wait' : 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '600'
+                    }}
+                    title={`Upload ${admittedTab.toUpperCase()} admissions from Excel`}
+                  >
+                    {uploadingAdmission ? 'Uploading...' : `Upload ${admittedTab.toUpperCase()} Excel`}
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      disabled={uploadingAdmission}
+                      onChange={handleAdmissionBulkUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </>
+              )}
               <button
                 onClick={() => setExportModalOpen(true)}
                 style={{
@@ -413,6 +494,23 @@ const AdmissionPage = () => {
               </button>
             </div>
           </div>
+
+          {uploadResult && (
+            <div style={{ marginBottom: '18px', padding: '14px', border: '1px solid #d0d5dd', borderRadius: '8px', background: '#f8fafc' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
+                <div>
+                  <strong>{uploadResult.type} Excel upload complete:</strong> {uploadResult.successCount || 0} saved, {uploadResult.failedCount || 0} failed out of {uploadResult.totalRows || 0} rows.
+                  {uploadResult.errors?.length > 0 && (
+                    <ul style={{ margin: '10px 0 0', paddingLeft: '18px', color: '#b42318' }}>
+                      {uploadResult.errors.slice(0, 10).map((error, index) => <li key={index}>{error}</li>)}
+                    </ul>
+                  )}
+                  {uploadResult.errors?.length > 10 && <p style={{ margin: '8px 0 0', color: '#b42318' }}>Showing first 10 errors.</p>}
+                </div>
+                <button type="button" onClick={() => setUploadResult(null)} style={{ border: '1px solid #d0d5dd', background: '#fff', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}>Close</button>
+              </div>
+            </div>
+          )}
 
           {loading ? (
             <div style={{

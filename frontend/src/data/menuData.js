@@ -63,6 +63,9 @@ export const pageAccess = Object.freeze({
   'provisional-admission': ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF', 'OFFICE_STAFF'],
   'email-enquiry': ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF'],
   'email-admission': ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF'],
+  'bulk-enquiry-upload': ['ADMIN', 'PRINCIPAL'],
+  'bulk-fy-admission-upload': ['ADMIN', 'PRINCIPAL'],
+  'bulk-dsy-admission-upload': ['ADMIN', 'PRINCIPAL'],
   dashboard: ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'FACULTY', 'HOD', 'ACADEMIC_COORDINATOR'],
   students: ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'FACULTY', 'HOD'],
   fees: ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF'],
@@ -75,8 +78,16 @@ export const pageAccess = Object.freeze({
   staff: ['ADMIN', 'PRINCIPAL']
 });
 
-export const allMenuItems = Object.values(menuConfig)
+export const navigationMenuItems = Object.values(menuConfig)
   .flat()
+  .filter((item, index, items) => items.findIndex(candidate => candidate.page === item.page) === index);
+
+export const allMenuItems = navigationMenuItems
+  .concat([
+    { icon: 'BE', label: 'Bulk Enquiry Upload', page: 'bulk-enquiry-upload' },
+    { icon: 'BF', label: 'Bulk FY Admission Upload', page: 'bulk-fy-admission-upload' },
+    { icon: 'BD', label: 'Bulk DSY Admission Upload', page: 'bulk-dsy-admission-upload' }
+  ])
   .filter((item, index, items) => items.findIndex(candidate => candidate.page === item.page) === index);
 
 export const permissionMenuItems = allMenuItems.map(item => {
@@ -87,7 +98,10 @@ export const permissionMenuItems = allMenuItems.map(item => {
     'update-enquiry': 'Update Enquiry',
     'email-enquiry': 'Email - Enquiry Students',
     'email-admission': 'Email - Admitted Students',
-    'provisional-admission': 'Provisional Admission'
+    'provisional-admission': 'Provisional Admission',
+    'bulk-enquiry-upload': 'Bulk Enquiry Excel Upload',
+    'bulk-fy-admission-upload': 'Bulk FY Admission Excel Upload',
+    'bulk-dsy-admission-upload': 'Bulk DSY Admission Excel Upload'
   };
   return { ...item, label: labelOverrides[item.page] || item.label };
 });
@@ -100,6 +114,8 @@ export const parseAccessPages = (accessPages) => {
 
 export const canAccessPage = (user, page) => {
   if (!user) return false;
+  const role = String(user.role || '').trim().toUpperCase();
+  if ((pageAccess[page] || []).includes(role)) return true;
   const explicitAccess = parseAccessPages(user.accessPages);
   if (explicitAccess) {
     if (explicitAccess.includes(page)) return true;

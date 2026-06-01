@@ -12,6 +12,7 @@ import { getAllFaculty } from '../../services/facultyService';
 import logger from '../../services/loggerService';
 
 const emptyMerit = { class10: '', class12: '', iti: '', other: '', otherDescription: '' };
+const today = () => new Date().toISOString().split('T')[0];
 
 const NewEnquiry = () => {
   const [formData, setFormData] = useState({
@@ -32,7 +33,9 @@ const NewEnquiry = () => {
     dteRegistrationDone: false,
     emailEnabled: false,
     selectedEmailPresetId: '',
-    provisionalAdmission: false
+    provisionalAdmission: false,
+    enquiryDate: today(),
+    provisionalAdmissionDate: ''
   });
 
   const [facultyOptions, setFacultyOptions] = useState([]);
@@ -44,6 +47,15 @@ const NewEnquiry = () => {
   const [dropdownError, setDropdownError] = useState('');
   const [facultySearch, setFacultySearch] = useState('');
   const [locationSearch, setLocationSearch] = useState('');
+
+  const refreshFacultyOptions = async () => {
+    try {
+      const faculties = await getAllFaculty();
+      setFacultyOptions(faculties || []);
+    } catch (error) {
+      console.error('Error refreshing faculty data:', error);
+    }
+  };
 
   useEffect(() => {
     async function fetchDropdownData() {
@@ -77,7 +89,15 @@ const NewEnquiry = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const filteredFacultyOptions = facultyOptions.filter(faculty => (faculty.name || faculty.email || '').toLowerCase().includes(facultySearch.toLowerCase()));
-  const filteredLocationOptions = locationOptions.filter(option => getOptionValue(option).toLowerCase().includes(locationSearch.toLowerCase()));
+  const filteredLocationOptions = locationOptions
+    .filter(option => getOptionValue(option).toLowerCase().includes(locationSearch.toLowerCase()))
+    .sort((left, right) => {
+      const leftValue = getOptionValue(left).toLowerCase();
+      const rightValue = getOptionValue(right).toLowerCase();
+      if (leftValue === 'other') return -1;
+      if (rightValue === 'other') return 1;
+      return getOptionValue(left).localeCompare(getOptionValue(right));
+    });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -118,7 +138,7 @@ const NewEnquiry = () => {
       const enquiryData = {
         ...formData,
         branchesInterested: branchesData,
-        enquiryDate: new Date().toISOString().split('T')[0],
+        sscSeatNo: formData.sscSeatNo.trim(),
         status: 'Pending'
       };
 
@@ -147,7 +167,9 @@ const NewEnquiry = () => {
         dteRegistrationDone: false,
         emailEnabled: false,
         selectedEmailPresetId: '',
-        provisionalAdmission: false
+        provisionalAdmission: false,
+        enquiryDate: today(),
+        provisionalAdmissionDate: ''
       });
       setSelectedBranches([]);
       setShowOtherMeritDetails(false);
@@ -417,7 +439,7 @@ const NewEnquiry = () => {
               />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>SSC Seat No</label>
+              <label style={styles.label}>SSC Seat No *</label>
               <input
                 type="text"
                 name="sscSeatNo"
@@ -425,6 +447,7 @@ const NewEnquiry = () => {
                 onChange={handleInputChange}
                 style={styles.input}
                 placeholder="Enter SSC seat number"
+                required
               />
             </div>
             <div style={styles.formGroup}>
@@ -459,6 +482,17 @@ const NewEnquiry = () => {
           {/* Admission Section */}
           <h3 style={styles.sectionTitle}>🎓 Admission Details</h3>
           <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Enquiry Date *</label>
+              <input
+                type="date"
+                name="enquiryDate"
+                value={formData.enquiryDate}
+                onChange={handleInputChange}
+                style={styles.input}
+                required
+              />
+            </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>Admission For *</label>
               <select
@@ -624,6 +658,7 @@ const NewEnquiry = () => {
               type="search"
               value={facultySearch}
               onChange={(e) => setFacultySearch(e.target.value)}
+              onFocus={refreshFacultyOptions}
               style={{ ...styles.input, marginBottom: '8px' }}
               placeholder="Search faculty"
             />
@@ -631,6 +666,7 @@ const NewEnquiry = () => {
               name="referenceFaculty"
               value={formData.referenceFaculty}
               onChange={handleInputChange}
+              onFocus={refreshFacultyOptions}
               style={styles.select}
             >
               <option value="">Select faculty</option>
@@ -685,6 +721,19 @@ const NewEnquiry = () => {
                 <option value="yes">Yes</option>
               </select>
             </div>
+            {formData.provisionalAdmission && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Provisional Admission Date *</label>
+                <input
+                  type="date"
+                  name="provisionalAdmissionDate"
+                  value={formData.provisionalAdmissionDate}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  required={formData.provisionalAdmission}
+                />
+              </div>
+            )}
           </div>
 
           {/* Button Group */}
@@ -710,7 +759,9 @@ const NewEnquiry = () => {
                   dteRegistrationDone: false,
                   emailEnabled: false,
                   selectedEmailPresetId: '',
-                  provisionalAdmission: false
+                  provisionalAdmission: false,
+                  enquiryDate: today(),
+                  provisionalAdmissionDate: ''
                 });
                 setSelectedBranches([]);
                 setShowOtherMeritDetails(false);

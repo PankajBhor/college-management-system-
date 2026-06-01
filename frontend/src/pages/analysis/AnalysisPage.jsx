@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { admissionService } from '../../services/admissionService';
 import { getAllEnquiries } from '../../services/enquiryService';
+import { getAllFaculty } from '../../services/facultyService';
 import hodService from '../../services/hodService';
 import { departmentAbbr } from '../staff/StaffManagement';
 
@@ -12,6 +13,7 @@ const countBy = (items, getter) => items.reduce((acc, item) => {
 }, {});
 const rowsFrom = (data) => Object.entries(data || {}).map(([label, value]) => ({ label, value }));
 const unwrap = (data) => Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : []);
+const referenceFacultyName = (faculty) => String(faculty?.name || faculty?.email || '').trim();
 const programAbbr = (program = '') => {
   const code = String(program).match(/^\s*(\d+|[A-Z&]+)\.?/)?.[1];
   return departmentAbbr(code, []) || departmentAbbr(program, []) || program;
@@ -24,10 +26,15 @@ const chartableFields = (items) => {
     .sort();
 };
 
-const ChartCard = ({ title, rows }) => {
+const ChartCard = ({ title, rows, searchableFilters = false }) => {
   const [chartType, setChartType] = useState('bar');
   const [visible, setVisible] = useState(() => rows.reduce((acc, row) => ({ ...acc, [row.label]: true }), {}));
+  const [filterSearch, setFilterSearch] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
   useEffect(() => { setVisible(rows.reduce((acc, row) => ({ ...acc, [row.label]: true }), {})); }, [rows]);
+  const filterRows = searchableFilters
+    ? rows.filter(row => row.label.toLowerCase().includes(filterSearch.toLowerCase()))
+    : rows;
   const shown = rows.filter(row => visible[row.label]);
   const max = Math.max(...shown.map(row => row.value), 1);
   const total = shown.reduce((sum, row) => sum + row.value, 0);
@@ -48,14 +55,46 @@ const ChartCard = ({ title, rows }) => {
           <option value="pie">Pie</option>
         </select>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-        {rows.map(row => (
-          <label key={row.label} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#475467' }}>
-            <input type="checkbox" checked={visible[row.label] !== false} onChange={() => setVisible(prev => ({ ...prev, [row.label]: !prev[row.label] }))} />
-            {row.label}
-          </label>
-        ))}
-      </div>
+      {searchableFilters ? (
+        <div style={{ position: 'relative', marginBottom: '16px' }}>
+          <button
+            type="button"
+            onClick={() => setFilterOpen(open => !open)}
+            style={{ width: '100%', padding: '9px 10px', border: '1px solid #d0d5dd', borderRadius: '6px', background: '#fff', textAlign: 'left', cursor: 'pointer', color: '#344054' }}
+          >
+            Select faculty ({shown.length} selected)
+          </button>
+          {filterOpen && (
+            <div style={{ position: 'absolute', zIndex: 5, top: '42px', left: 0, right: 0, background: '#fff', border: '1px solid #d0d5dd', borderRadius: '6px', boxShadow: '0 12px 24px rgba(16, 24, 40, 0.14)', padding: '10px' }}>
+              <input
+                type="search"
+                value={filterSearch}
+                onChange={(event) => setFilterSearch(event.target.value)}
+                placeholder="Search faculty"
+                style={{ width: '100%', padding: '8px', border: '1px solid #d0d5dd', borderRadius: '6px', marginBottom: '10px' }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+                {filterRows.map(row => (
+                  <label key={row.label} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475467' }}>
+                    <input type="checkbox" checked={visible[row.label] !== false} onChange={() => setVisible(prev => ({ ...prev, [row.label]: !prev[row.label] }))} />
+                    {row.label}
+                  </label>
+                ))}
+                {filterRows.length === 0 && <span style={{ color: '#667085', fontSize: '13px' }}>No matching faculty found.</span>}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+          {filterRows.map(row => (
+            <label key={row.label} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#475467' }}>
+              <input type="checkbox" checked={visible[row.label] !== false} onChange={() => setVisible(prev => ({ ...prev, [row.label]: !prev[row.label] }))} />
+              {row.label}
+            </label>
+          ))}
+        </div>
+      )}
       {chartType === 'pie' && shown.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: '18px', alignItems: 'center' }}>
           <div style={{ width: '150px', height: '150px', borderRadius: '50%', background: `conic-gradient(${pieStops})`, border: '1px solid #e4e7ec' }} />
@@ -76,7 +115,7 @@ const ChartCard = ({ title, rows }) => {
                 <span>{row.label}</span><span>{row.value}</span>
               </div>
               <div style={{ height: '12px', background: '#eef2f6', borderRadius: '999px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${Math.max(5, (row.value / max) * 100)}%`, background: palettes[index % palettes.length], borderRadius: '999px' }} />
+                <div style={{ height: '100%', width: `${row.value > 0 ? Math.max(5, (row.value / max) * 100) : 0}%`, background: palettes[index % palettes.length], borderRadius: '999px' }} />
               </div>
             </div>
           ))}
@@ -89,7 +128,7 @@ const ChartCard = ({ title, rows }) => {
 
 const AnalysisPage = ({ user }) => {
   const [tab, setTab] = useState(user?.role === 'ENQUIRY_STAFF' ? 'enquiries' : 'admissions');
-  const [data, setData] = useState({ admissions: [], enquiries: [], department: null });
+  const [data, setData] = useState({ admissions: [], enquiries: [], department: null, referenceFaculty: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [customAdmissionField, setCustomAdmissionField] = useState('category');
@@ -102,16 +141,20 @@ const AnalysisPage = ({ user }) => {
       setError('');
       try {
         if (user?.role === 'HOD') {
-          const overview = await hodService.getHodOverview();
-          if (mounted) setData({ admissions: [...(overview.fyAdmissions || []), ...(overview.dsyAdmissions || [])], enquiries: overview.enquiries || [], department: overview.department });
+          const [overview, referenceFaculty] = await Promise.all([
+            hodService.getHodOverview(),
+            getAllFaculty().catch(() => [])
+          ]);
+          if (mounted) setData({ admissions: [...(overview.fyAdmissions || []), ...(overview.dsyAdmissions || [])], enquiries: overview.enquiries || [], department: overview.department, referenceFaculty });
           return;
         }
         const canAdmissions = ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'ACADEMIC_COORDINATOR'].includes(user?.role);
         const canEnquiries = ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF', 'ACADEMIC_COORDINATOR'].includes(user?.role);
         const admissionRequest = canAdmissions ? Promise.all([admissionService.getAllFYAdmissions(0, 500), admissionService.getAllDSYAdmissions(0, 500)]) : Promise.resolve([[], []]);
         const enquiryRequest = canEnquiries ? getAllEnquiries(0, 500) : Promise.resolve([]);
-        const [[fy, dsy], enquiries] = await Promise.all([admissionRequest, enquiryRequest]);
-        if (mounted) setData({ admissions: [...unwrap(fy), ...unwrap(dsy)], enquiries: unwrap(enquiries), department: null });
+        const referenceFacultyRequest = canEnquiries ? getAllFaculty().catch(() => []) : Promise.resolve([]);
+        const [[fy, dsy], enquiries, referenceFaculty] = await Promise.all([admissionRequest, enquiryRequest, referenceFacultyRequest]);
+        if (mounted) setData({ admissions: [...unwrap(fy), ...unwrap(dsy)], enquiries: unwrap(enquiries), department: null, referenceFaculty });
       } catch (err) {
         if (mounted) setError(err.message || 'Unable to load analysis data');
       } finally {
@@ -132,11 +175,25 @@ const AnalysisPage = ({ user }) => {
     type: rowsFrom(countBy(data.admissions, item => item.admissionType)),
     program: rowsFrom(countBy(data.admissions, item => programAbbr(item.program)))
   };
+  const referenceFacultyNames = data.referenceFaculty.map(referenceFacultyName).filter(Boolean);
+  const referenceFacultyLookup = new Map(referenceFacultyNames.map(name => [name.toLowerCase(), name]));
+  const referenceFacultyCounts = data.enquiries.reduce((acc, item) => {
+    const name = referenceFacultyLookup.get(String(item.referenceFaculty || '').trim().toLowerCase());
+    if (name) acc[name] = (acc[name] || 0) + 1;
+    return acc;
+  }, {});
+  const referenceFacultyRows = data.referenceFaculty
+    .map(referenceFacultyName)
+    .filter(Boolean)
+    .map(name => ({ label: name, value: referenceFacultyCounts[name] || 0 }));
+
   const enquiryRows = {
     status: rowsFrom(countBy(data.enquiries, item => item.status)),
     category: rowsFrom(countBy(data.enquiries, item => item.category)),
     admissionFor: rowsFrom(countBy(data.enquiries, item => item.admissionFor)),
-    location: rowsFrom(countBy(data.enquiries, item => item.location))
+    location: rowsFrom(countBy(data.enquiries, item => item.location === 'Other' ? item.otherLocation : item.location)),
+    referenceFaculty: referenceFacultyRows,
+    provisionalAdmission: rowsFrom(countBy(data.enquiries, item => item.provisionalAdmission ? 'Yes' : 'No'))
   };
   const canSeeAdmissions = data.admissions.length > 0 || ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'].includes(user?.role);
   const canSeeEnquiries = data.enquiries.length > 0 || ['ADMIN', 'PRINCIPAL', 'ENQUIRY_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'].includes(user?.role);
@@ -144,7 +201,11 @@ const AnalysisPage = ({ user }) => {
   const enquiryFields = chartableFields(data.enquiries);
   const customRows = tab === 'admissions'
     ? rowsFrom(countBy(data.admissions, item => customAdmissionField === 'program' ? programAbbr(item.program) : item[customAdmissionField]))
-    : rowsFrom(countBy(data.enquiries, item => item[customEnquiryField]));
+    : rowsFrom(countBy(data.enquiries, item => {
+      if (customEnquiryField === 'location') return item.location === 'Other' ? item.otherLocation : item.location;
+      if (customEnquiryField === 'referenceFaculty') return item.referenceFaculty;
+      return item[customEnquiryField];
+    }));
 
   return (
     <div>
@@ -173,6 +234,8 @@ const AnalysisPage = ({ user }) => {
             <ChartCard title="Enquiry Category" rows={enquiryRows.category} />
             <ChartCard title="Admission Interest" rows={enquiryRows.admissionFor} />
             <ChartCard title="Location" rows={enquiryRows.location} />
+            <ChartCard title="Reference Faculty Student Count" rows={enquiryRows.referenceFaculty} searchableFilters />
+            <ChartCard title="Provisional Admission" rows={enquiryRows.provisionalAdmission} />
             <div style={{ border: '1px solid #e4e7ec', borderRadius: '8px', padding: '18px', background: '#fff' }}>
               <label style={{ display: 'block', marginBottom: '10px', color: '#475467', fontWeight: 700 }}>Analyze Enquiry Field</label>
               <select value={customEnquiryField} onChange={(event) => setCustomEnquiryField(event.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #d0d5dd', borderRadius: '6px', marginBottom: '14px' }}>

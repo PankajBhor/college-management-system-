@@ -24,3 +24,22 @@ export async function getAllFaculty() {
     throw error;
   }
 }
+
+export async function getAllReferenceFaculty() {
+  const response = await API_INSTANCE.get('/reference-faculty/all');
+  return response.data || [];
+}
+
+export async function createReferenceFaculty(faculty) {
+  const response = await API_INSTANCE.post('/reference-faculty', faculty);
+  return response.data;
+}
+
+export async function updateReferenceFaculty(id, faculty) {
+  const response = await API_INSTANCE.put(`/reference-faculty/${id}`, faculty);
+  return response.data;
+}
+
+export async function deleteReferenceFaculty(id) {
+  await API_INSTANCE.delete(`/reference-faculty/${id}`);
+}

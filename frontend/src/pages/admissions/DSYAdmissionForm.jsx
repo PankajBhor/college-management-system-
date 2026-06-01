@@ -12,6 +12,7 @@ import {
   getAllYesNoOptions,
   getOptionValue
 } from '../../services/lookupService';
+const today = () => new Date().toISOString().split('T')[0];
 
 const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = null }) => {
   const [branchOptions, setBranchOptions] = useState([]);
@@ -58,6 +59,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
     caste: '',
     physicallyHandicapped: 'No',
     admissionType: 'CAP-1',
+    admissionDate: today(),
     preference1: '',
     preference2: '',
     preference3: '',
@@ -229,6 +231,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
         caste: '',
         physicallyHandicapped: 'No',
         admissionType: 'CAP-1',
+        admissionDate: today(),
         preference1: preference1,
         preference2: preference2,
         preference3: preference3,
@@ -321,6 +324,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
     if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
     if (!formData.program) newErrors.program = 'Program selection is required';
     if (!formData.admissionType) newErrors.admissionType = 'Admission type is required';
+    if (!formData.admissionDate) newErrors.admissionDate = 'Admission date is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -919,6 +923,17 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
                 })}
               </select>
               {errors.admissionType && <span className="error-text">{errors.admissionType}</span>}
+            </div>
+            <div className="form-group">
+              <label>Admission Date <span className="required">*</span></label>
+              <input
+                type="date"
+                name="admissionDate"
+                value={formData.admissionDate || ''}
+                onChange={handleInputChange}
+                className={errors.admissionDate ? 'input-error' : ''}
+              />
+              {errors.admissionDate && <span className="error-text">{errors.admissionDate}</span>}
             </div>
           </div>
         </fieldset>

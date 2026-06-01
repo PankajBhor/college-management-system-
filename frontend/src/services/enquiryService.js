@@ -69,6 +69,7 @@ const normalizeEnquiryPayload = (enquiryData) => ({
   emailEnabled: Boolean(enquiryData.emailEnabled),
   selectedEmailPresetId: enquiryData.selectedEmailPresetId || null,
   provisionalAdmission: Boolean(enquiryData.provisionalAdmission),
+  provisionalAdmissionDate: enquiryData.provisionalAdmission ? enquiryData.provisionalAdmissionDate || null : null,
   status: enquiryData.status || 'Pending',
   enquiryDate: enquiryData.enquiryDate
 });
@@ -308,6 +309,41 @@ export async function getProvisionalEnquiries() {
   }
 }
 
+export async function bulkUploadEnquiries(file) {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await API_INSTANCE.post('/enquiries/bulk-upload', formData);
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading enquiries:', error.message);
+    throw error;
+  }
+}
+
+export async function downloadEnquiryBulkUploadTemplate() {
+  try {
+    const response = await API_INSTANCE.get('/enquiries/bulk-upload/template', {
+      responseType: 'blob'
+    });
+    downloadBlob(response.data, 'enquiry-bulk-upload-template.xlsx');
+  } catch (error) {
+    console.error('Error downloading enquiry template:', error.message);
+    throw error;
+  }
+}
+
+const downloadBlob = (blob, fileName) => {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 const enquiryServiceExports = {
   getAllEnquiries,
   getEnquiryById,
@@ -320,7 +356,9 @@ const enquiryServiceExports = {
   getEnquiriesByAdmission,
   getEnquiriesByLocation,
   getEnquiryBySscSeatNo,
-  getProvisionalEnquiries
+  getProvisionalEnquiries,
+  bulkUploadEnquiries,
+  downloadEnquiryBulkUploadTemplate
 };
 
 export default enquiryServiceExports;

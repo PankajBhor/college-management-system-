@@ -6,6 +6,17 @@ import ColumnVisibilityMenu from '../../components/ColumnVisibilityMenu';
 import { getOptionValue } from '../../services/lookupService';
 import { buildBranchPriorityFields, getBranchByPriority } from '../../utils/branchPreferences';
 
+const parseMerit = (enquiry = {}) => {
+  if (enquiry.merit && typeof enquiry.merit === 'object') return enquiry.merit;
+  if (!enquiry.meritDetails) return {};
+  if (typeof enquiry.meritDetails === 'object') return enquiry.meritDetails;
+  try {
+    return JSON.parse(enquiry.meritDetails);
+  } catch {
+    return {};
+  }
+};
+
 const EnquiryList = ({
   enquiries,
   onDelete,
@@ -29,18 +40,37 @@ const EnquiryList = ({
   const columns = [
     { key: 'sNo', label: 'S.No' },
     { key: 'name', label: 'Name' },
+    { key: 'firstName', label: 'First Name' },
+    { key: 'middleName', label: 'Middle Name' },
+    { key: 'lastName', label: 'Last Name' },
     { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Phone' },
+    { key: 'phone', label: 'Personal Mobile' },
+    { key: 'guardianMobileNumber', label: 'Guardian Mobile' },
+    { key: 'sscSeatNo', label: 'SSC Seat No' },
+    { key: 'class10Merit', label: 'Class 10 Merit' },
+    { key: 'class12Merit', label: 'Class 12 Merit' },
+    { key: 'itiMerit', label: 'ITI Merit' },
+    { key: 'otherMerit', label: 'Other Merit' },
+    { key: 'otherMeritOf', label: 'Other Marks Of' },
     { key: 'admissionFor', label: 'Admission For' },
     ...branchPriorityColumns,
     { key: 'location', label: 'Location' },
+    { key: 'otherLocation', label: 'Other Location' },
     { key: 'category', label: 'Category' },
+    { key: 'referenceFaculty', label: 'Reference Faculty' },
+    { key: 'dteRegistrationDone', label: 'DTE Registration' },
+    { key: 'emailEnabled', label: 'Email Enabled' },
+    { key: 'provisionalAdmission', label: 'Provisional Admission' },
+    { key: 'provisionalAdmissionDate', label: 'Provisional Admission Date' },
     { key: 'status', label: 'Status' },
-    { key: 'date', label: 'Date' }
+    { key: 'date', label: 'Enquiry Date' }
   ];
   const [visibleColumns, setVisibleColumns] = useState(columns.map(column => column.key));
   const columnKeys = columns.map(column => column.key).join('|');
-  const locationOptions = lookupOptions.locations || [];
+  const locationOptions = [
+    ...(lookupOptions.locations || []).map(getOptionValue),
+    ...(allEnquiries || enquiries).map(item => item.location === 'Other' ? item.otherLocation : item.location)
+  ].filter(Boolean).filter((value, index, list) => list.indexOf(value) === index);
   const categoryOptions = lookupOptions.categories || [];
   const admissionForOptions = lookupOptions.admissionTypes || [];
   const statusOptions = lookupOptions.statuses || [];
@@ -168,8 +198,21 @@ const EnquiryList = ({
           <tr>
             <th style={{ padding: '16px 15px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px', width: '50px' }}>S.No</th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Name</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
+              First Name
+              {filters && <div style={{ marginTop: '8px' }}><input value={filters.name || ''} onChange={handleFilterChange('name')} placeholder="Search name" style={{ fontSize: '0.85em', padding: '4px', width: '110px' }} /></div>}
+            </th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Middle Name</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Last Name</th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Email</th>
-            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Phone</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Personal Mobile</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Guardian Mobile</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>SSC Seat No</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Class 10 Merit</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Class 12 Merit</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>ITI Merit</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Other Merit</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Other Marks Of</th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Admission For
               {filters && <div style={{ marginTop: '8px' }}>
@@ -205,13 +248,13 @@ const EnquiryList = ({
               {filters && <div style={{ marginTop: '8px' }}>
                 <select value={filters.location} onChange={handleFilterChange('location')} style={{ fontSize: '0.85em', padding: '4px' }}>
                   <option value="">All</option>
-                  {locationOptions.map(opt => {
-                    const value = getOptionValue(opt);
-                    return <option key={opt.id || opt.code || value} value={value}>{value}</option>;
-                  })}
+                  {locationOptions.map(value => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
                 </select>
               </div>}
             </th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Other Location</th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Category
               {filters && <div style={{ marginTop: '8px' }}>
@@ -224,6 +267,14 @@ const EnquiryList = ({
                 </select>
               </div>}
             </th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
+              Reference Faculty
+              {filters && <div style={{ marginTop: '8px' }}><input value={filters.referenceFaculty || ''} onChange={handleFilterChange('referenceFaculty')} placeholder="Search faculty" style={{ fontSize: '0.85em', padding: '4px', width: '130px' }} /></div>}
+            </th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>DTE Registration</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Email Enabled</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Provisional Admission</th>
+            <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Provisional Admission Date</th>
             <th style={{ padding: '16px 15px', textAlign: 'left', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>
               Status
               {filters && <div style={{ marginTop: '8px' }}>
@@ -240,13 +291,20 @@ const EnquiryList = ({
               Date
               {filters && <div style={{ marginTop: '8px' }}>
                 <input type="date" value={filters.date} onChange={handleFilterChange('date')} style={{ fontSize: '0.85em', padding: '4px' }} />
+                <select value={filters.dateSort || ''} onChange={handleFilterChange('dateSort')} style={{ fontSize: '0.85em', padding: '4px', marginTop: '4px' }}>
+                  <option value="">Sort</option>
+                  <option value="asc">Oldest</option>
+                  <option value="desc">Newest</option>
+                </select>
               </div>}
             </th>
             {!readOnly && <th style={{ padding: '16px 15px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', letterSpacing: '0.3px' }}>Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {enquiries.map((enquiry, index) => (
+          {enquiries.map((enquiry, index) => {
+            const merit = parseMerit(enquiry);
+            return (
             <tr
               key={enquiry.id}
               style={{
@@ -267,12 +325,22 @@ const EnquiryList = ({
               <td style={{ padding: '15px' }}>
                 <strong>{getFullName(enquiry)}</strong>
               </td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.firstName || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.middleName || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.lastName || '-'}</td>
               <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {enquiry.email}
               </td>
               <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {enquiry.personalMobileNumber}
               </td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.guardianMobileNumber || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.sscSeatNo || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.85em' }}>{merit.class10 || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.85em' }}>{merit.class12 || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.85em' }}>{merit.iti || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.85em' }}>{merit.other || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.85em' }}>{merit.otherDescription || '-'}</td>
               <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {enquiry.admissionFor || '—'}
               </td>
@@ -284,9 +352,15 @@ const EnquiryList = ({
               <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {enquiry.location === 'Other' ? enquiry.otherLocation : enquiry.location}
               </td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.otherLocation || '-'}</td>
               <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>
                 {enquiry.category || '—'}
               </td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.referenceFaculty || '-'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.dteRegistrationDone ? 'Yes' : 'No'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.emailEnabled ? 'Yes' : 'No'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{enquiry.provisionalAdmission ? 'Yes' : 'No'}</td>
+              <td style={{ padding: '15px', color: '#666', fontSize: '0.9em' }}>{formatDate(enquiry.provisionalAdmissionDate)}</td>
               <td style={{ padding: '15px' }}>
                 <span style={{
                   display: 'inline-block',
@@ -393,7 +467,8 @@ const EnquiryList = ({
                 </div>
               </td>}
             </tr>
-          ))}
+          );
+          })}
         </tbody>
       </table>
       </div>

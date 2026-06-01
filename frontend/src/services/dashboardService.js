@@ -1,4 +1,4 @@
-import { getAllEnquiries, searchEnquiries } from './enquiryService';
+import { getAllEnquiries, getProvisionalEnquiries, searchEnquiries } from './enquiryService';
 import { admissionService } from './admissionService';
 import { getAllFaculty } from './facultyService';
 import { getAllBranches } from './lookupService';
@@ -75,16 +75,18 @@ async function buildAdmissionStats() {
 }
 
 async function buildEnquiryStats() {
-  const [totalEnquiries, pendingEnquiries, successEnquiries] = await Promise.all([
+  const [totalEnquiries, pendingEnquiries, successEnquiries, provisionalAdmissions] = await Promise.all([
     safeCountFrom(getAllEnquiries(0, 1)),
     safeCountFrom(searchEnquiries('Pending', 0, 1)),
-    safeCountFrom(searchEnquiries('Success', 0, 1))
+    safeCountFrom(searchEnquiries('Success', 0, 1)),
+    safeCountFrom(getProvisionalEnquiries())
   ]);
 
   return {
     totalEnquiries,
     pendingEnquiries,
     successEnquiries,
+    provisionalAdmissions,
     successRate: totalEnquiries > 0 ? Math.round((successEnquiries / totalEnquiries) * 100) : 0
   };
 }
@@ -128,6 +130,7 @@ export async function getDashboardMetrics(role) {
         stat('Total Enquiries', enquiries.totalEnquiries, 'Inq', CARD_COLORS.primary),
         stat('Pending Enquiries', enquiries.pendingEnquiries, 'Pen', CARD_COLORS.warm),
         stat('Success Enquiries', enquiries.successEnquiries, 'Ok', CARD_COLORS.success),
+        stat('Provisional Admissions', enquiries.provisionalAdmissions, 'Pro', CARD_COLORS.soft),
         stat('Success Rate', `${enquiries.successRate}%`, '%', CARD_COLORS.muted)
       ]
     };
@@ -148,6 +151,7 @@ export async function getDashboardMetrics(role) {
         stat('Pending Admissions', admissions.pendingAdmissions, 'Pen', CARD_COLORS.warm),
         stat('Approved Admissions', admissions.approvedAdmissions, 'Ok', CARD_COLORS.success),
         stat('Total Enquiries', enquiries.totalEnquiries, 'Inq', CARD_COLORS.soft),
+        stat('Provisional Admissions', enquiries.provisionalAdmissions, 'Pro', CARD_COLORS.soft),
         stat('Faculty Entries', academics.facultyCount, 'Fac', CARD_COLORS.muted),
         stat('Active Branches', academics.branchCount, 'Br', CARD_COLORS.primary)
       ]
@@ -169,6 +173,7 @@ export async function getDashboardMetrics(role) {
         stat('Total Admissions', admissions.totalAdmissions, 'Adm', CARD_COLORS.primary),
         stat('Approved Admissions', admissions.approvedAdmissions, 'Ok', CARD_COLORS.success),
         stat('Total Enquiries', enquiries.totalEnquiries, 'Inq', CARD_COLORS.soft),
+        stat('Provisional Admissions', enquiries.provisionalAdmissions, 'Pro', CARD_COLORS.soft),
         stat('Active Branches', academics.branchCount, 'Br', CARD_COLORS.primary),
         stat('Student Entries', academics.studentCount, 'Stu', CARD_COLORS.muted)
       ]

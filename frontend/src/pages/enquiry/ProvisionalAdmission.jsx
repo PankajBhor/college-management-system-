@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ColumnVisibilityMenu from '../../components/ColumnVisibilityMenu';
 import { getProvisionalEnquiries } from '../../services/enquiryService';
 import { exportProvisionalAdmissionsToExcel } from '../../utils/exportUtils';
+import { formatDate } from '../../utils/formatters';
 import { buildBranchPriorityFields, getBranchByPriority } from '../../utils/branchPreferences';
 
 const getColumns = (rows = []) => [
@@ -17,6 +18,7 @@ const getColumns = (rows = []) => [
     render: row => getBranchByPriority(row, field.priority) || '-'
   })),
   { key: 'referenceFaculty', label: 'Reference Faculty', render: row => row.referenceFaculty || '-' },
+  { key: 'provisionalAdmissionDate', label: 'Provisional Date', render: row => formatDate(row.provisionalAdmissionDate) },
   { key: 'status', label: 'Status', render: row => row.status }
 ];
 
@@ -24,6 +26,7 @@ const ProvisionalAdmission = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [nameSearch, setNameSearch] = useState('');
   const columns = getColumns(rows);
   const columnKeys = columns.map(column => column.key).join('|');
   const [visibleColumns, setVisibleColumns] = useState(getColumns().map(column => column.key));
@@ -50,6 +53,8 @@ const ProvisionalAdmission = () => {
     load();
   }, []);
 
+  const filteredRows = rows.filter(row => [row.firstName, row.middleName, row.lastName].filter(Boolean).join(' ').toLowerCase().includes(nameSearch.toLowerCase()));
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center' }}>
@@ -63,6 +68,13 @@ const ProvisionalAdmission = () => {
         </button>
       </div>
       <ColumnVisibilityMenu columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} />
+      <input
+        type="search"
+        value={nameSearch}
+        onChange={(event) => setNameSearch(event.target.value)}
+        placeholder="Search by name"
+        style={{ width: '260px', maxWidth: '100%', padding: '10px', border: '1px solid #d0d5dd', borderRadius: '8px', marginBottom: '14px' }}
+      />
       {error && <div style={{ color: '#b91c1c', marginBottom: '14px' }}>{error}</div>}
       {loading ? (
         <div>Loading...</div>
@@ -77,14 +89,14 @@ const ProvisionalAdmission = () => {
               </tr>
             </thead>
             <tbody>
-              {rows.map(row => (
+              {filteredRows.map(row => (
                 <tr key={row.id}>
                   {columns.filter(column => visibleColumns.includes(column.key)).map(column => (
                     <td key={column.key} style={cell}>{column.render(row)}</td>
                   ))}
                 </tr>
               ))}
-              {!rows.length && (
+              {!filteredRows.length && (
                 <tr>
                   <td style={cell} colSpan={Math.max(1, visibleColumns.length)}>No provisional admissions found.</td>
                 </tr>

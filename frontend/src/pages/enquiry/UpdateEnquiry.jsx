@@ -12,6 +12,7 @@ import {
 import { getAllFaculty } from '../../services/facultyService';
 
 const emptyMerit = { class10: '', class12: '', iti: '', other: '', otherDescription: '' };
+const today = () => new Date().toISOString().split('T')[0];
 
 const UpdateEnquiry = ({ enquiry, onUpdate }) => {
   const normalizedEnquiry = normalizeEnquiry(enquiry);
@@ -74,6 +75,8 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
     emailEnabled: false,
     selectedEmailPresetId: '',
     provisionalAdmission: false,
+    provisionalAdmissionDate: '',
+    enquiryDate: today(),
     status: 'Pending'
   });
   const [showOtherMeritDetails, setShowOtherMeritDetails] = useState(
@@ -96,8 +99,25 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const filteredFacultyOptions = facultyOptions.filter(faculty => (faculty.name || faculty.email || '').toLowerCase().includes(facultySearch.toLowerCase()));
-  const filteredLocationOptions = locationOptions.filter(option => getOptionValue(option).toLowerCase().includes(locationSearch.toLowerCase()));
+  const filteredLocationOptions = locationOptions
+    .filter(option => getOptionValue(option).toLowerCase().includes(locationSearch.toLowerCase()))
+    .sort((left, right) => {
+      const leftValue = getOptionValue(left).toLowerCase();
+      const rightValue = getOptionValue(right).toLowerCase();
+      if (leftValue === 'other') return -1;
+      if (rightValue === 'other') return 1;
+      return getOptionValue(left).localeCompare(getOptionValue(right));
+    });
   const allowedStatusOptions = statusOptions.filter(option => ['pending', 'success'].includes(getOptionValue(option).toLowerCase()));
+
+  const refreshFacultyOptions = async () => {
+    try {
+      const faculties = await getAllFaculty();
+      setFacultyOptions(faculties || []);
+    } catch (error) {
+      console.error('Error refreshing faculty data:', error);
+    }
+  };
 
   const applyFetchedEnquiry = (fetched) => {
     const normalized = normalizeEnquiry(fetched);
@@ -178,6 +198,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
 
       const updatedData = {
         ...formData,
+        sscSeatNo: (formData.sscSeatNo || '').trim(),
         branchesInterested: branchesData
       };
 
@@ -508,7 +529,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
               />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>SSC Seat No</label>
+              <label style={styles.label}>SSC Seat No *</label>
               <input
                 type="text"
                 name="sscSeatNo"
@@ -516,6 +537,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
                 onChange={handleInputChange}
                 style={styles.input}
                 placeholder="Enter SSC seat number"
+                required
               />
             </div>
             <div style={styles.formGroup}>
@@ -550,6 +572,17 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
           {/* Admission Section */}
           <h3 style={styles.sectionTitle}>🎓 Admission Details</h3>
           <div style={styles.formGroupRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Enquiry Date *</label>
+              <input
+                type="date"
+                name="enquiryDate"
+                value={formData.enquiryDate || ''}
+                onChange={handleInputChange}
+                style={styles.input}
+                required
+              />
+            </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>Admission For *</label>
               <select
@@ -724,6 +757,19 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
                 <option value="yes">Yes</option>
               </select>
             </div>
+            {formData.provisionalAdmission && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Provisional Admission Date *</label>
+                <input
+                  type="date"
+                  name="provisionalAdmissionDate"
+                  value={formData.provisionalAdmissionDate || ''}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  required={formData.provisionalAdmission}
+                />
+              </div>
+            )}
           </div>
 
           {/* Reference Faculty Section */}
@@ -734,6 +780,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
               type="search"
               value={facultySearch}
               onChange={(e) => setFacultySearch(e.target.value)}
+              onFocus={refreshFacultyOptions}
               style={{ ...styles.input, marginBottom: '8px' }}
               placeholder="Search faculty"
             />
@@ -741,6 +788,7 @@ const UpdateEnquiry = ({ enquiry, onUpdate }) => {
               name="referenceFaculty"
               value={formData.referenceFaculty}
               onChange={handleInputChange}
+              onFocus={refreshFacultyOptions}
               style={styles.select}
             >
               <option value="">Select faculty</option>

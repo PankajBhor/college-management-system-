@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { allMenuItems, canAccessPage, menuConfig, parseAccessPages } from '../data/menuData';
+import { canAccessPage, menuConfig, navigationMenuItems, parseAccessPages } from '../data/menuData';
 import { COLORS, TYPOGRAPHY, SPACING, SHADOWS, BORDER_RADIUS } from '../utils/designSystem';
 
 const Sidebar = ({ onNavigate, currentPage, userRole, user, isOpen, onOpenChange }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const sourceMenus = parseAccessPages(user?.accessPages) ? allMenuItems : (menuConfig[userRole] || []);
+  const sourceMenus = parseAccessPages(user?.accessPages) ? navigationMenuItems : (menuConfig[userRole] || []);
   const accessibleMenus = sourceMenus.filter(menu => canAccessPage(user || { role: userRole }, menu.page));
   const hasBothEmailPages = canAccessPage(user || { role: userRole }, 'email-enquiry') && canAccessPage(user || { role: userRole }, 'email-admission');
   const menus = accessibleMenus.reduce((items, menu) => {

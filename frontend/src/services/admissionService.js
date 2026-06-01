@@ -199,6 +199,30 @@ export async function downloadFYAdmissionFormPdf(id) {
   }
 }
 
+export async function bulkUploadFYAdmissions(file) {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await API_INSTANCE.post('/admissions/fy/bulk-upload', formData);
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading FY admissions:', error);
+    throw error;
+  }
+}
+
+export async function downloadFYAdmissionBulkUploadTemplate() {
+  try {
+    const response = await API_INSTANCE.get('/admissions/fy/bulk-upload/template', {
+      responseType: 'blob'
+    });
+    downloadBlob(response.data, 'fy-admission-bulk-upload-template.xlsx');
+  } catch (error) {
+    console.error('Error downloading FY admission template:', error);
+    throw error;
+  }
+}
+
 // ========== DSY ADMISSION ENDPOINTS ==========
 
 /**
@@ -355,6 +379,30 @@ export async function downloadDSYAdmissionFormPdf(id) {
   }
 }
 
+export async function bulkUploadDSYAdmissions(file) {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await API_INSTANCE.post('/admissions/dsy/bulk-upload', formData);
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading DSY admissions:', error);
+    throw error;
+  }
+}
+
+export async function downloadDSYAdmissionBulkUploadTemplate() {
+  try {
+    const response = await API_INSTANCE.get('/admissions/dsy/bulk-upload/template', {
+      responseType: 'blob'
+    });
+    downloadBlob(response.data, 'dsy-admission-bulk-upload-template.xlsx');
+  } catch (error) {
+    console.error('Error downloading DSY admission template:', error);
+    throw error;
+  }
+}
+
 const downloadBlob = (blob, fileName) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -420,6 +468,8 @@ export const admissionService = {
   updateFYAdmissionWithDocuments,
   deleteFYAdmission,
   downloadFYAdmissionFormPdf,
+  bulkUploadFYAdmissions,
+  downloadFYAdmissionBulkUploadTemplate,
   
   // DSY Admissions
   createDSYAdmission,
@@ -431,6 +481,8 @@ export const admissionService = {
   updateDSYAdmissionWithDocuments,
   deleteDSYAdmission,
   downloadDSYAdmissionFormPdf,
+  bulkUploadDSYAdmissions,
+  downloadDSYAdmissionBulkUploadTemplate,
   
   // Documents
   getDocuments,

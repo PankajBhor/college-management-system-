@@ -5,6 +5,8 @@ import EnquiryList from './EnquiryList';
 import { exportToExcel } from '../../utils/exportUtils';
 import ExportFieldChecklist from './ExportFieldChecklist';
 import { enquiryMatchesBranchFilters } from '../../utils/branchPreferences';
+import enquiryService from '../../services/enquiryService';
+import { canAccessPage } from '../../data/menuData';
 import {
   getAllAdmissionTypes,
   getAllBranches,
@@ -36,10 +38,15 @@ function EnquiryIndex() {
     location: '',
     category: '',
     status: '',
-    date: ''
+    date: '',
+    name: '',
+    referenceFaculty: '',
+    dateSort: ''
   });
   const [exportModal, setExportModal] = useState({ open: false, type: null });
   const [exportFields, setExportFields] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
   const [lookupOptions, setLookupOptions] = useState({
     locations: [],
     categories: [],
@@ -84,7 +91,8 @@ function EnquiryIndex() {
       if (filters.admissionFor && enquiry.admissionFor !== filters.admissionFor) {
         return false;
       }
-      if (filters.location && enquiry.location !== filters.location) {
+      const displayLocation = enquiry.location === 'Other' ? enquiry.otherLocation : enquiry.location;
+      if (filters.location && displayLocation !== filters.location) {
         return false;
       }
       if (filters.category && enquiry.category !== filters.category) {
@@ -96,11 +104,24 @@ function EnquiryIndex() {
       if (filters.date && enquiry.enquiryDate !== filters.date) {
         return false;
       }
+      if (filters.name) {
+        const fullName = [enquiry.firstName, enquiry.middleName, enquiry.lastName].filter(Boolean).join(' ').toLowerCase();
+        if (!fullName.includes(filters.name.toLowerCase())) return false;
+      }
+      if (filters.referenceFaculty) {
+        const facultyName = String(enquiry.referenceFaculty || '').toLowerCase();
+        if (!facultyName.includes(filters.referenceFaculty.toLowerCase())) return false;
+      }
 
       if (filters.branch || filters.branchPriority) {
         return enquiryMatchesBranchFilters(enquiry, filters.branch, filters.branchPriority);
       }
       return true;
+    }).sort((a, b) => {
+      if (!filters.dateSort) return 0;
+      const left = new Date(a.enquiryDate || 0).getTime();
+      const right = new Date(b.enquiryDate || 0).getTime();
+      return filters.dateSort === 'asc' ? left - right : right - left;
     });
   };
 
@@ -126,6 +147,31 @@ function EnquiryIndex() {
 
   // Check if user is enquiry staff or principal
   const canAddEnquiry = user && ['ADMIN', 'ENQUIRY_STAFF', 'PRINCIPAL'].includes(user.role);
+  const canUploadEnquiries = canAccessPage(user, 'bulk-enquiry-upload');
+
+  const handleBulkUpload = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await enquiryService.bulkUploadEnquiries(file);
+      setUploadResult(result);
+      await fetchEnquiries(pageNumber, pageSize);
+    } catch (error) {
+      alert(error.response?.data?.error || error.response?.data?.message || error.message || 'Unable to upload enquiries');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      await enquiryService.downloadEnquiryBulkUploadTemplate();
+    } catch (error) {
+      alert(error.response?.data?.error || error.response?.data?.message || error.message || 'Unable to download enquiry template');
+    }
+  };
 
   return (
     <div>
@@ -163,7 +209,10 @@ function EnquiryIndex() {
                 location: '',
                 category: '',
                 status: '',
-                date: ''
+                date: '',
+                name: '',
+                referenceFaculty: '',
+                dateSort: ''
               });
             }}
             style={{
@@ -213,8 +262,67 @@ function EnquiryIndex() {
               </button>
             </>
           )}
+          {canUploadEnquiries && (
+            <>
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                style={{
+                  padding: '10px 18px',
+                  background: '#fff',
+                  color: '#344054',
+                  border: '1px solid #d0d5dd',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600'
+                }}
+              >
+                Download Format
+              </button>
+              <label
+                style={{
+                  padding: '10px 18px',
+                  background: uploading ? '#e5e7eb' : '#ecfdf3',
+                  color: uploading ? '#667085' : '#067647',
+                  border: '1px solid #abefc6',
+                  borderRadius: '8px',
+                  cursor: uploading ? 'wait' : 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600'
+                }}
+                title="Upload enquiries from Excel"
+              >
+                {uploading ? 'Uploading...' : 'Upload Excel'}
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  disabled={uploading}
+                  onChange={handleBulkUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </>
+          )}
         </div>
       </div>
+
+      {uploadResult && (
+        <div style={{ marginBottom: '18px', padding: '14px', border: '1px solid #d0d5dd', borderRadius: '8px', background: '#f8fafc' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
+            <div>
+              <strong>Excel upload complete:</strong> {uploadResult.successCount || 0} saved, {uploadResult.failedCount || 0} failed out of {uploadResult.totalRows || 0} rows.
+              {uploadResult.errors?.length > 0 && (
+                <ul style={{ margin: '10px 0 0', paddingLeft: '18px', color: '#b42318' }}>
+                  {uploadResult.errors.slice(0, 10).map((error, index) => <li key={index}>{error}</li>)}
+                </ul>
+              )}
+              {uploadResult.errors?.length > 10 && <p style={{ margin: '8px 0 0', color: '#b42318' }}>Showing first 10 errors.</p>}
+            </div>
+            <button type="button" onClick={() => setUploadResult(null)} style={{ border: '1px solid #d0d5dd', background: '#fff', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}>Close</button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div style={{
