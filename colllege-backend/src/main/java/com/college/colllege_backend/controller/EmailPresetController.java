@@ -157,7 +157,9 @@ public class EmailPresetController {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Email scope not allowed"));
                     }
 
-                    List<String> recipients = "ADMISSION".equals(scope)
+                    List<String> recipients = request.getRecipientEmails() != null && !request.getRecipientEmails().isEmpty()
+                            ? request.getRecipientEmails().stream().filter(email -> email != null && !email.isBlank()).distinct().collect(Collectors.toList())
+                            : "ADMISSION".equals(scope)
                             ? admissionRecipients(request)
                             : enquiryRecipients(request);
                     int sent = 0;

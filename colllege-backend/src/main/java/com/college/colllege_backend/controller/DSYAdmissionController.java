@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.college.colllege_backend.dto.DSYAdmissionRequestDTO;
 import com.college.colllege_backend.entity.DSYAdmission;
 import com.college.colllege_backend.service.AdmissionPdfService;
+import com.college.colllege_backend.service.BulkUploadService;
 import com.college.colllege_backend.service.DSYAdmissionService;
 import com.college.colllege_backend.service.FileStorageService;
 import com.college.colllege_backend.service.impl.DSYAdmissionServiceImpl;
@@ -54,6 +55,10 @@ public class DSYAdmissionController {
 
     @Autowired
     private AdmissionPdfService admissionPdfService;
+
+    @Autowired
+    private BulkUploadService bulkUploadService;
+
     @PostMapping
     public ResponseEntity<DSYAdmission> createDSYAdmission(
             @ModelAttribute DSYAdmissionRequestDTO request,
@@ -109,6 +114,19 @@ public class DSYAdmissionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @PostMapping(value = "/bulk-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> bulkUploadDSYAdmissions(@RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(bulkUploadService.uploadDSYAdmissions(file));
+    }
+
+    @GetMapping("/bulk-upload/template")
+    public ResponseEntity<byte[]> downloadBulkUploadTemplate() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"dsy-admission-bulk-upload-template.xlsx\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(bulkUploadService.dsyAdmissionTemplate());
     }
 
     @GetMapping("/{id}")

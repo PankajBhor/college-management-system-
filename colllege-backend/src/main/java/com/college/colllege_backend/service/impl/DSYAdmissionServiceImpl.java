@@ -58,6 +58,7 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         admission.setAnnualIncome(request.getAnnualIncome());
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
+        admission.setAdmissionDate(request.getAdmissionDate());
         admission.setPreference1(request.getPreference1());
         admission.setPreference2(request.getPreference2());
         admission.setPreference3(request.getPreference3());
@@ -142,6 +143,7 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         admission.setAnnualIncome(request.getAnnualIncome());
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
+        admission.setAdmissionDate(request.getAdmissionDate());
         admission.setPreference1(request.getPreference1());
         admission.setPreference2(request.getPreference2());
         admission.setPreference3(request.getPreference3());

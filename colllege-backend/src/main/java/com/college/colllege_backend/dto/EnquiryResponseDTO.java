@@ -1,5 +1,6 @@
 package com.college.colllege_backend.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class EnquiryResponseDTO {
@@ -17,6 +18,10 @@ public class EnquiryResponseDTO {
     private String otherLocation;
     private String category;
     private String branchesInterested;
+    private String branchPriority1;
+    private String branchPriority2;
+    private String branchPriority3;
+    private String branchPriority4;
     private String referenceFaculty;
     private String status;
     private String enquiryDate;
@@ -27,6 +32,7 @@ public class EnquiryResponseDTO {
     private boolean emailEnabled;
     private Long selectedEmailPresetId;
     private boolean provisionalAdmission;
+    private LocalDate provisionalAdmissionDate;
 
     // Constructors
     public EnquiryResponseDTO() {
@@ -227,6 +233,15 @@ public class EnquiryResponseDTO {
         this.branchesInterested = branchesInterested;
     }
 
+    public String getBranchPriority1() { return branchPriority1; }
+    public void setBranchPriority1(String branchPriority1) { this.branchPriority1 = branchPriority1; }
+    public String getBranchPriority2() { return branchPriority2; }
+    public void setBranchPriority2(String branchPriority2) { this.branchPriority2 = branchPriority2; }
+    public String getBranchPriority3() { return branchPriority3; }
+    public void setBranchPriority3(String branchPriority3) { this.branchPriority3 = branchPriority3; }
+    public String getBranchPriority4() { return branchPriority4; }
+    public void setBranchPriority4(String branchPriority4) { this.branchPriority4 = branchPriority4; }
+
     public String getReferenceFaculty() {
         return referenceFaculty;
     }
@@ -297,5 +312,13 @@ public class EnquiryResponseDTO {
 
     public void setProvisionalAdmission(boolean provisionalAdmission) {
         this.provisionalAdmission = provisionalAdmission;
+    }
+
+    public LocalDate getProvisionalAdmissionDate() {
+        return provisionalAdmissionDate;
+    }
+
+    public void setProvisionalAdmissionDate(LocalDate provisionalAdmissionDate) {
+        this.provisionalAdmissionDate = provisionalAdmissionDate;
     }
 }

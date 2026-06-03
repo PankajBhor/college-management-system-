@@ -1,5 +1,6 @@
 {
     "FSharp.suggestGitignore": false,
     "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "maven.view": "hierarchical"
 }

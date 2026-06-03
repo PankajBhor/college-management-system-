@@ -71,9 +71,9 @@ public class DataInitializer {
 
             seedLookup(lookupOptionRepository, "enquiry_statuses", "Pending", "Pending", 1);
             seedLookup(lookupOptionRepository, "enquiry_statuses", "Success", "Success", 2);
-            seedLookup(lookupOptionRepository, "enquiry_statuses", "Follow-up", "Follow-up", 3);
-            seedLookup(lookupOptionRepository, "enquiry_statuses", "Converted", "Converted", 4);
-            seedLookup(lookupOptionRepository, "enquiry_statuses", "Lost", "Lost", 5);
+            deactivateLookup(lookupOptionRepository, "enquiry_statuses", "Follow-up");
+            deactivateLookup(lookupOptionRepository, "enquiry_statuses", "Converted");
+            deactivateLookup(lookupOptionRepository, "enquiry_statuses", "Lost");
 
             seedLookup(lookupOptionRepository, "admission_rounds", "CAP-1", "CAP-1", 1);
             seedLookup(lookupOptionRepository, "admission_rounds", "CAP-2", "CAP-2", 2);
@@ -169,7 +169,15 @@ public class DataInitializer {
             String role,
             String departmentCode,
             String password) {
-        if (repository.findByEmail(email).isPresent()) {
+        String accessPages = defaultAccessPages(role);
+        var existing = repository.findByEmail(email);
+        if (existing.isPresent()) {
+            User user = existing.get();
+            String normalizedAccessPages = normalizeAccessPages(user.getAccessPages(), accessPages);
+            if (!normalizedAccessPages.equals(user.getAccessPages())) {
+                user.setAccessPages(normalizedAccessPages);
+                repository.save(user);
+            }
             return;
         }
         User user = new User();
@@ -178,7 +186,35 @@ public class DataInitializer {
         user.setRole(role);
         user.setDepartmentCode(departmentCode);
         user.setPassword(passwordEncoder.encode(password));
+        user.setAccessPages(accessPages);
         repository.save(user);
+    }
+
+    private String defaultAccessPages(String role) {
+        return switch (role) {
+            case "ADMIN" -> "dashboard,admissions,enquiries,new-enquiry,update-enquiry,provisional-admission,email-enquiry,email-admission,analysis,staff,students,courses,fees";
+            case "PRINCIPAL" -> "dashboard,admissions,enquiries,new-enquiry,update-enquiry,provisional-admission,email-enquiry,email-admission,analysis,staff";
+            case "OFFICE_STAFF" -> "dashboard,admissions,provisional-admission,email-admission,analysis";
+            case "ENQUIRY_STAFF" -> "dashboard,enquiries,new-enquiry,update-enquiry,provisional-admission,email-enquiry,analysis";
+            case "ACADEMIC_COORDINATOR" -> "dashboard,admissions,enquiries,analysis";
+            case "HOD" -> "dashboard,hod-admissions,hod-enquiries,analysis";
+            case "FACULTY" -> "dashboard,students,courses";
+            default -> "dashboard";
+        };
+    }
+
+    private String normalizeAccessPages(String currentAccessPages, String defaultAccessPages) {
+        if (currentAccessPages == null || currentAccessPages.isBlank()) {
+            return defaultAccessPages;
+        }
+        return java.util.Arrays.stream(currentAccessPages.split(","))
+                .map(String::trim)
+                .filter(page -> !page.isBlank())
+                .flatMap(page -> "email".equals(page)
+                        ? java.util.stream.Stream.of("email-enquiry", "email-admission")
+                        : java.util.stream.Stream.of(page))
+                .distinct()
+                .collect(java.util.stream.Collectors.joining(","));
     }
 
     private void seedReferenceFaculty(ReferenceFacultyRepository repository, String name, String department, String email) {

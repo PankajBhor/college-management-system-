@@ -1,6 +1,7 @@
 package com.college.colllege_backend.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -28,8 +29,11 @@ import com.college.colllege_backend.dto.EnquiryRequestDTO;
 import com.college.colllege_backend.dto.EnquiryResponseDTO;
 import com.college.colllege_backend.entity.EmailPreset;
 import com.college.colllege_backend.entity.Enquiry;
+import com.college.colllege_backend.entity.LookupOption;
 import com.college.colllege_backend.repository.EmailPresetRepository;
 import com.college.colllege_backend.repository.EnquiryRepository;
+import com.college.colllege_backend.repository.LookupOptionRepository;
+import com.college.colllege_backend.service.BulkUploadService;
 import com.college.colllege_backend.service.impl.EnquiryServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +58,12 @@ public class EnquiryController {
 
     @Autowired
     private EmailPresetRepository emailPresetRepository;
+
+    @Autowired
+    private LookupOptionRepository lookupOptionRepository;
+
+    @Autowired
+    private BulkUploadService bulkUploadService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -87,7 +97,13 @@ public class EnquiryController {
     @PostMapping
     public ResponseEntity<?> createEnquiry(@Valid @RequestBody EnquiryRequestDTO request) {
         try {
+            normalizeRequest(request);
+            ResponseEntity<?> duplicateSeatResponse = validateSeatNumber(null, request.getSscSeatNo());
+            if (duplicateSeatResponse != null) {
+                return duplicateSeatResponse;
+            }
             Enquiry savedEnquiry = enquiryRepository.save(convertToEntity(request));
+            saveOtherLocationIfNeeded(savedEnquiry);
             sendSelectedEnquiryPreset(savedEnquiry);
             return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedEnquiry));
         } catch (Exception e) {
@@ -99,10 +115,16 @@ public class EnquiryController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateEnquiry(@PathVariable Long id, @Valid @RequestBody EnquiryRequestDTO request) {
+        normalizeRequest(request);
+        ResponseEntity<?> duplicateSeatResponse = validateSeatNumber(id, request.getSscSeatNo());
+        if (duplicateSeatResponse != null) {
+            return duplicateSeatResponse;
+        }
         return enquiryRepository.findById(id)
                 .map(enquiry -> {
                     copyRequestToEntity(request, enquiry);
                     Enquiry updatedEnquiry = enquiryRepository.save(enquiry);
+                    saveOtherLocationIfNeeded(updatedEnquiry);
                     return ResponseEntity.ok(convertToDTO(updatedEnquiry));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -126,7 +148,7 @@ public class EnquiryController {
 
         return enquiryRepository.findById(id)
                 .map(enquiry -> {
-                    enquiry.setStatus(newStatus);
+                    enquiry.setStatus(normalizeStatus(newStatus));
                     Enquiry updatedEnquiry = enquiryRepository.save(enquiry);
                     return ResponseEntity.ok(convertToDTO(updatedEnquiry));
                 })
@@ -249,6 +271,11 @@ public class EnquiryController {
         dto.setEmailEnabled(enquiry.isEmailEnabled());
         dto.setSelectedEmailPresetId(enquiry.getSelectedEmailPresetId());
         dto.setProvisionalAdmission(enquiry.isProvisionalAdmission());
+        dto.setProvisionalAdmissionDate(enquiry.getProvisionalAdmissionDate());
+        dto.setBranchPriority1(branchByPriority(enquiry.getBranchesInterested(), 1));
+        dto.setBranchPriority2(branchByPriority(enquiry.getBranchesInterested(), 2));
+        dto.setBranchPriority3(branchByPriority(enquiry.getBranchesInterested(), 3));
+        dto.setBranchPriority4(branchByPriority(enquiry.getBranchesInterested(), 4));
         return dto;
     }
 
@@ -272,13 +299,124 @@ public class EnquiryController {
         enquiry.setCategory(dto.getCategory());
         enquiry.setBranchesInterested(dto.getBranchesInterested());
         enquiry.setReferenceFaculty(dto.getReferenceFaculty());
-        enquiry.setStatus(dto.getStatus() != null ? dto.getStatus() : "Pending");
+        enquiry.setStatus(normalizeStatus(dto.getStatus()));
         enquiry.setEnquiryDate(dto.getEnquiryDate());
         enquiry.setSscSeatNo(dto.getSscSeatNo());
         enquiry.setDteRegistrationDone(dto.isDteRegistrationDone());
         enquiry.setEmailEnabled(dto.isEmailEnabled());
         enquiry.setSelectedEmailPresetId(dto.getSelectedEmailPresetId());
         enquiry.setProvisionalAdmission(dto.isProvisionalAdmission());
+        enquiry.setProvisionalAdmissionDate(dto.isProvisionalAdmission() ? dto.getProvisionalAdmissionDate() : null);
+    }
+
+    @PostMapping(value = "/bulk-upload", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> bulkUploadEnquiries(@RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        return ResponseEntity.ok(bulkUploadService.uploadEnquiries(file));
+    }
+
+    @GetMapping("/bulk-upload/template")
+    public ResponseEntity<byte[]> downloadBulkUploadTemplate() {
+        return templateResponse(bulkUploadService.enquiryTemplate(), "enquiry-bulk-upload-template.xlsx");
+    }
+
+    private String normalizeStatus(String status) {
+        if ("Success".equalsIgnoreCase(status)) {
+            return "Success";
+        }
+        return "Pending";
+    }
+
+    private void normalizeRequest(EnquiryRequestDTO dto) {
+        if (dto.getSscSeatNo() != null) {
+            String seatNo = dto.getSscSeatNo().trim();
+            dto.setSscSeatNo(seatNo.isEmpty() ? null : seatNo);
+        }
+        dto.setBranchesInterested(normalizeBranchesInterested(dto));
+        if ("Other".equalsIgnoreCase(dto.getLocation()) && dto.getOtherLocation() != null && !dto.getOtherLocation().trim().isEmpty()) {
+            String location = dto.getOtherLocation().trim();
+            dto.setOtherLocation(location);
+            dto.setLocation(location);
+        }
+    }
+
+    private ResponseEntity<?> validateSeatNumber(Long currentId, String sscSeatNo) {
+        if (sscSeatNo == null || sscSeatNo.trim().isEmpty()) {
+            return null;
+        }
+        Enquiry existing = enquiryRepository.findBySscSeatNoIgnoreCase(sscSeatNo.trim());
+        if (existing != null && (currentId == null || !existing.getId().equals(currentId))) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("{\"error\": \"SSC Seat No already exists for " + existing.getFirstName() + " " + existing.getLastName() + ". Please enter a unique seat number.\"}");
+        }
+        return null;
+    }
+
+    private void saveOtherLocationIfNeeded(Enquiry enquiry) {
+        String location = enquiry.getLocation();
+        if (location == null || location.trim().isEmpty()) {
+            return;
+        }
+        String code = location.trim().toUpperCase().replaceAll("[^A-Z0-9]+", "_").replaceAll("^_|_$", "");
+        if (code.isEmpty() || lookupOptionRepository.existsByTypeAndCode("locations", code)) {
+            return;
+        }
+        LookupOption option = new LookupOption("locations", code, location.trim(), 999);
+        lookupOptionRepository.save(option);
+    }
+
+    private String normalizeBranchesInterested(EnquiryRequestDTO dto) {
+        if (dto.getBranchesInterested() != null && !dto.getBranchesInterested().isBlank()) {
+            return dto.getBranchesInterested();
+        }
+        List<String> priorities = List.of(
+                dto.getBranchPriority1() == null ? "" : dto.getBranchPriority1(),
+                dto.getBranchPriority2() == null ? "" : dto.getBranchPriority2(),
+                dto.getBranchPriority3() == null ? "" : dto.getBranchPriority3(),
+                dto.getBranchPriority4() == null ? "" : dto.getBranchPriority4()
+        );
+        StringBuilder builder = new StringBuilder("[");
+        int priority = 1;
+        for (String branch : priorities) {
+            if (branch == null || branch.isBlank()) {
+                continue;
+            }
+            if (priority > 1) {
+                builder.append(",");
+            }
+            builder.append("{\"branch\":\"")
+                    .append(branch.trim().replace("\\", "\\\\").replace("\"", "\\\""))
+                    .append("\",\"priority\":")
+                    .append(priority)
+                    .append("}");
+            priority++;
+        }
+        return builder.append("]").toString();
+    }
+
+    private String branchByPriority(String branchesInterested, int priority) {
+        if (branchesInterested == null || branchesInterested.isBlank()) {
+            return "";
+        }
+        try {
+            List<Map<String, Object>> branches = objectMapper.readValue(branchesInterested, new TypeReference<List<Map<String, Object>>>() {});
+            for (Map<String, Object> branch : branches) {
+                Object saved = branch.get("priority");
+                int savedPriority = saved instanceof Number ? ((Number) saved).intValue() : Integer.parseInt(String.valueOf(saved));
+                if (savedPriority == priority) {
+                    return String.valueOf(branch.getOrDefault("branch", ""));
+                }
+            }
+        } catch (Exception ignored) {
+            return "";
+        }
+        return "";
+    }
+
+    private ResponseEntity<byte[]> templateResponse(byte[] bytes, String fileName) {
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
+                .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .body(bytes);
     }
 
     private List<String> parseAttachmentPaths(String attachmentsJson) {

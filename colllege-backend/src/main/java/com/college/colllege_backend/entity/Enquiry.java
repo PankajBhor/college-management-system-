@@ -1,5 +1,6 @@
 package com.college.colllege_backend.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -117,6 +118,9 @@ public class Enquiry {
 
     @Column(name = "enquiry_date", nullable = false)
     private String enquiryDate;
+
+    @Column(name = "provisional_admission_date")
+    private LocalDate provisionalAdmissionDate;
 
     @Column(name = "ssc_seat_no", nullable = true, unique = true)
     private String sscSeatNo;
@@ -272,6 +276,14 @@ public class Enquiry {
 
     public void setEnquiryDate(String enquiryDate) {
         this.enquiryDate = enquiryDate;
+    }
+
+    public LocalDate getProvisionalAdmissionDate() {
+        return provisionalAdmissionDate;
+    }
+
+    public void setProvisionalAdmissionDate(LocalDate provisionalAdmissionDate) {
+        this.provisionalAdmissionDate = provisionalAdmissionDate;
     }
 
     public LocalDateTime getCreatedAt() {

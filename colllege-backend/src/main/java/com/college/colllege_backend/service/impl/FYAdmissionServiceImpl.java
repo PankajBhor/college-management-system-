@@ -58,6 +58,7 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         admission.setAnnualIncome(request.getAnnualIncome());
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
+        admission.setAdmissionDate(request.getAdmissionDate());
         admission.setStatus("PENDING");
         admission.setCreatedAt(LocalDateTime.now());
         admission.setUpdatedAt(LocalDateTime.now());
@@ -138,6 +139,7 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         admission.setAnnualIncome(request.getAnnualIncome());
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
+        admission.setAdmissionDate(request.getAdmissionDate());
 
         // Set file paths
         admission.setDomicileCertificatePath(request.getDomicileCertificatePath());

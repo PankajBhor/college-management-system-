@@ -74,6 +74,8 @@ public class DSYAdmissionRequestDTO {
     @NotNull(message = "Admission type cannot be null")
     private String admissionType;
 
+    private LocalDate admissionDate;
+
     private Integer preference1;
     private Integer preference2;
     private Integer preference3;
@@ -361,6 +363,14 @@ public class DSYAdmissionRequestDTO {
 
     public void setAdmissionType(String admissionType) {
         this.admissionType = admissionType;
+    }
+
+    public LocalDate getAdmissionDate() {
+        return admissionDate;
+    }
+
+    public void setAdmissionDate(LocalDate admissionDate) {
+        this.admissionDate = admissionDate;
     }
 
     public Integer getPreference1() {

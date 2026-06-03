@@ -83,6 +83,8 @@ public class FYAdmission {
     @NotNull(message = "Admission type cannot be null")
     private String admissionType; // CAP-1, CAP-2, CAP-3, etc.
 
+    private LocalDate admissionDate;
+
     // Document File Paths
     private String domicileCertificatePath;
     private String tenthMarkSheetPath;
@@ -380,6 +382,14 @@ public class FYAdmission {
 
     public void setAdmissionType(String admissionType) {
         this.admissionType = admissionType;
+    }
+
+    public LocalDate getAdmissionDate() {
+        return admissionDate;
+    }
+
+    public void setAdmissionDate(LocalDate admissionDate) {
+        this.admissionDate = admissionDate;
     }
 
     public String getDomicileCertificatePath() {

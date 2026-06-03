@@ -72,6 +72,8 @@ public class FYAdmissionRequestDTO {
     @NotNull(message = "Admission type cannot be null")
     private String admissionType;
 
+    private LocalDate admissionDate;
+
     // Document File Paths
     private String domicileCertificatePath;
     private String tenthMarkSheetPath;
@@ -358,6 +360,14 @@ public class FYAdmissionRequestDTO {
 
     public void setAdmissionType(String admissionType) {
         this.admissionType = admissionType;
+    }
+
+    public LocalDate getAdmissionDate() {
+        return admissionDate;
+    }
+
+    public void setAdmissionDate(LocalDate admissionDate) {
+        this.admissionDate = admissionDate;
     }
 
     public String getDomicileCertificatePath() {

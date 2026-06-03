@@ -190,6 +190,13 @@ public class AdmissionPdfService {
                 document.add(detailsTable(section.rows()));
             }
 
+            document.add(sectionTitle("Anti-ragging Undertaking"));
+            Paragraph antiRagging = new Paragraph(
+                    "I hereby undertake that I will not participate in ragging in any form. I will follow all rules and regulations laid down by DTE, MSBTE and the institute. If any incident of ragging by me comes to the notice of the institute authority, disciplinary action may be taken against me.",
+                    SMALL_FONT);
+            antiRagging.setSpacingAfter(8);
+            document.add(antiRagging);
+
             PdfPTable signatureTable = new PdfPTable(new float[] { 1f, 1f, 1f });
             signatureTable.setWidthPercentage(100);
             signatureTable.setSpacingBefore(10);
