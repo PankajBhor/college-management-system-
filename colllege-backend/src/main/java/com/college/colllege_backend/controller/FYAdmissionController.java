@@ -60,8 +60,8 @@ public class FYAdmissionController {
     private BulkUploadService bulkUploadService;
 
     @PostMapping
-    public ResponseEntity<FYAdmission> createFYAdmission(
-            @ModelAttribute FYAdmissionRequestDTO request,
+    public ResponseEntity<?> createFYAdmission(
+            @Valid @ModelAttribute FYAdmissionRequestDTO request,
             @RequestPart(value = "domicileCertificate", required = false) MultipartFile domicileCertificate,
             @RequestPart(value = "tenthMarkSheet", required = false) MultipartFile tenthMarkSheet,
             @RequestPart(value = "twelfthMarkSheet", required = false) MultipartFile twelfthMarkSheet,
@@ -131,8 +131,13 @@ public class FYAdmissionController {
             // Update admission with document paths
             FYAdmission updatedAdmission = fyAdmissionService.updateFYAdmission(admission.getId(), request);
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedAdmission);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Create FY admission failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Create FY admission failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("error", "Unable to create FY admission"));
         }
     }
 
@@ -237,9 +242,9 @@ public class FYAdmissionController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FYAdmission> updateFYAdmissionWithDocuments(
+    public ResponseEntity<?> updateFYAdmissionWithDocuments(
             @PathVariable Long id,
-            @ModelAttribute FYAdmissionRequestDTO request,
+            @Valid @ModelAttribute FYAdmissionRequestDTO request,
             @RequestPart(value = "domicileCertificate", required = false) MultipartFile domicileCertificate,
             @RequestPart(value = "tenthMarkSheet", required = false) MultipartFile tenthMarkSheet,
             @RequestPart(value = "twelfthMarkSheet", required = false) MultipartFile twelfthMarkSheet,
@@ -279,8 +284,13 @@ public class FYAdmissionController {
             if (studentPhoto != null && !studentPhoto.isEmpty()) request.setStudentPhotoPath(fileStorageService.saveFile(studentPhoto, "FY", id.toString()));
             if (undertakingForm != null && !undertakingForm.isEmpty()) request.setUndertakingFormPath(fileStorageService.saveFile(undertakingForm, "FY", id.toString()));
             return ResponseEntity.ok(fyAdmissionService.updateFYAdmission(id, request));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Update FY admission documents failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Update FY admission documents failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("error", "Unable to update FY admission documents"));
         }
     }
 

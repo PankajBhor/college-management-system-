@@ -25,7 +25,7 @@ public class DataInitializer {
             ReferenceFacultyRepository referenceFacultyRepository,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            @Value("${app.seed.default-user-password:password}") String defaultUserPassword) {
+            @Value("${app.seed.default-user-password:}") String defaultUserPassword) {
         return args -> {
             migrateLegacyPlainTextPasswords(userRepository, passwordEncoder);
 
@@ -179,6 +179,9 @@ public class DataInitializer {
                 repository.save(user);
             }
             return;
+        }
+        if (password == null || password.isBlank()) {
+            throw new IllegalStateException("DEFAULT_USER_PASSWORD must be set before missing seed users can be created");
         }
         User user = new User();
         user.setName(name);

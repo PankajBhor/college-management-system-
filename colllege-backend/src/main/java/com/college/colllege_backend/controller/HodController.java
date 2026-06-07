@@ -24,6 +24,8 @@ import com.college.colllege_backend.repository.DSYAdmissionRepository;
 import com.college.colllege_backend.repository.EnquiryRepository;
 import com.college.colllege_backend.repository.FYAdmissionRepository;
 import com.college.colllege_backend.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/hod")
@@ -44,6 +46,8 @@ public class HodController {
 
     @Autowired
     private EnquiryRepository enquiryRepository;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping("/overview")
     public ResponseEntity<?> getOverview(Authentication authentication) {
@@ -93,7 +97,18 @@ public class HodController {
     }
 
     private boolean enquiryMatchesDepartment(Enquiry enquiry, Course department) {
-        return belongsToDepartment(enquiry.getBranchesInterested(), department);
+        String branchesInterested = enquiry.getBranchesInterested();
+        if (branchesInterested == null || branchesInterested.isBlank()) {
+            return false;
+        }
+        try {
+            List<Map<String, Object>> branches = objectMapper.readValue(branchesInterested, new TypeReference<List<Map<String, Object>>>() {});
+            return branches.stream()
+                    .map(branch -> String.valueOf(branch.getOrDefault("branch", "")))
+                    .anyMatch(branch -> belongsToDepartment(branch, department));
+        } catch (Exception ignored) {
+            return belongsToDepartment(branchesInterested, department);
+        }
     }
 
     private Map<String, Object> buildAnalytics(List<FYAdmission> fyAdmissions, List<DSYAdmission> dsyAdmissions, List<Enquiry> enquiries) {

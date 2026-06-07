@@ -60,8 +60,8 @@ public class DSYAdmissionController {
     private BulkUploadService bulkUploadService;
 
     @PostMapping
-    public ResponseEntity<DSYAdmission> createDSYAdmission(
-            @ModelAttribute DSYAdmissionRequestDTO request,
+    public ResponseEntity<?> createDSYAdmission(
+            @Valid @ModelAttribute DSYAdmissionRequestDTO request,
             @RequestPart(value = "domicileCertificate", required = false) MultipartFile domicileCertificate,
             @RequestPart(value = "sscMarkSheet", required = false) MultipartFile sscMarkSheet,
             @RequestPart(value = "hscMarkSheet", required = false) MultipartFile hscMarkSheet,
@@ -111,8 +111,13 @@ public class DSYAdmissionController {
             // Update admission with document paths
             DSYAdmission updatedAdmission = dsyAdmissionService.updateDSYAdmission(admission.getId(), request);
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedAdmission);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Create DSY admission failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Create DSY admission failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("error", "Unable to create DSY admission"));
         }
     }
 
@@ -217,9 +222,9 @@ public class DSYAdmissionController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DSYAdmission> updateDSYAdmissionWithDocuments(
+    public ResponseEntity<?> updateDSYAdmissionWithDocuments(
             @PathVariable Long id,
-            @ModelAttribute DSYAdmissionRequestDTO request,
+            @Valid @ModelAttribute DSYAdmissionRequestDTO request,
             @RequestPart(value = "domicileCertificate", required = false) MultipartFile domicileCertificate,
             @RequestPart(value = "sscMarkSheet", required = false) MultipartFile sscMarkSheet,
             @RequestPart(value = "hscMarkSheet", required = false) MultipartFile hscMarkSheet,
@@ -247,8 +252,13 @@ public class DSYAdmissionController {
             if (studentPhoto != null && !studentPhoto.isEmpty()) request.setStudentPhotoPath(fileStorageService.saveFile(studentPhoto, "DSY", id.toString()));
             if (undertakingForm != null && !undertakingForm.isEmpty()) request.setUndertakingFormPath(fileStorageService.saveFile(undertakingForm, "DSY", id.toString()));
             return ResponseEntity.ok(dsyAdmissionService.updateDSYAdmission(id, request));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Update DSY admission documents failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Update DSY admission documents failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("error", "Unable to update DSY admission documents"));
         }
     }
 
