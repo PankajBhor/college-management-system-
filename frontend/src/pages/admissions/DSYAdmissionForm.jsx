@@ -22,8 +22,6 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
   const [yesNoOptions, setYesNoOptions] = useState([]);
   const [admissionRoundOptions, setAdmissionRoundOptions] = useState([]);
   const [qualificationOptions, setQualificationOptions] = useState([]);
-  const [branchToCodeMap, setBranchToCodeMap] = useState({});
-  const [codeToDisplayMap, setCodeToDisplayMap] = useState({});
   const dsyFieldDefaults = {
     applicantFirstName: '',
     applicantMiddleName: '',
@@ -60,10 +58,6 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
     physicallyHandicapped: 'No',
     admissionType: 'CAP-1',
     admissionDate: today(),
-    preference1: '',
-    preference2: '',
-    preference3: '',
-    preference4: '',
     status: ''
   };
 
@@ -95,32 +89,12 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
         setYesNoOptions(yesNo || []);
         setAdmissionRoundOptions(admissionRounds || []);
         setQualificationOptions(qualifications || []);
-        
-        // Create maps for branch conversions
-        const btc = {};
-        const ctd = {};
-        branches?.forEach(branch => {
-          btc[branch.branchName] = branch.branchCode;
-          ctd[branch.branchCode] = `${branch.branchCode}. ${branch.branchName}`;
-        });
-        setBranchToCodeMap(btc);
-        setCodeToDisplayMap(ctd);
       } catch (error) {
         console.error('Error fetching branches:', error);
       }
     }
     fetchBranches();
   }, []);
-
-  // Helper function to convert branch name to program code (uses database)
-  const mapBranchToProgramNumber = (branchName) => {
-    return branchToCodeMap[branchName] || '';
-  };
-
-  // Helper function to get program display name from code (uses database)
-  const getProgramNameFromNumber = (code) => {
-    return codeToDisplayMap[code] || '';
-  };
 
   // Helper function to get location (handle "Other" case)
   const getLocationCity = (enquiry) => {
@@ -142,11 +116,7 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
       'mobileNo',
       'studentEmail',
       'program',
-      'category',
-      'preference1',
-      'preference2',
-      'preference3',
-      'preference4'
+      'category'
     ]);
   };
 
@@ -157,44 +127,24 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
     return prefilledFields.has(fieldName) && (formData[fieldName]);
   };
 
+  const getFirstBranchProgram = (enquiry) => {
+    let branches = enquiry?.branchesInterested;
+    if (typeof branches === 'string') {
+      try {
+        branches = JSON.parse(branches);
+      } catch {
+        branches = [];
+      }
+    }
+    const firstBranchName = Array.isArray(branches) ? branches[0]?.branch : '';
+    return branchOptions.find(branch => branch.branchName === firstBranchName)?.label || '';
+  };
+
   const initialFormData = () => {
     if (editAdmission) {
       return normalizeFormData(editAdmission);
     }
     if (prefilledEnquiry) {
-      // Get branch preferences from enquiry
-      let branches = prefilledEnquiry.branchesInterested;
-      let preference1 = '';
-      let preference2 = '';
-      let preference3 = '';
-      let preference4 = '';
-
-      if (typeof branches === 'string') {
-        try {
-          branches = JSON.parse(branches);
-        } catch {
-          branches = [];
-        }
-      }
-
-      if (Array.isArray(branches)) {
-        if (branches.length > 0) {
-          preference1 = mapBranchToProgramNumber(branches[0].branch);
-        }
-        if (branches.length > 1) {
-          preference2 = mapBranchToProgramNumber(branches[1].branch);
-        }
-        if (branches.length > 2) {
-          preference3 = mapBranchToProgramNumber(branches[2].branch);
-        }
-        if (branches.length > 3) {
-          preference4 = mapBranchToProgramNumber(branches[3].branch);
-        }
-      }
-
-      // Use first branch as main program
-      const mainProgram = preference1 ? getProgramNameFromNumber(preference1) : '';
-
       return {
         applicantFirstName: prefilledEnquiry.firstName || '',
         applicantMiddleName: prefilledEnquiry.middleName || '',
@@ -226,16 +176,12 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
         previousProgramCode: '',
         previousCGPA: '',
         scienceMarks: '',
-        program: mainProgram,
+        program: getFirstBranchProgram(prefilledEnquiry),
         category: prefilledEnquiry.category || '',
         caste: '',
         physicallyHandicapped: 'No',
         admissionType: 'CAP-1',
-        admissionDate: today(),
-        preference1: preference1,
-        preference2: preference2,
-        preference3: preference3,
-        preference4: preference4
+        admissionDate: today()
       };
     }
 
@@ -934,73 +880,6 @@ const DSYAdmissionForm = ({ prefilledEnquiry, editAdmission = null, onSaved = nu
                 className={errors.admissionDate ? 'input-error' : ''}
               />
               {errors.admissionDate && <span className="error-text">{errors.admissionDate}</span>}
-            </div>
-          </div>
-        </fieldset>
-
-        {/* Program Preferences Section */}
-        <fieldset className="form-section">
-          <legend>Program Preferences (In Order of Preference)</legend>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label>Preference 1</label>
-              <select
-                name="preference1"
-                value={formData.preference1}
-                onChange={handleInputChange}
-                className={shouldHighlightField('preference1') ? 'field-prefilled' : ''}
-              >
-                <option value="">Select Preference</option>
-                {branchOptions.map(branch => (
-                  <option key={branch.id || branch.branchCode} value={branch.branchCode}>{branch.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Preference 2</label>
-              <select
-                name="preference2"
-                value={formData.preference2}
-                onChange={handleInputChange}
-                className={shouldHighlightField('preference2') ? 'field-prefilled' : ''}
-              >
-                <option value="">Select Preference</option>
-                {branchOptions.map(branch => (
-                  <option key={branch.id || branch.branchCode} value={branch.branchCode}>{branch.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Preference 3</label>
-              <select
-                name="preference3"
-                value={formData.preference3}
-                onChange={handleInputChange}
-                className={shouldHighlightField('preference3') ? 'field-prefilled' : ''}
-              >
-                <option value="">Select Preference</option>
-                {branchOptions.map(branch => (
-                  <option key={branch.id || branch.branchCode} value={branch.branchCode}>{branch.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Preference 4</label>
-              <select
-                name="preference4"
-                value={formData.preference4}
-                onChange={handleInputChange}
-                className={shouldHighlightField('preference4') ? 'field-prefilled' : ''}
-              >
-                <option value="">Select Preference</option>
-                {branchOptions.map(branch => (
-                  <option key={branch.id || branch.branchCode} value={branch.branchCode}>{branch.label}</option>
-                ))}
-              </select>
             </div>
           </div>
         </fieldset>

@@ -17,6 +17,26 @@ const parseMerit = (enquiry = {}) => {
   }
 };
 
+const DEFAULT_VISIBLE_COLUMNS = new Set([
+  'sNo',
+  'name',
+  'email',
+  'phone',
+  'sscSeatNo',
+  'class10Merit',
+  'class12Merit',
+  'admissionFor',
+  'location',
+  'category',
+  'referenceFaculty',
+  'provisionalAdmission',
+  'provisionalAdmissionDate',
+  'status',
+  'date'
+]);
+
+const isDefaultVisibleColumn = (key) => DEFAULT_VISIBLE_COLUMNS.has(key) || key.startsWith('branchPriority');
+
 const EnquiryList = ({
   enquiries,
   onDelete,
@@ -65,7 +85,7 @@ const EnquiryList = ({
     { key: 'status', label: 'Status' },
     { key: 'date', label: 'Enquiry Date' }
   ];
-  const [visibleColumns, setVisibleColumns] = useState(columns.map(column => column.key));
+  const [visibleColumns, setVisibleColumns] = useState(columns.filter(column => isDefaultVisibleColumn(column.key)).map(column => column.key));
   const columnKeys = columns.map(column => column.key).join('|');
   const locationOptions = [
     ...(lookupOptions.locations || []).map(getOptionValue),
@@ -79,7 +99,7 @@ const EnquiryList = ({
     setVisibleColumns(prev => {
       const nextKeys = columnKeys.split('|').filter(Boolean);
       const keptKeys = prev.filter(key => nextKeys.includes(key));
-      const addedKeys = nextKeys.filter(key => !prev.includes(key));
+      const addedKeys = nextKeys.filter(key => !prev.includes(key) && isDefaultVisibleColumn(key));
       return [...keptKeys, ...addedKeys];
     });
   }, [columnKeys]);
@@ -320,7 +340,7 @@ const EnquiryList = ({
               }}
             >
               <td style={{ padding: '15px', textAlign: 'center', fontWeight: '600', color: '#666' }}>
-                {index + 1}
+                {pageNumber * pageSize + index + 1}
               </td>
               <td style={{ padding: '15px' }}>
                 <strong>{getFullName(enquiry)}</strong>

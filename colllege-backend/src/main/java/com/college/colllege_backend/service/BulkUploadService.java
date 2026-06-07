@@ -122,10 +122,12 @@ public class BulkUploadService {
             request.setStudentEmail(value(row, headers, "Student Email"));
             request.setGender(requiredLookup(row, headers, "Gender", "genders"));
             request.setDateOfBirth(dateValue(row, headers, "Date Of Birth", true));
+            request.setBloodGroup(optionalLookup(row, headers, "Blood Group", "blood_groups"));
             request.setVillageCity(required(row, headers, "Village City"));
             request.setTal(value(row, headers, "Tal"));
             request.setDist(value(row, headers, "Dist"));
             request.setPinCode(value(row, headers, "Pin Code"));
+            request.setOccupation(required(row, headers, "Occupation"));
             request.setAadhaarNo(value(row, headers, "Aadhaar No"));
             request.setSchoolName(value(row, headers, "School Name"));
             request.setYop(integerValue(value(row, headers, "YOP")));
@@ -162,6 +164,7 @@ public class BulkUploadService {
             request.setStudentEmail(value(row, headers, "Student Email"));
             request.setGender(requiredLookup(row, headers, "Gender", "genders"));
             request.setDateOfBirth(dateValue(row, headers, "Date Of Birth", true));
+            request.setBloodGroup(optionalLookup(row, headers, "Blood Group", "blood_groups"));
             request.setLocalAddress(required(row, headers, "Local Address"));
             request.setLocalTal(value(row, headers, "Local Tal"));
             request.setLocalDist(value(row, headers, "Local Dist"));
@@ -210,18 +213,23 @@ public class BulkUploadService {
                 "Class 12 Percentage",
                 "ITI Percentage",
                 "Other Percentage",
-                "Other Marks Of",
-                "Branches Interested"
+                "Other Marks Of"
         ));
         int branchCount = Math.max(1, activeBranchNames().size());
         for (int priority = 1; priority <= branchCount; priority++) {
             headers.add("Branch Priority " + priority);
         }
-        return templateWorkbook(headers, "Enquiries");
+        Map<String, String> prefilledValues = Map.of(
+                "DTE Registration Done", "No",
+                "Email Enabled", "No",
+                "Provisional Admission", "No",
+                "Status", "Pending"
+        );
+        return templateWorkbook(headers, "Enquiries", prefilledValues, 5);
     }
 
     public byte[] fyAdmissionTemplate() {
-        return templateWorkbook(List.of(
+        List<String> headers = List.of(
                 "Applicant Name",
                 "Father Name",
                 "Mother Name",
@@ -229,10 +237,12 @@ public class BulkUploadService {
                 "Student Email",
                 "Gender",
                 "Date Of Birth",
+                "Blood Group",
                 "Village City",
                 "Tal",
                 "Dist",
                 "Pin Code",
+                "Occupation",
                 "Aadhaar No",
                 "School Name",
                 "YOP",
@@ -250,11 +260,16 @@ public class BulkUploadService {
                 "Admission Type",
                 "Admission Date",
                 "Status"
-        ), "FY Admissions");
+        );
+        Map<String, String> prefilledValues = Map.of(
+                "Physically Handicapped", "No",
+                "Status", "PENDING"
+        );
+        return templateWorkbook(headers, "FY Admissions", prefilledValues, 5);
     }
 
     public byte[] dsyAdmissionTemplate() {
-        return templateWorkbook(List.of(
+        List<String> headers = List.of(
                 "Applicant Name",
                 "Father Name",
                 "Mother Name",
@@ -262,6 +277,7 @@ public class BulkUploadService {
                 "Student Email",
                 "Gender",
                 "Date Of Birth",
+                "Blood Group",
                 "Local Address",
                 "Local Tal",
                 "Local Dist",
@@ -284,7 +300,12 @@ public class BulkUploadService {
                 "Admission Type",
                 "Admission Date",
                 "Status"
-        ), "DSY Admissions");
+        );
+        Map<String, String> prefilledValues = Map.of(
+                "Physically Handicapped", "No",
+                "Status", "PENDING"
+        );
+        return templateWorkbook(headers, "DSY Admissions", prefilledValues, 5);
     }
 
     private BulkUploadResultDTO readRows(MultipartFile file, RowImporter importer) {
@@ -591,12 +612,25 @@ public class BulkUploadService {
     }
 
     private byte[] templateWorkbook(List<String> headers, String sheetName) {
+        return templateWorkbook(headers, sheetName, Map.of(), 0);
+    }
+
+    private byte[] templateWorkbook(List<String> headers, String sheetName, Map<String, String> prefilledValues, int prefilledRows) {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet(sheetName);
             Row row = sheet.createRow(0);
             for (int index = 0; index < headers.size(); index++) {
                 row.createCell(index).setCellValue(headers.get(index));
                 sheet.autoSizeColumn(index);
+            }
+            for (int rowIndex = 1; rowIndex <= prefilledRows; rowIndex++) {
+                Row dataRow = sheet.createRow(rowIndex);
+                for (int columnIndex = 0; columnIndex < headers.size(); columnIndex++) {
+                    String prefilledValue = prefilledValues.get(headers.get(columnIndex));
+                    if (prefilledValue != null) {
+                        dataRow.createCell(columnIndex).setCellValue(prefilledValue);
+                    }
+                }
             }
             workbook.write(output);
             return output.toByteArray();

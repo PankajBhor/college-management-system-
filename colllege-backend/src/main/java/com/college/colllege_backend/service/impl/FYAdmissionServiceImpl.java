@@ -59,7 +59,7 @@ public class FYAdmissionServiceImpl implements FYAdmissionService {
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
         admission.setAdmissionDate(request.getAdmissionDate());
-        admission.setStatus("PENDING");
+        admission.setStatus(request.getStatus() != null && !request.getStatus().isBlank() ? request.getStatus() : "PENDING");
         admission.setCreatedAt(LocalDateTime.now());
         admission.setUpdatedAt(LocalDateTime.now());
 

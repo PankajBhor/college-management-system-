@@ -30,8 +30,8 @@ export function useAdmission() {
       // Handle both paginated and non-paginated responses
       if (data.content) {
         setFYAdmissions(data.content);
-        setFYPageNumber(data.pageNumber);
-        setFYPageSize(data.pageSize);
+        setFYPageNumber(data.pageNumber ?? data.number ?? page);
+        setFYPageSize(data.pageSize ?? data.size ?? size);
         setFYTotalPages(data.totalPages);
         setFYTotalElements(data.totalElements);
       } else if (Array.isArray(data)) {
@@ -70,8 +70,8 @@ export function useAdmission() {
 
       if (data.content) {
         setFYAdmissions(data.content);
-        setFYPageNumber(data.pageNumber);
-        setFYPageSize(data.pageSize);
+        setFYPageNumber(data.pageNumber ?? data.number ?? page);
+        setFYPageSize(data.pageSize ?? data.size ?? size);
         setFYTotalPages(data.totalPages);
         setFYTotalElements(data.totalElements);
       } else if (Array.isArray(data)) {
@@ -121,8 +121,8 @@ export function useAdmission() {
 
       if (data.content) {
         setDSYAdmissions(data.content);
-        setDSYPageNumber(data.pageNumber);
-        setDSYPageSize(data.pageSize);
+        setDSYPageNumber(data.pageNumber ?? data.number ?? page);
+        setDSYPageSize(data.pageSize ?? data.size ?? size);
         setDSYTotalPages(data.totalPages);
         setDSYTotalElements(data.totalElements);
       } else if (Array.isArray(data)) {
@@ -161,8 +161,8 @@ export function useAdmission() {
 
       if (data.content) {
         setDSYAdmissions(data.content);
-        setDSYPageNumber(data.pageNumber);
-        setDSYPageSize(data.pageSize);
+        setDSYPageNumber(data.pageNumber ?? data.number ?? page);
+        setDSYPageSize(data.pageSize ?? data.size ?? size);
         setDSYTotalPages(data.totalPages);
         setDSYTotalElements(data.totalElements);
       } else if (Array.isArray(data)) {

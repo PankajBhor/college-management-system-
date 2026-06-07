@@ -135,10 +135,6 @@ public class AdmissionPdfService {
                         field("Category", admission.getCategory()),
                         field("Caste", admission.getCaste()),
                         field("Annual Income", admission.getAnnualIncome()),
-                        field("Preference 1", admission.getPreference1()),
-                        field("Preference 2", admission.getPreference2()),
-                        field("Preference 3", admission.getPreference3()),
-                        field("Preference 4", admission.getPreference4()),
                         field("Status", admission.getStatus()))),
                 new Section("Documents Submitted", rows(
                         field("Domicile / Nationality", "Submitted"),

@@ -238,7 +238,7 @@ const AdmittedListDSY = ({
                 }}
               >
                 <td style={{ padding: '14px 15px', textAlign: 'center', fontSize: '13px', color: '#666' }}>
-                  {index + 1}
+                  {pageNumber * pageSize + index + 1}
                 </td>
                 <td style={{ padding: '14px 15px', fontSize: '13px', color: '#1a1a1a', fontWeight: '500' }}>
                   {getFullName(admission)}

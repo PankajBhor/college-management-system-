@@ -100,12 +100,6 @@ public class DSYAdmission {
     private String studentPhotoPath;
     private String undertakingFormPath;
 
-    // Preferences in order
-    private Integer preference1;
-    private Integer preference2;
-    private Integer preference3;
-    private Integer preference4;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String status; // PENDING, APPROVED, REJECTED
@@ -451,38 +445,6 @@ public class DSYAdmission {
     public void setStudentPhotoPath(String studentPhotoPath) { this.studentPhotoPath = studentPhotoPath; }
     public String getUndertakingFormPath() { return undertakingFormPath; }
     public void setUndertakingFormPath(String undertakingFormPath) { this.undertakingFormPath = undertakingFormPath; }
-
-    public Integer getPreference1() {
-        return preference1;
-    }
-
-    public void setPreference1(Integer preference1) {
-        this.preference1 = preference1;
-    }
-
-    public Integer getPreference2() {
-        return preference2;
-    }
-
-    public void setPreference2(Integer preference2) {
-        this.preference2 = preference2;
-    }
-
-    public Integer getPreference3() {
-        return preference3;
-    }
-
-    public void setPreference3(Integer preference3) {
-        this.preference3 = preference3;
-    }
-
-    public Integer getPreference4() {
-        return preference4;
-    }
-
-    public void setPreference4(Integer preference4) {
-        this.preference4 = preference4;
-    }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

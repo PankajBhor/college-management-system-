@@ -59,11 +59,7 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
         admission.setAdmissionDate(request.getAdmissionDate());
-        admission.setPreference1(request.getPreference1());
-        admission.setPreference2(request.getPreference2());
-        admission.setPreference3(request.getPreference3());
-        admission.setPreference4(request.getPreference4());
-        admission.setStatus("PENDING");
+        admission.setStatus(request.getStatus() != null && !request.getStatus().isBlank() ? request.getStatus() : "PENDING");
         admission.setCreatedAt(LocalDateTime.now());
         admission.setUpdatedAt(LocalDateTime.now());
 
@@ -144,10 +140,6 @@ public class DSYAdmissionServiceImpl implements DSYAdmissionService {
         admission.setPhysicallyHandicapped(request.getPhysicallyHandicapped());
         admission.setAdmissionType(request.getAdmissionType());
         admission.setAdmissionDate(request.getAdmissionDate());
-        admission.setPreference1(request.getPreference1());
-        admission.setPreference2(request.getPreference2());
-        admission.setPreference3(request.getPreference3());
-        admission.setPreference4(request.getPreference4());
 
         // Set file paths
         admission.setDomicileCertificatePath(request.getDomicileCertificatePath());

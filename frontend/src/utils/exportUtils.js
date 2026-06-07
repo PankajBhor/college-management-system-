@@ -58,9 +58,10 @@ export const exportToExcel = (enquiries, selectedFields = null) => {
         field === 'branchesInterested' ? branchPriorityFields : [{ key: field, label: field }]
       ));
       headers = expandedFields.map(field => field.label);
-      rows = enquiries.map((enquiry) => expandedFields.map(field => {
+      rows = enquiries.map((enquiry, index) => expandedFields.map(field => {
         if (field.priority) return getBranchByPriority(enquiry, field.priority);
         const fieldKey = field.key;
+        if (fieldKey === 'sNo') return index + 1;
         if (fieldKey === 'merit' || fieldKey === 'meritDetails') return formatMerit(enquiry);
         return enquiry[fieldKey] !== undefined ? enquiry[fieldKey] : '';
       }));
@@ -106,6 +107,7 @@ export const exportProvisionalAdmissionsToExcel = (rows, selectedFields = null) 
       ? selectedFields
       : ['sscSeatNo', 'fullName', 'email', 'personalMobileNumber', 'admissionFor', 'category', 'location', 'status'];
     const labelMap = {
+      sNo: 'S.No',
       sscSeatNo: 'Seat No',
       fullName: 'Name',
       email: 'Email',
@@ -117,7 +119,8 @@ export const exportProvisionalAdmissionsToExcel = (rows, selectedFields = null) 
       referenceFaculty: 'Reference Faculty'
     };
     const headers = fields.map(field => labelMap[field] || field.replace(/^branchPriority(\d+)$/, 'Priority $1'));
-    const data = rows.map(row => fields.map(field => {
+    const data = rows.map((row, index) => fields.map(field => {
+      if (field === 'sNo') return index + 1;
       if (field === 'fullName') return `${row.firstName || ''} ${row.middleName ? row.middleName + ' ' : ''}${row.lastName || ''}`.trim();
       if (field === 'location') return row.location === 'Other' ? row.otherLocation : row.location;
       const priorityMatch = field.match(/^branchPriority(\d+)$/);

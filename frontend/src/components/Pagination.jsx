@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Pagination = ({
   currentPage = 0,
@@ -8,7 +8,11 @@ const Pagination = ({
   onPageChange,
   onPageSizeChange
 }) => {
-  const [jumpPage, setJumpPage] = useState(currentPage.toString());
+  const [jumpPage, setJumpPage] = useState((currentPage + 1).toString());
+
+  useEffect(() => {
+    setJumpPage((currentPage + 1).toString());
+  }, [currentPage]);
 
   const handlePreviousClick = () => {
     if (currentPage > 0 && onPageChange) {
@@ -25,10 +29,10 @@ const Pagination = ({
   const handleJumpToPage = (e) => {
     e.preventDefault();
     const pageNum = parseInt(jumpPage, 10);
-    if (!isNaN(pageNum) && pageNum >= 0 && pageNum < totalPages && onPageChange) {
-      onPageChange(pageNum);
+    if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages && onPageChange) {
+      onPageChange(pageNum - 1);
     } else {
-      setJumpPage(currentPage.toString());
+      setJumpPage((currentPage + 1).toString());
     }
   };
 
@@ -41,6 +45,7 @@ const Pagination = ({
 
   const startRecord = currentPage * pageSize + 1;
   const endRecord = Math.min((currentPage + 1) * pageSize, totalElements);
+  const safeTotalPages = Math.max(totalPages, 1);
 
   return (
     <div
@@ -115,7 +120,7 @@ const Pagination = ({
             textAlign: 'center'
           }}
         >
-          Page {currentPage + 1} of {totalPages}
+          Page {currentPage + 1} of {safeTotalPages}
         </div>
 
         {/* Next Button */}
@@ -193,10 +198,9 @@ const Pagination = ({
         <input
           type="number"
           min="1"
-          max={totalPages}
+          max={safeTotalPages}
           value={jumpPage}
           onChange={(e) => setJumpPage(e.target.value)}
-          onBlur={() => setJumpPage(currentPage.toString())}
           style={{
             padding: '6px 8px',
             width: '60px',

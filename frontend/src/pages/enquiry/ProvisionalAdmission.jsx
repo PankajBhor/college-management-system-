@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import ColumnVisibilityMenu from '../../components/ColumnVisibilityMenu';
+import Pagination from '../../components/Pagination';
 import { getProvisionalEnquiries } from '../../services/enquiryService';
 import { exportProvisionalAdmissionsToExcel } from '../../utils/exportUtils';
 import { formatDate } from '../../utils/formatters';
 import { buildBranchPriorityFields, getBranchByPriority } from '../../utils/branchPreferences';
 
-const getColumns = (rows = []) => [
+const getColumns = (rows = [], pageNumber = 0, pageSize = 10) => [
+  { key: 'sNo', label: 'S.No', render: (row, index) => pageNumber * pageSize + index + 1 },
   { key: 'sscSeatNo', label: 'Seat No', render: row => row.sscSeatNo || '-' },
   { key: 'fullName', label: 'Name', render: row => [row.firstName, row.middleName, row.lastName].filter(Boolean).join(' ') },
   { key: 'email', label: 'Email', render: row => row.email },
@@ -27,7 +29,9 @@ const ProvisionalAdmission = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [nameSearch, setNameSearch] = useState('');
-  const columns = getColumns(rows);
+  const [pageNumber, setPageNumber] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const columns = getColumns(rows, pageNumber, pageSize);
   const columnKeys = columns.map(column => column.key).join('|');
   const [visibleColumns, setVisibleColumns] = useState(getColumns().map(column => column.key));
 
@@ -54,6 +58,18 @@ const ProvisionalAdmission = () => {
   }, []);
 
   const filteredRows = rows.filter(row => [row.firstName, row.middleName, row.lastName].filter(Boolean).join(' ').toLowerCase().includes(nameSearch.toLowerCase()));
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const paginatedRows = filteredRows.slice(pageNumber * pageSize, pageNumber * pageSize + pageSize);
+
+  useEffect(() => {
+    setPageNumber(0);
+  }, [nameSearch, pageSize]);
+
+  useEffect(() => {
+    if (pageNumber >= totalPages) {
+      setPageNumber(totalPages - 1);
+    }
+  }, [pageNumber, totalPages]);
 
   return (
     <div>
@@ -89,10 +105,10 @@ const ProvisionalAdmission = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.map(row => (
+              {paginatedRows.map((row, index) => (
                 <tr key={row.id}>
                   {columns.filter(column => visibleColumns.includes(column.key)).map(column => (
-                    <td key={column.key} style={cell}>{column.render(row)}</td>
+                    <td key={column.key} style={cell}>{column.render(row, index)}</td>
                   ))}
                 </tr>
               ))}
@@ -103,6 +119,14 @@ const ProvisionalAdmission = () => {
               )}
             </tbody>
           </table>
+          <Pagination
+            currentPage={pageNumber}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalElements={filteredRows.length}
+            onPageChange={setPageNumber}
+            onPageSizeChange={setPageSize}
+          />
         </div>
       )}
     </div>
