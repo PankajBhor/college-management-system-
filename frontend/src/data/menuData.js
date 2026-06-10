@@ -20,6 +20,7 @@ export const menuConfig = {
     { icon: 'AD', label: 'Admissions', page: 'admissions' },
     { icon: 'EQ', label: 'Enquiries', page: 'enquiries' },
     { icon: 'AN', label: 'Analysis', page: 'analysis' },
+    { icon: 'HP', label: 'Home Page', page: 'home-page' },
     { icon: 'ST', label: 'Staff/Department', page: 'staff' }
   ],
   OFFICE_STAFF: [
@@ -76,7 +77,7 @@ export const pageAccess = Object.freeze({
   'hod-admissions': ['HOD'],
   'hod-enquiries': ['HOD'],
   analysis: ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'],
-  'home-page': ['ADMIN'],
+  'home-page': ['ADMIN', 'PRINCIPAL'],
   staff: ['ADMIN', 'PRINCIPAL']
 });
 
