@@ -85,6 +85,64 @@ const AdmittedListFY = ({
     };
   };
 
+  const requiredFormFields = [
+    'applicantFirstName',
+    'applicantLastName',
+    'fatherFirstName',
+    'motherFirstName',
+    'villageCity',
+    'tal',
+    'dist',
+    'pinCode',
+    'occupation',
+    'mobileNo',
+    'studentEmail',
+    'gender',
+    'dateOfBirth',
+    'aadhaarNo',
+    'schoolName',
+    'yop',
+    'marksObtained',
+    'totalMarks',
+    'program',
+    'category',
+    'admissionType',
+    'admissionDate'
+  ];
+
+  const getMissingFormFields = (admission) => {
+    const labels = {
+      applicantFirstName: 'Applicant first name',
+      applicantLastName: 'Applicant last name',
+      fatherFirstName: 'Father first name',
+      motherFirstName: 'Mother first name',
+      villageCity: 'Village / City',
+      tal: 'Taluka',
+      dist: 'District',
+      pinCode: 'Pin code',
+      occupation: 'Occupation',
+      mobileNo: 'Mobile number',
+      studentEmail: 'Email',
+      gender: 'Gender',
+      dateOfBirth: 'Date of birth',
+      aadhaarNo: 'Aadhaar number',
+      schoolName: 'School name',
+      yop: 'Year of passing',
+      marksObtained: 'Marks obtained',
+      totalMarks: 'Total marks',
+      program: 'Program',
+      category: 'Category',
+      admissionType: 'Admission type',
+      admissionDate: 'Admission date'
+    };
+
+    return requiredFormFields
+      .filter(field => String(admission[field] ?? '').trim() === '')
+      .map(field => labels[field]);
+  };
+
+  const isFormInformationComplete = (admission) => getMissingFormFields(admission).length === 0;
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'APPROVED':
@@ -114,9 +172,9 @@ const AdmittedListFY = ({
   };
 
   const downloadAdmissionPdf = async (admission) => {
-    const docStatus = getDocumentStatus(admission);
-    if (!docStatus.isComplete) {
-      setSelectedAdmissionId(admission.id);
+    const missingFields = getMissingFormFields(admission);
+    if (missingFields.length > 0) {
+      alert(`Please fill all required form fields before downloading PDF.\n\nMissing: ${missingFields.join(', ')}`);
       return;
     }
     setDownloadingPdfId(admission.id);
@@ -225,6 +283,7 @@ const AdmittedListFY = ({
         <tbody>
           {admissions.map((admission, index) => {
             const docStatus = getDocumentStatus(admission);
+            const formComplete = isFormInformationComplete(admission);
 
             return (
               <tr
@@ -325,15 +384,15 @@ const AdmittedListFY = ({
                   <button
                     type="button"
                     onClick={() => downloadAdmissionPdf(admission)}
-                    disabled={downloadingPdfId === admission.id}
-                    title={docStatus.isComplete ? 'Download admission form PDF' : 'Complete all documents before downloading'}
+                    disabled={!formComplete || downloadingPdfId === admission.id}
+                    title={formComplete ? 'Download admission form PDF' : 'Complete all required form fields before downloading'}
                     style={{
                       padding: '7px 12px',
-                      background: docStatus.isComplete ? '#175cd3' : '#e5e7eb',
-                      color: docStatus.isComplete ? '#ffffff' : '#6b7280',
+                      background: formComplete ? '#175cd3' : '#e5e7eb',
+                      color: formComplete ? '#ffffff' : '#6b7280',
                       border: 'none',
                       borderRadius: '6px',
-                      cursor: downloadingPdfId === admission.id ? 'wait' : 'pointer',
+                      cursor: downloadingPdfId === admission.id ? 'wait' : (formComplete ? 'pointer' : 'not-allowed'),
                       fontSize: '12px',
                       fontWeight: '600',
                       whiteSpace: 'nowrap'

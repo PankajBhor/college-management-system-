@@ -45,6 +45,9 @@ public class User {
     @Column(name = "access_pages", length = 1000)
     private String accessPages;
 
+    @Column(name = "profile_image_path")
+    private String profileImagePath;
+
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
@@ -117,6 +120,14 @@ public class User {
 
     public void setAccessPages(String accessPages) {
         this.accessPages = accessPages;
+    }
+
+    public String getProfileImagePath() {
+        return profileImagePath;
+    }
+
+    public void setProfileImagePath(String profileImagePath) {
+        this.profileImagePath = profileImagePath;
     }
 
     public LocalDateTime getCreatedAt() {

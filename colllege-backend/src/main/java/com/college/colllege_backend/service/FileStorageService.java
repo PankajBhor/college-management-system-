@@ -53,6 +53,32 @@ public class FileStorageService {
         return dirPath + "/" + uniqueFileName;
     }
 
+    public String saveUserProfileImage(MultipartFile file, String userId) throws IOException {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || (!contentType.equals("image/png") && !contentType.equals("image/jpeg"))) {
+            throw new IllegalArgumentException("Only PNG and JPEG image files are allowed");
+        }
+
+        String dirPath = uploadDir + "/users/" + userId;
+        Path uploadPath = Paths.get(dirPath);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        String originalFileName = file.getOriginalFilename();
+        String fileExtension = originalFileName != null && originalFileName.contains(".")
+                ? originalFileName.substring(originalFileName.lastIndexOf("."))
+                : ".jpg";
+        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+        Path filePath = uploadPath.resolve(uniqueFileName);
+        Files.copy(file.getInputStream(), filePath);
+        return dirPath + "/" + uniqueFileName;
+    }
+
     public void deleteFile(String filePath) {
         if (filePath == null || filePath.isEmpty()) {
             return;

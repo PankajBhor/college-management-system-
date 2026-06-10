@@ -19,6 +19,7 @@ public class UserRequestDTO {
 
     private String departmentCode;
     private String accessPages;
+    private String profileImagePath;
 
     public String getName() {
         return name;
@@ -65,6 +66,14 @@ public class UserRequestDTO {
 
     public void setAccessPages(String accessPages) {
         this.accessPages = accessPages;
+    }
+
+    public String getProfileImagePath() {
+        return profileImagePath;
+    }
+
+    public void setProfileImagePath(String profileImagePath) {
+        this.profileImagePath = profileImagePath;
     }
 }
 

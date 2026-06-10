@@ -3,7 +3,7 @@ import LoginForm from '../components/LoginForm';
 import { loginUser } from '../services/authService';
 import { COLORS, TYPOGRAPHY, SPACING, SHADOWS, BORDER_RADIUS } from '../utils/designSystem';
 
-const LoginPage = ({ onLoginSuccess }) => {
+const LoginPage = ({ onLoginSuccess, onBackHome }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -82,6 +82,26 @@ const LoginPage = ({ onLoginSuccess }) => {
         </div>
 
         <LoginForm onSubmit={handleLogin} isLoading={isLoading} error={error} />
+
+        {onBackHome && (
+          <button
+            type="button"
+            onClick={onBackHome}
+            style={{
+              marginTop: SPACING.xl,
+              width: '100%',
+              padding: `${SPACING.sm} ${SPACING.lg}`,
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: BORDER_RADIUS.base,
+              background: COLORS.background,
+              color: COLORS.primary,
+              fontWeight: TYPOGRAPHY.fontWeight.semibold,
+              cursor: 'pointer'
+            }}
+          >
+            Back to Home
+          </button>
+        )}
 
 
       </div>

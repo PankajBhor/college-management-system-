@@ -31,5 +31,14 @@ export async function deleteUser(id) {
   await API_INSTANCE.delete(`/users/${id}`);
 }
 
-const userService = { getUsers, createUser, updateUser, deleteUser };
+export async function uploadUserProfileImage(id, image) {
+  const formData = new FormData();
+  formData.append('image', image);
+  const response = await API_INSTANCE.post(`/users/${id}/profile-image`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+}
+
+const userService = { getUsers, createUser, updateUser, deleteUser, uploadUserProfileImage };
 export default userService;

@@ -26,7 +26,7 @@ const departmentAbbr = (code, branches) => {
   return DEPARTMENT_ABBREVIATIONS[String(code)] || abbreviationFromName(branch?.name) || code || 'Not assigned';
 };
 
-const emptyForm = { name: '', email: '', password: 'password', role: 'FACULTY', departmentCode: '', accessPages: '' };
+const emptyForm = { name: '', email: '', password: 'password', role: 'FACULTY', departmentCode: '', accessPages: '', profileImagePath: '' };
 const emptyReferenceFacultyForm = { name: '', email: '', department: '', active: true };
 const bulkUploadAccessPages = ['bulk-enquiry-upload', 'bulk-fy-admission-upload', 'bulk-dsy-admission-upload'];
 
@@ -90,7 +90,8 @@ const StaffManagement = ({ currentUser }) => {
       password: '',
       role: user.role || 'FACULTY',
       departmentCode: user.departmentCode || '',
-      accessPages: user.accessPages || ''
+      accessPages: user.accessPages || '',
+      profileImagePath: user.profileImagePath || ''
     });
     setActiveTab('staff');
   };

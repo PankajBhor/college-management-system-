@@ -9,6 +9,7 @@ export const menuConfig = {
     { icon: 'PA', label: 'Provisional Admission', page: 'provisional-admission' },
     { icon: 'EM', label: 'Email', page: 'email-enquiry' },
     { icon: 'AN', label: 'Analysis', page: 'analysis' },
+    { icon: 'HP', label: 'Home Page', page: 'home-page' },
     { icon: 'ST', label: 'Staff/Department', page: 'staff' },
     { icon: 'SU', label: 'Students', page: 'students' },
     { icon: 'CR', label: 'Courses', page: 'courses' },
@@ -75,6 +76,7 @@ export const pageAccess = Object.freeze({
   'hod-admissions': ['HOD'],
   'hod-enquiries': ['HOD'],
   analysis: ['ADMIN', 'PRINCIPAL', 'OFFICE_STAFF', 'ENQUIRY_STAFF', 'HOD', 'ACADEMIC_COORDINATOR'],
+  'home-page': ['ADMIN'],
   staff: ['ADMIN', 'PRINCIPAL']
 });
 

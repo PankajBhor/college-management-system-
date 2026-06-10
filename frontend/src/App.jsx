@@ -3,21 +3,25 @@ import { useAuth } from './hooks/useAuth';
 import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './pages/DashboardLayout';
+import HomePage from './pages/HomePage';
 
 function AppContent() {
   const { user, setUser, logout } = useAuth();
+  const [showLogin, setShowLogin] = React.useState(false);
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
+    setShowLogin(false);
   };
 
   const handleLogout = () => {
     logout();
   };
 
-  // Show login page if not authenticated
   if (!user) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    return showLogin
+      ? <LoginPage onLoginSuccess={handleLoginSuccess} onBackHome={() => setShowLogin(false)} />
+      : <HomePage onLoginClick={() => setShowLogin(true)} />;
   }
 
   // Show dashboard layout if authenticated

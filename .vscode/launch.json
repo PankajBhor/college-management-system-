@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ColllegeBackendApplication",
+            "request": "launch",
+            "mainClass": "src.main.java.com.college.colllege_backend.ColllegeBackendApplication",
+            "projectName": "colllege-backend"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-ColllegeBackendApplication<colllege-backend>",
             "request": "launch",
             "cwd": "${workspaceFolder}",

@@ -111,6 +111,8 @@ public class SecurityConfig {
                 // Public endpoints - NO authentication required
                 .requestMatchers("/api/users/login").permitAll()
                 .requestMatchers("/api/health").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/home-page").permitAll()
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/lookups/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/faculty/**").permitAll()
@@ -155,6 +157,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/students/**").authenticated()
                 // Management endpoints
                 .requestMatchers("/api/users/**").access(hasRoleOrPage("staff", "ADMIN", "PRINCIPAL"))
+                .requestMatchers("/api/home-page").access(hasRoleOrPage("staff", "ADMIN", "PRINCIPAL"))
+                .requestMatchers("/api/home-page/**").access(hasRoleOrPage("staff", "ADMIN", "PRINCIPAL"))
                 .requestMatchers("/api/faculty/**").access(hasRoleOrPage("staff", "ADMIN", "PRINCIPAL", "HOD", "OFFICE_STAFF"))
                 .requestMatchers("/api/reference-faculty/**").access(hasRoleOrPage("enquiries", "ADMIN", "PRINCIPAL", "HOD", "OFFICE_STAFF", "ENQUIRY_STAFF"))
                 .requestMatchers(HttpMethod.GET, "/api/courses/**").access(hasRoleOrPage("courses", "ADMIN", "PRINCIPAL", "HOD", "OFFICE_STAFF", "ACADEMIC_COORDINATOR"))

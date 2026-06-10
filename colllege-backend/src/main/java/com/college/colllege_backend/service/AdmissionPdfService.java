@@ -81,20 +81,21 @@ public class AdmissionPdfService {
                         field("Annual Income", admission.getAnnualIncome()),
                         field("Status", admission.getStatus()))),
                 new Section("Documents Submitted", rows(
-                        field("Domicile / Nationality", "Submitted"),
-                        field("10th Mark Sheet", "Submitted"),
-                        field("12th / ITI Mark Sheet", "Submitted"),
-                        field("Leaving Certificate", "Submitted"),
-                        field("Caste Certificate", "Submitted"),
-                        field("Non Creamy Layer", "Submitted"),
-                        field("Income Certificate", "Submitted"),
-                        field("Defence Certificate", "Submitted"),
-                        field("Aadhaar Card", "Submitted"),
-                        field("Any Other Document", "Submitted"),
-                        field("Student Photo", "Submitted"),
-                        field("Undertaking / Anti-ragging", "Submitted"))));
+                        documentStatus("Domicile / Nationality", admission.getDomicileCertificatePath()),
+                        documentStatus("10th Mark Sheet", admission.getTenthMarkSheetPath()),
+                        documentStatus("12th / ITI Mark Sheet", admission.getTwelfthMarkSheetPath()),
+                        documentStatus("Leaving Certificate", admission.getLeavingCertificatePath()),
+                        documentStatus("Caste Certificate", admission.getCasteCertificatePath()),
+                        documentStatus("Non Creamy Layer", admission.getNonCreamyLayerCertificatePath()),
+                        documentStatus("Income Certificate", admission.getIncomeCertificatePath()),
+                        documentStatus("Defence Certificate", admission.getDefenceCertificatePath()),
+                        documentStatus("Aadhaar Card", admission.getAadhaarCardPath()),
+                        documentStatus("Any Other Document", admission.getAnyOtherDocumentPath()),
+                        documentStatus("Student Photo", admission.getStudentPhotoPath()),
+                        documentStatus("Undertaking / Anti-ragging", admission.getUndertakingFormPath()))));
 
-        return renderPdf("First Year Diploma Engineering Admission Form", "Official admission form for office submission", admission.getStudentPhotoPath(), sections);
+        return renderPdf("First Year Diploma Engineering Admission Form", "Official admission form for office submission", admission.getStudentPhotoPath(), sections,
+                document -> addFYUndertakings(document, admission));
     }
 
     public byte[] generateDSYAdmissionForm(DSYAdmission admission) {
@@ -137,19 +138,25 @@ public class AdmissionPdfService {
                         field("Annual Income", admission.getAnnualIncome()),
                         field("Status", admission.getStatus()))),
                 new Section("Documents Submitted", rows(
-                        field("Domicile / Nationality", "Submitted"),
-                        field("SSC Mark Sheet", "Submitted"),
-                        field("HSC Mark Sheet", "Submitted"),
-                        field("Caste Certificate", "Submitted"),
-                        field("Non Creamy Layer", "Submitted"),
-                        field("Aadhaar Card", "Submitted"),
-                        field("Student Photo", "Submitted"),
-                        field("Undertaking / Anti-ragging", "Submitted"))));
+                        documentStatus("Domicile / Nationality", admission.getDomicileCertificatePath()),
+                        documentStatus("SSC Mark Sheet", admission.getSscMarkSheetPath()),
+                        documentStatus("HSC Mark Sheet", admission.getHscMarkSheetPath()),
+                        documentStatus("Caste Certificate", admission.getCasteCertificatePath()),
+                        documentStatus("Non Creamy Layer", admission.getNonCreamyLayerCertificatePath()),
+                        documentStatus("Aadhaar Card", admission.getAadhaarCardPath()),
+                        documentStatus("Student Photo", admission.getStudentPhotoPath()),
+                        documentStatus("Undertaking / Anti-ragging", admission.getUndertakingFormPath()))));
 
-        return renderPdf("Direct Second Year Diploma Engineering Admission Form", "Official admission form for office submission", admission.getStudentPhotoPath(), sections);
+        return renderPdf("Direct Second Year Diploma Engineering Admission Form", "Official admission form for office submission", admission.getStudentPhotoPath(), sections,
+                document -> addDSYUndertakings(document, admission));
     }
 
-    private byte[] renderPdf(String title, String subtitle, String photoPath, List<Section> sections) {
+    @FunctionalInterface
+    private interface PdfContentWriter {
+        void write(Document document) throws Exception;
+    }
+
+    private byte[] renderPdf(String title, String subtitle, String photoPath, List<Section> sections, PdfContentWriter undertakingWriter) {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             Document document = new Document(PageSize.A4, 28, 28, 20, 18);
@@ -186,12 +193,8 @@ public class AdmissionPdfService {
                 document.add(detailsTable(section.rows()));
             }
 
-            document.add(sectionTitle("Anti-ragging Undertaking"));
-            Paragraph antiRagging = new Paragraph(
-                    "I hereby undertake that I will not participate in ragging in any form. I will follow all rules and regulations laid down by DTE, MSBTE and the institute. If any incident of ragging by me comes to the notice of the institute authority, disciplinary action may be taken against me.",
-                    SMALL_FONT);
-            antiRagging.setSpacingAfter(8);
-            document.add(antiRagging);
+            document.newPage();
+            undertakingWriter.write(document);
 
             PdfPTable signatureTable = new PdfPTable(new float[] { 1f, 1f, 1f });
             signatureTable.setWidthPercentage(100);
@@ -201,7 +204,7 @@ public class AdmissionPdfService {
             signatureTable.addCell(signatureCell("Office Verification"));
             document.add(signatureTable);
 
-            Paragraph footer = new Paragraph("Declaration: I confirm that the information printed above is true and all required documents have been submitted for verification.", SMALL_FONT);
+            Paragraph footer = new Paragraph("Declaration: I confirm that the information printed above is true and the listed documents are available for office verification as per their submitted status.", SMALL_FONT);
             footer.setSpacingBefore(7);
             document.add(footer);
 
@@ -214,9 +217,13 @@ public class AdmissionPdfService {
 
     private void addPhoto(PdfPCell photoCell, String photoPath) {
         try {
+            if (photoPath == null || photoPath.isBlank()) {
+                photoCell.addElement(new Paragraph("Photo not submitted", SMALL_FONT));
+                return;
+            }
             Path path = Paths.get(photoPath);
             if (!Files.exists(path)) {
-                photoCell.addElement(new Paragraph("Photo submitted", SMALL_FONT));
+                photoCell.addElement(new Paragraph("Photo file unavailable", SMALL_FONT));
                 return;
             }
             Image image = Image.getInstance(Files.readAllBytes(path));
@@ -225,6 +232,76 @@ public class AdmissionPdfService {
             photoCell.addElement(image);
         } catch (Exception ex) {
             photoCell.addElement(new Paragraph("Photo submitted", SMALL_FONT));
+        }
+    }
+
+    private void addFYUndertakings(Document document, FYAdmission admission) throws Exception {
+        String name = fullName(admission.getApplicantFirstName(), admission.getApplicantMiddleName(), admission.getApplicantLastName());
+        String program = cleanProgramName(admission.getProgram());
+
+        document.add(sectionTitle("Undertakings"));
+        addUndertakingParagraph(document, "Legal Guardian Undertaking:",
+                "In lieu of JCEI's Jaihind Polytechnic Kuran, Tal. Junnar, Dist. Pune considering the application of Mr./Mrs. " + name
+                        + " for admission to Diploma in " + program
+                        + ", I hereby agree & undertaking that at the test (Tuition Fee + Development Fee) & other charges & / or Fees decide by the Maharashtra State board of Technical Education, Fees Fixation Committee are more than the Interim Fees for the current academic year, then I will pay the difference on the Institute on demand. I shall also pay the fees & other charges decided by State Government/DTE/ Fees Fixation Committee for the subsequent academic years from time to time.");
+
+        addUndertakingList(document, "Academic Year Undertaking (2025-2026):", List.of(
+                "I Mr/Mrs " + name + " student of 1st year Diploma in " + program + " will attend all theory lectures & practicals.",
+                "I will appear for all the program tests & will pass with minimum 50% marks.",
+                "I will not involve in any sort of common off.",
+                "I will follow all the rules & regulations laid down by the DTE, MSBTE & Institute from time to time.",
+                "I am aware that if in case my attendance falls below 75%, I will be detained as per MSBTE norms.",
+                "If I fail to abide by my one of the above, I know that I will not be allowed to appear for the MSBTE examination of the semester & I know that it will cause loss of one year of my academic education."));
+
+        addUndertakingParagraph(document, "Anti-Ragging Undertaking:",
+                "Mr./Mrs " + name + " Program ________, hereby undertake that if any incident of ragging by me comes to the notice of the Institute authority, I shall be given liberty to explain & if my explanation is not found satisfactory, the Principal or the Anti-Ragging Committee my expel me from the Institute.");
+    }
+
+    private void addDSYUndertakings(Document document, DSYAdmission admission) throws Exception {
+        String name = fullName(admission.getApplicantFirstName(), admission.getApplicantMiddleName(), admission.getApplicantLastName());
+        String program = cleanProgramName(admission.getProgram());
+
+        document.add(sectionTitle("Undertakings"));
+        addUndertakingParagraph(document, "Legal Guardian Undertaking:",
+                "In lieu of JCEI's Jaihind Polytechnic Kuran considering the application of " + name
+                        + " for admission to Direct Second Year Diploma in " + program
+                        + ", I hereby agree & undertaking that at the test (Tuition Fee + Development Fee) & other charges & / or Fees decide by the Maharashtra State board of Technical Education, Fees Fixation Committee are more than the Interim Fees for the current academic year, then I will pay the difference on the Institute on demand. I shall also pay the fees & other charges decided by State Government/DTE/ Fees Fixation Committee for the subsequent academic years from time to time.");
+
+        addUndertakingList(document, "Academic Year Undertaking (2025-2026):", List.of(
+                "I Mr/Mrs " + name + " students of 2nd year admission will attend all theory lectures & practicals.",
+                "I will appear for all the program tests & will pass with minimum 50% marks.",
+                "I will not involve in any sort of common off.",
+                "I will follow all the rules & regulations laid down by the DTE, MSBTE & Institute from time to time.",
+                "I am aware that if in case my attendance falls below 75%, I will be detained as per MSBTE norms.",
+                "If I fail to abide by my one of the above, I know that I will not be allowed to appear for the MSBTE examination of the semester & I know that it will cause loss of my academic program."));
+
+        addUndertakingParagraph(document, "Anti-Ragging Undertaking:",
+                "Mr./Mrs " + name + " Program ________, hereby undertake that if any incident of ragging by me comes to the notice of the Institute authority, I shall be given liberty to explain & if my explanation is not found satisfactory, the Principal or the Anti-Ragging Committee my expel me from the Institute.");
+    }
+
+    private void addUndertakingParagraph(Document document, String heading, String text) throws Exception {
+        Paragraph title = new Paragraph(heading, LABEL_FONT);
+        title.setSpacingBefore(8);
+        title.setSpacingAfter(3);
+        document.add(title);
+
+        Paragraph paragraph = new Paragraph(text, VALUE_FONT);
+        paragraph.setAlignment(Element.ALIGN_JUSTIFIED);
+        paragraph.setSpacingAfter(5);
+        document.add(paragraph);
+    }
+
+    private void addUndertakingList(Document document, String heading, List<String> items) throws Exception {
+        Paragraph title = new Paragraph(heading, LABEL_FONT);
+        title.setSpacingBefore(8);
+        title.setSpacingAfter(3);
+        document.add(title);
+
+        for (String item : items) {
+            Paragraph paragraph = new Paragraph("- " + item, VALUE_FONT);
+            paragraph.setIndentationLeft(10);
+            paragraph.setSpacingAfter(3);
+            document.add(paragraph);
         }
     }
 
@@ -301,18 +378,7 @@ public class AdmissionPdfService {
         require(missing, "Program", admission::getProgram);
         require(missing, "Category", admission::getCategory);
         require(missing, "Admission Type", admission::getAdmissionType);
-        require(missing, "Domicile / Nationality Certificate", admission::getDomicileCertificatePath);
-        require(missing, "10th Mark Sheet", admission::getTenthMarkSheetPath);
-        require(missing, "12th / ITI Mark Sheet", admission::getTwelfthMarkSheetPath);
-        require(missing, "Leaving Certificate", admission::getLeavingCertificatePath);
-        require(missing, "Caste Certificate", admission::getCasteCertificatePath);
-        require(missing, "Non Creamy Layer Certificate", admission::getNonCreamyLayerCertificatePath);
-        require(missing, "Income Certificate", admission::getIncomeCertificatePath);
-        require(missing, "Defence Certificate", admission::getDefenceCertificatePath);
-        require(missing, "Aadhaar Card", admission::getAadhaarCardPath);
-        require(missing, "Any Other Document", admission::getAnyOtherDocumentPath);
-        require(missing, "Student Photo", admission::getStudentPhotoPath);
-        require(missing, "Undertaking / Anti-ragging Form", admission::getUndertakingFormPath);
+        require(missing, "Admission Date", admission::getAdmissionDate);
         rejectIfMissing(missing);
     }
 
@@ -336,23 +402,17 @@ public class AdmissionPdfService {
         require(missing, "Date of Birth", admission::getDateOfBirth);
         require(missing, "Aadhaar No.", admission::getAadhaarNo);
         require(missing, "Educational Qualification", admission::getEducationalQualification);
+        require(missing, "Institute Name", admission::getInstituteName);
         require(missing, "Program", admission::getProgram);
         require(missing, "Category", admission::getCategory);
         require(missing, "Admission Type", admission::getAdmissionType);
-        require(missing, "Domicile / Nationality Certificate", admission::getDomicileCertificatePath);
-        require(missing, "SSC Mark Sheet", admission::getSscMarkSheetPath);
-        require(missing, "HSC Mark Sheet", admission::getHscMarkSheetPath);
-        require(missing, "Caste Certificate", admission::getCasteCertificatePath);
-        require(missing, "Non Creamy Layer Certificate", admission::getNonCreamyLayerCertificatePath);
-        require(missing, "Aadhaar Card", admission::getAadhaarCardPath);
-        require(missing, "Student Photo", admission::getStudentPhotoPath);
-        require(missing, "Undertaking / Anti-ragging Form", admission::getUndertakingFormPath);
+        require(missing, "Admission Date", admission::getAdmissionDate);
         rejectIfMissing(missing);
     }
 
     private void rejectIfMissing(List<String> missing) {
         if (!missing.isEmpty()) {
-            throw new IllegalArgumentException("Admission form PDF can be downloaded only after all information and required attachments are submitted. Missing: " + String.join(", ", missing));
+            throw new IllegalArgumentException("Admission form PDF can be downloaded only after all required form information is submitted. Missing: " + String.join(", ", missing));
         }
     }
 
@@ -371,6 +431,10 @@ public class AdmissionPdfService {
         return new Field(label, value == null ? "" : String.valueOf(value));
     }
 
+    private Field documentStatus(String label, String documentPath) {
+        return field(label, documentPath == null || documentPath.isBlank() ? "Not submitted" : "Submitted");
+    }
+
     private String fullName(String firstName, String middleName, String lastName) {
         return java.util.stream.Stream.of(firstName, middleName, lastName)
                 .filter(Objects::nonNull)
@@ -381,6 +445,13 @@ public class AdmissionPdfService {
 
     private String blankToDash(String value) {
         return value == null || value.isBlank() ? "-" : value;
+    }
+
+    private String cleanProgramName(String program) {
+        if (program == null || program.isBlank()) {
+            return "_____________";
+        }
+        return program.replaceFirst("^\\s*\\d+\\.\\s*", "");
     }
 
     private record Section(String title, List<Field> rows) {

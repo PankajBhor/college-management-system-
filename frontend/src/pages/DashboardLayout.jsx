@@ -9,6 +9,7 @@ import ProvisionalAdmission from './enquiry/ProvisionalAdmission';
 import EmailPage from './email/EmailPage';
 import AdmissionPage from './admissions/AdmissionPage';
 import StaffManagement from './staff/StaffManagement';
+import HomePageAdmin from './home/HomePageAdmin';
 import AnalysisPage from './analysis/AnalysisPage';
 import HodAdmissionsPage from './hod/HodAdmissionsPage';
 import HodEnquiriesPage from './hod/HodEnquiriesPage';
@@ -51,6 +52,8 @@ const DashboardLayout = ({ user, onLogout }) => {
         return <AnalysisPage user={user} />;
       case 'staff':
         return <StaffManagement currentUser={user} />;
+      case 'home-page':
+        return <HomePageAdmin />;
       case 'students':
         return (
           <div>

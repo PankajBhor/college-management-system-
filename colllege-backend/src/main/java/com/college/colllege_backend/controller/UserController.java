@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
 
 import com.college.colllege_backend.dto.LoginRequestDTO;
@@ -26,6 +28,7 @@ import com.college.colllege_backend.enums.UserRole;
 import com.college.colllege_backend.repository.UserRepository;
 import com.college.colllege_backend.service.AutoIncrementService;
 import com.college.colllege_backend.service.AuthService;
+import com.college.colllege_backend.service.FileStorageService;
 
 @RestController
 @RequestMapping("/api/users")
@@ -40,6 +43,9 @@ public class UserController {
 
     @Autowired
     private AutoIncrementService autoIncrementService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @GetMapping
     public List<UserResponseDTO> getAllUsers() {
@@ -77,6 +83,7 @@ public class UserController {
             user.setRole(role.name());
             user.setDepartmentCode(request.getDepartmentCode());
             user.setAccessPages(request.getAccessPages());
+            user.setProfileImagePath(request.getProfileImagePath());
             user.setPassword(authService.hashPassword(request.getPassword()));
 
             User saved = userRepository.save(user);
@@ -103,11 +110,37 @@ public class UserController {
             user.setRole(role.name());
             user.setDepartmentCode(request.getDepartmentCode());
             user.setAccessPages(request.getAccessPages());
+            if (request.getProfileImagePath() != null) {
+                user.setProfileImagePath(request.getProfileImagePath());
+            }
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 user.setPassword(authService.hashPassword(request.getPassword()));
             }
 
             User saved = userRepository.save(user);
+            return ResponseEntity.ok(toResponse(saved));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+    @PostMapping("/{id}/profile-image")
+    public ResponseEntity<?> uploadProfileImage(@PathVariable Long id, @RequestPart("image") MultipartFile image) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            String role = String.valueOf(user.getRole());
+            if (!role.equals("PRINCIPAL") && !role.equals("HOD")) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Images can be uploaded only for Principal and HOD users\"}");
+            }
+
+            String previousPath = user.getProfileImagePath();
+            String imagePath = fileStorageService.saveUserProfileImage(image, id.toString());
+            user.setProfileImagePath(imagePath);
+            User saved = userRepository.save(user);
+            if (previousPath != null && !previousPath.isBlank()) {
+                fileStorageService.deleteFile(previousPath);
+            }
             return ResponseEntity.ok(toResponse(saved));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
@@ -125,7 +158,7 @@ public class UserController {
     }
 
     private UserResponseDTO toResponse(User user) {
-        return new UserResponseDTO(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getDepartmentCode(), user.getAccessPages());
+        return new UserResponseDTO(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getDepartmentCode(), user.getAccessPages(), user.getProfileImagePath());
     }
 }
 
